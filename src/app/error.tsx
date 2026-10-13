@@ -1,0 +1,29 @@
+"use client";
+
+import { Database, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+
+export default function WorkspaceError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  return (
+    <main className="route-state">
+      <div className="route-state-top"><ThemeToggle /></div>
+      <section className="route-state-card" role="alert">
+        <div className="route-state-brand">
+          <span className="brand-mark" aria-hidden="true"><span /></span>
+          <span className="brand-word">ONTIX</span>
+        </div>
+        <span className="route-state-icon error-icon"><Database size={24} /></span>
+        <p className="route-state-kicker">SERVICE STATUS</p>
+        <h1>Workspace temporarily unavailable</h1>
+        <p>Ontix couldn’t complete this request. Try again, or contact your administrator if the problem continues.</p>
+        <div className="route-state-actions">
+          <button className="button button-primary" onClick={reset}>
+            <RefreshCw size={16} /> Try again
+          </button>
+          <Link className="button button-secondary" href="/login">Return to sign in</Link>
+        </div>
+      </section>
+    </main>
+  );
+}

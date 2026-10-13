@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LoaderCircle, ShieldCheck } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { notify } from "@/lib/notifications";
 
 export function LoginForm() {
   const router = useRouter();
@@ -15,18 +16,27 @@ export function LoginForm() {
     setError("");
     setPending(true);
     const formData = new FormData(event.currentTarget);
-    const result = await authClient.signIn.email({
-      email: String(formData.get("email") ?? "").trim(),
-      password: String(formData.get("password") ?? ""),
-      callbackURL: "/",
-    });
-    setPending(false);
-    if (result.error) {
-      setError("Sign in failed. Check your credentials or contact your administrator.");
-      return;
+    try {
+      const result = await authClient.signIn.email({
+        email: String(formData.get("email") ?? "").trim(),
+        password: String(formData.get("password") ?? ""),
+        callbackURL: "/",
+      });
+      if (result.error) {
+        const message = "Sign in could not be completed. Check your details or contact your administrator.";
+        setError(message);
+        notify.error({ title: "Unable to sign in", description: message });
+        return;
+      }
+      router.replace("/");
+      router.refresh();
+    } catch {
+      const message = "The service could not be reached. Check your connection and try again.";
+      setError(message);
+      notify.error({ title: "Connection problem", description: message });
+    } finally {
+      setPending(false);
     }
-    router.replace("/");
-    router.refresh();
   }
 
   return (

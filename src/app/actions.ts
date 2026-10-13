@@ -25,7 +25,7 @@ const commandSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("project.update"), projectId: idSchema, input: z.unknown() }),
   z.object({ type: z.literal("project.archive"), projectId: idSchema }),
   z.object({ type: z.literal("case.create"), input: z.unknown() }),
-  z.object({ type: z.literal("case.assign"), caseId: idSchema, employeeId: idSchema }),
+  z.object({ type: z.literal("case.assign"), caseId: idSchema, employeeId: idSchema.nullable() }),
   z.object({ type: z.literal("case.escalate"), caseId: idSchema }),
   z.object({ type: z.literal("case.requestApproval"), caseId: idSchema, input: z.unknown() }),
   z.object({ type: z.literal("approval.decide"), approvalId: idSchema, decision: z.enum(["APPROVED", "REJECTED"]), comment: z.string().trim().max(1000) }),
@@ -88,6 +88,18 @@ export async function runWorkspaceCommand(rawCommand: unknown): Promise<ActionRe
     revalidatePath("/");
     return { ok: true };
   } catch (error) {
+    if (
+      !(error instanceof ZodError) &&
+      !(error instanceof AuthenticationRequiredError) &&
+      !(error instanceof AuthorizationDeniedError) &&
+      !(error instanceof WorkflowConflictError) &&
+      !(error instanceof ServiceError)
+    ) {
+      console.error("[Ontix] Unexpected workspace command failure", {
+        command: parsed.data.type,
+        errorType: error instanceof Error ? error.name : "UnknownError",
+      });
+    }
     return { ok: false, error: publicError(error) };
   }
 }

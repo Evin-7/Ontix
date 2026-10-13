@@ -14,7 +14,7 @@ export default async function HomePage() {
   return (
     <OntixApp
       initialData={initialData}
-      viewer={{ name: actor.name, email: actor.email, role: actor.role }}
+      viewer={{ employeeId: actor.employeeId, name: actor.name, email: actor.email, role: actor.role }}
     />
   );
 }

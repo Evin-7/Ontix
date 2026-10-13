@@ -10,7 +10,7 @@ const ACTIVE_CASE_STATUSES = new Set(["OPEN", "IN_PROGRESS", "WAITING_APPROVAL"]
  */
 export async function assignCase(
   prisma: PrismaClient,
-  input: { caseId: string; employeeId: string; actorId: string },
+  input: { caseId: string; employeeId: string | null; actorId: string },
 ) {
   return prisma.$transaction(async (tx) => {
     const current = await tx.operationalCase.findUnique({
@@ -50,7 +50,9 @@ export async function assignCase(
         action: "CASE_ASSIGNED",
         objectType: "OperationalCase",
         objectId: current.id,
-        summary: `${current.caseKey} assigned to ${input.employeeId}`,
+        summary: input.employeeId
+          ? `${current.caseKey} assigned to employee ${input.employeeId}`
+          : `${current.caseKey} unassigned`,
         beforeJson: JSON.stringify({ assignedEmployeeId: current.assignedEmployeeId }),
         afterJson: JSON.stringify({ assignedEmployeeId: input.employeeId }),
       },

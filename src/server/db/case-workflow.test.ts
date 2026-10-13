@@ -80,6 +80,40 @@ describe("transactional case workflows", () => {
     expect(tx.operationalCase.findUniqueOrThrow).not.toHaveBeenCalled();
   });
 
+  it("can unassign a case and records the change atomically", async () => {
+    const tx = {
+      operationalCase: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "case-1",
+          caseKey: "CASE-1",
+          status: "IN_PROGRESS",
+          revision: 4,
+          assignedEmployeeId: "employee-2",
+        }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        findUniqueOrThrow: vi.fn().mockResolvedValue({ id: "case-1", assignedEmployeeId: null, revision: 5 }),
+      },
+      activityEvent: { create: vi.fn().mockResolvedValue({ id: "event-1" }) },
+    };
+    const { prisma, transaction } = prismaWithTransaction(tx);
+
+    await expect(assignCase(prisma, { caseId: "case-1", actorId: "manager-1", employeeId: null }))
+      .resolves.toEqual({ id: "case-1", assignedEmployeeId: null, revision: 5 });
+
+    expect(transaction).toHaveBeenCalledOnce();
+    expect(tx.operationalCase.updateMany).toHaveBeenCalledWith({
+      where: { id: "case-1", status: "IN_PROGRESS", revision: 4 },
+      data: { assignedEmployeeId: null, revision: { increment: 1 } },
+    });
+    expect(tx.activityEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        summary: "CASE-1 unassigned",
+        beforeJson: JSON.stringify({ assignedEmployeeId: "employee-2" }),
+        afterJson: JSON.stringify({ assignedEmployeeId: null }),
+      }),
+    });
+  });
+
   it("raises priority by one level and audits the transition atomically", async () => {
     const updatedCase = { id: "case-1", priority: "MEDIUM", revision: 5 };
     const tx = {

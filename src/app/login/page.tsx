@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/app/login/login-form";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -10,9 +11,13 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <main className="login-page">
-      <div className="login-brand">
-        <span className="brand-mark"><span /></span>
-        <span className="brand-word">ONTIX</span>
+      <div className="login-header">
+        <span aria-hidden="true" />
+        <div className="login-brand">
+          <span className="brand-mark" aria-hidden="true"><span /></span>
+          <span className="brand-word">ONTIX</span>
+        </div>
+        <ThemeToggle />
       </div>
       <section className="login-card">
         <div className="login-kicker">OPERATIONS WORKSPACE</div>

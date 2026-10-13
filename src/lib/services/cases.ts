@@ -39,7 +39,7 @@ export async function createCase(rawInput: unknown) {
   });
 }
 
-export async function assignOperationalCase(caseId: string, employeeId: string) {
+export async function assignOperationalCase(caseId: string, employeeId: string | null) {
   const actor = await requirePermission("cases:work");
   return assignCase(prisma, { caseId, employeeId, actorId: actor.employeeId });
 }

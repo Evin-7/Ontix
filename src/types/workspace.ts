@@ -1,6 +1,7 @@
 export type Role = "ADMINISTRATOR" | "MANAGER" | "DEVELOPER" | "ANALYST";
 
 export type Viewer = {
+  employeeId: string;
   name: string;
   email: string;
   role: Role;
@@ -107,12 +108,13 @@ export type WorkspaceData = {
 
 export type WorkspaceCommand =
   | { type: "customer.create"; input: unknown }
+  | { type: "customer.update"; customerId: string; input: unknown }
   | { type: "customer.archive"; customerId: string }
   | { type: "project.create"; input: unknown }
   | { type: "project.update"; projectId: string; input: unknown }
   | { type: "project.archive"; projectId: string }
   | { type: "case.create"; input: unknown }
-  | { type: "case.assign"; caseId: string; employeeId: string }
+  | { type: "case.assign"; caseId: string; employeeId: string | null }
   | { type: "case.escalate"; caseId: string }
   | { type: "case.requestApproval"; caseId: string; input: unknown }
   | { type: "approval.decide"; approvalId: string; decision: "APPROVED" | "REJECTED"; comment: string };
