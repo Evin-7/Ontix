@@ -1,4 +1,5 @@
 import { getDataProviderMode } from "@/server/providers/provider-mode";
+import { OntixLogo } from "@/components/branding/ontix-logo";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -7,6 +8,7 @@ function FoundryProviderSetup() {
   return (
     <main className="provider-setup-page">
       <section className="provider-setup-card">
+        <OntixLogo size="medium" />
         <span className="eyebrow">FOUNDRY PROVIDER · SETUP REQUIRED</span>
         <h1>Foundry is not connected</h1>
         <p>

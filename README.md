@@ -1,5 +1,7 @@
 # Ontix
 
+![Ontix logo](public/ontix-logo.svg)
+
 **Connected Data. Smarter Operations.**
 
 Ontix is a full-stack operations workspace for customer accounts, projects, employees, operational cases, approvals, and audit activity. One Next.js App Router application serves the UI and server-side application logic. Local Demo records persist in Neon PostgreSQL through Prisma.
@@ -73,3 +75,9 @@ npm run db:connectivity
 The database scripts require `DATABASE_ENVIRONMENT=development`, a non-production `DATABASE_BRANCH_NAME`, a Neon pooled `DATABASE_URL`, and the matching direct `DIRECT_DATABASE_URL`. They do not reset, drop, or overwrite existing data.
 
 See [docs/DATABASE.md](docs/DATABASE.md) and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for details.
+
+## Brand assets
+
+Ontix uses an original connected-O mark in the primary indigo `#4F46E5`, with a light indigo variant for dark surfaces. The reusable React component is `src/components/branding/ontix-logo.tsx`; the full wordmark and icon SVG variants are in `public/`. Next.js serves the app favicon from `src/app/icon.svg`.
+
+The current authentication experience supports administrator-provisioned sign-in only. Registration, password reset, and outbound email templates are not configured in this project, so there are no related UI or email assets to brand.

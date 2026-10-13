@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <style>
+    .mark-stroke,.mark-node{color:#4F46E5}
+    .mark-stroke{stroke:currentColor}
+    .mark-node{fill:currentColor}
+    @media(prefers-color-scheme:dark){.mark-stroke,.mark-node{color:#818CF8}}
+  </style>
+  <path class="mark-stroke" d="M34.6 13.4a15 15 0 1 0 0 21.2" stroke-width="4.5" stroke-linecap="round"/>
+  <path class="mark-stroke" d="M24 24h15" stroke-width="4" stroke-linecap="round"/>
+  <circle class="mark-node" cx="24" cy="24" r="4"/>
+  <circle class="mark-node" cx="39" cy="24" r="4"/>
+</svg>

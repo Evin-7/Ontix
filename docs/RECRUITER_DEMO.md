@@ -1,5 +1,7 @@
 # Ontix recruiter demonstration
 
+![Ontix logo](../public/ontix-logo.svg)
+
 ## Describe the integration accurately
 
 Ontix is a Next.js App Router operations application with server-side services, role-checked workflows, transactional Neon persistence, and an Ontology-style data model explorer. In the current checkout, Neon is the active database. The relationship explorer is a simulation over Local Demo records; there is no live Palantir Foundry connection or Carbon Workspace.

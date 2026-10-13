@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { runWorkspaceCommand, signOutAction } from "@/app/actions";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { OntixLogo } from "@/components/branding/ontix-logo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -177,7 +178,7 @@ export function OntixApp({ initialData, viewer }: { initialData: WorkspaceData; 
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="brand-lockup"><span className="brand-mark" aria-hidden="true"><span /></span><span className="brand-word">ONTIX</span></div>
+        <div className="brand-lockup"><OntixLogo size="small" /></div>
         <div className="brand-tagline">Connected Data.<br />Smarter Operations.</div>
         <div className="workspace-switcher" aria-label="Current workspace">
           <div className="workspace-icon"><Layers3 size={17} aria-hidden="true" /></div>
@@ -200,7 +201,10 @@ export function OntixApp({ initialData, viewer }: { initialData: WorkspaceData; 
 
       <main className="main-area">
         <header className="topbar">
-          <div className="breadcrumbs" aria-label="Breadcrumb"><span>Workspace</span><span className="crumb-slash" aria-hidden="true">/</span><strong>{view}</strong></div>
+          <div className="topbar-leading">
+            <OntixLogo variant="icon" size="small" decorative className="topbar-brand-icon" />
+            <div className="breadcrumbs" aria-label="Breadcrumb"><span>Workspace</span><span className="crumb-slash" aria-hidden="true">/</span><strong>{view}</strong></div>
+          </div>
           <div className="topbar-actions">
             <label className="global-search"><Search size={17} aria-hidden="true" /><input ref={searchRef} aria-label={`Search ${view.toLowerCase()}`} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={`Search ${view.toLowerCase()}…`} /><kbd aria-hidden="true">⌘ K</kbd></label>
             <Button variant="ghost" size="icon" className="icon-button" aria-label="Refresh data" title="Refresh data" onClick={reload}><RefreshCw size={17} aria-hidden="true" /></Button>

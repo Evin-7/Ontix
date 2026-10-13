@@ -3,16 +3,14 @@
 import { Database, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { OntixLogo } from "@/components/branding/ontix-logo";
 
 export default function WorkspaceError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <main className="route-state">
       <div className="route-state-top"><ThemeToggle /></div>
       <section className="route-state-card" role="alert">
-        <div className="route-state-brand">
-          <span className="brand-mark" aria-hidden="true"><span /></span>
-          <span className="brand-word">ONTIX</span>
-        </div>
+        <div className="route-state-brand"><OntixLogo size="small" /></div>
         <span className="route-state-icon error-icon"><Database size={24} /></span>
         <p className="route-state-kicker">SERVICE STATUS</p>
         <h1>Workspace temporarily unavailable</h1>

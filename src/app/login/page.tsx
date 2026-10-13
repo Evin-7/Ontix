@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/app/login/login-form";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { OntixLogo } from "@/components/branding/ontix-logo";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Sign in · Ontix",
-  description: "Sign in to the Ontix operations workspace.",
+  title: "Ontix | Enterprise Operations Platform",
+  description: "Connected Data. Smarter Operations.",
 };
 
 export default function LoginPage() {
@@ -14,8 +15,7 @@ export default function LoginPage() {
       <div className="login-header">
         <span aria-hidden="true" />
         <div className="login-brand">
-          <span className="brand-mark" aria-hidden="true"><span /></span>
-          <span className="brand-word">ONTIX</span>
+          <OntixLogo size="medium" />
         </div>
         <ThemeToggle />
       </div>

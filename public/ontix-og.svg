@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#F8FAFC"/>
+  <g transform="translate(380 222) scale(2.4)">
+    <path d="M34.6 13.4a15 15 0 1 0 0 21.2" stroke="#4F46E5" stroke-width="4" stroke-linecap="round"/>
+    <path d="M24 24h15" stroke="#4F46E5" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="24" cy="24" r="3.7" fill="#4F46E5"/>
+    <circle cx="39" cy="24" r="3.7" fill="#4F46E5"/>
+    <text x="58" y="34" fill="#0F172A" font-family="Inter, Arial, Helvetica, sans-serif" font-size="31" font-weight="700" letter-spacing="2.1">ONTIX</text>
+  </g>
+  <text x="600" y="414" fill="#64748B" font-family="Inter, Arial, Helvetica, sans-serif" font-size="23" font-weight="500" text-anchor="middle">Connected Data. Smarter Operations.</text>
+</svg>
