@@ -55,7 +55,7 @@ export function OntixLogo({
           x="58"
           y="34"
           fill="var(--ontix-word-color, var(--foreground))"
-          fontFamily="Inter Variable, Inter, Arial, sans-serif"
+          fontFamily="var(--font-inter), sans-serif"
           fontSize="31"
           fontWeight="700"
           letterSpacing="2.1"

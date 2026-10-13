@@ -80,4 +80,8 @@ See [docs/DATABASE.md](docs/DATABASE.md) and [docs/DEPLOYMENT.md](docs/DEPLOYMEN
 
 Ontix uses an original connected-O mark in the primary indigo `#4F46E5`, with a light indigo variant for dark surfaces. The reusable React component is `src/components/branding/ontix-logo.tsx`; the full wordmark and icon SVG variants are in `public/`. Next.js serves the app favicon from `src/app/icon.svg`.
 
+## Typography
+
+Inter is the application-wide sans-serif, and JetBrains Mono is reserved for code and technical identifiers. Both are loaded through `next/font/google`, then emitted as same-origin optimized font assets by the Next.js build; browsers do not request fonts from Google at runtime. The font variables are attached in `src/app/layout.tsx`, and Tailwind CSS v4 maps `font-sans` and `font-mono` to those variables.
+
 The current authentication experience supports administrator-provisioned sign-in only. Registration, password reset, and outbound email templates are not configured in this project, so there are no related UI or email assets to brand.
