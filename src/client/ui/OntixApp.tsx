@@ -20,6 +20,7 @@ import {
   Layers3,
   LogOut,
   Network,
+  PlugZap,
   Plus,
   RefreshCw,
   Search,
@@ -51,6 +52,8 @@ import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { notify } from "@/lib/notifications";
 import { OntologyModelExplorer } from "@/client/ui/OntologyModelExplorer";
+import { PeoplePage } from "@/client/ui/PeoplePage";
+import { FoundryIntegrationsPage } from "@/client/ui/FoundryIntegrationsPage";
 import {
   approvalInputSchema,
   caseInputSchema,
@@ -71,8 +74,9 @@ import type {
   WorkspaceCommand,
   WorkspaceData,
 } from "@/types/workspace";
+import type { FoundryIntegrationStatus } from "@/types/integrations";
 
-type View = "Overview" | "Data model" | "Cases" | "Projects" | "Customers" | "Approvals" | "Activity";
+type View = "Overview" | "Data model" | "Cases" | "Projects" | "Customers" | "People" | "Approvals" | "Activity" | "Integrations";
 type RecordDialogState = { kind: "customer"; record?: Customer } | { kind: "project"; record?: Project } | { kind: "case" };
 type ApprovalReviewState = { approval: Approval; decision: "APPROVED" | "REJECTED" };
 type DestructiveAction = { title: string; description: string; actionLabel: string; command: WorkspaceCommand };
@@ -84,8 +88,10 @@ const views: { name: View; icon: IconType }[] = [
   { name: "Cases", icon: CircleAlert },
   { name: "Projects", icon: FolderKanban },
   { name: "Customers", icon: Building2 },
+  { name: "People", icon: UsersRound },
   { name: "Approvals", icon: CheckCheck },
   { name: "Activity", icon: ActivityIcon },
+  { name: "Integrations", icon: PlugZap },
 ];
 
 const formatDate = (value: string) => new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
@@ -102,7 +108,7 @@ const toLocalDateTimeInput = (value?: string) => {
   return `${toLocalDateInput(date)}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 };
 
-export function OntixApp({ initialData, viewer }: { initialData: WorkspaceData; viewer: Viewer }) {
+export function OntixApp({ initialData, viewer, integrationStatus }: { initialData: WorkspaceData; viewer: Viewer; integrationStatus: FoundryIntegrationStatus }) {
   const [view, setView] = useState<View>("Overview");
   const [search, setSearch] = useState("");
   const [recordDialog, setRecordDialog] = useState<RecordDialogState | null>(null);
@@ -113,6 +119,7 @@ export function OntixApp({ initialData, viewer }: { initialData: WorkspaceData; 
   const searchRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const canManage = viewer.role === "ADMINISTRATOR" || viewer.role === "MANAGER";
+  const canManageEmployees = viewer.role === "ADMINISTRATOR";
   const canWorkCases = canManage || viewer.role === "DEVELOPER";
   const canDecideApprovals = canManage;
   const reload = () => router.refresh();
@@ -194,7 +201,7 @@ export function OntixApp({ initialData, viewer }: { initialData: WorkspaceData; 
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="provider-card"><div className="provider-title"><Database size={15} aria-hidden="true" /><span>ACTIVE DATA SOURCE</span></div><strong>Neon PostgreSQL</strong><small>Ontology-style view is simulated · Foundry is not connected</small></div>
+          <div className="provider-card"><div className="provider-title"><Database size={15} aria-hidden="true" /><span>ACTIVE DATA SOURCE</span></div><strong>Neon PostgreSQL</strong><small>Local Demo · Foundry is not connected</small></div>
           <div className="profile-row"><div className="avatar" aria-hidden="true">{initials}</div><div><strong>{viewer.name}</strong><span>{titleCase(viewer.role)}</span></div><form action={signOutAction}><button className="logout-button" aria-label="Sign out" title="Sign out">Sign out</button></form></div>
         </div>
       </aside>
@@ -217,15 +224,17 @@ export function OntixApp({ initialData, viewer }: { initialData: WorkspaceData; 
         <div className="page-content">
           {view === "Overview" && <Overview data={initialData.dashboard} cases={filteredCases} approvals={filteredApprovals} activity={filteredActivity} search={search} onClearSearch={() => setSearch("")} onOpen={(nextView) => { setView(nextView); setSearch(""); }} onAction={(command) => void performAction(command)} onCreate={openRecordDialog} onReview={setApprovalReview} busy={mutationPending} canManage={canManage} canWorkCases={canWorkCases} canDecideApprovals={canDecideApprovals} employeeId={viewer.employeeId} />}
           {view === "Data model" && <OntologyModelExplorer data={initialData} search={search} onClearSearch={() => setSearch("")} />}
-          {view === "Cases" && <CasesPage cases={filteredCases} employees={initialData.employees} onAction={(command) => void performAction(command)} onCreate={() => openRecordDialog({ kind: "case" })} onRequestApproval={setApprovalRequestCase} busy={mutationPending} canWorkCases={canWorkCases} canRequestApprovals={canWorkCases} search={search} onClearSearch={() => setSearch("")} />}
+          {view === "Cases" && <CasesPage cases={filteredCases} employees={initialData.employees} onAction={(command) => void performAction(command)} onResolve={(caseId) => performAction({ type: "case.resolve", caseId })} onCreate={() => openRecordDialog({ kind: "case" })} onRequestApproval={setApprovalRequestCase} busy={mutationPending} canWorkCases={canWorkCases} canRequestApprovals={canWorkCases} search={search} onClearSearch={() => setSearch("")} />}
           {view === "Projects" && <ProjectsPage projects={filteredProjects} onAction={(command) => void performAction(command)} onCreate={() => openRecordDialog({ kind: "project" })} onEdit={(project) => openRecordDialog({ kind: "project", record: project })} onArchive={(project) => beginArchive("project", project)} busy={mutationPending} canManage={canManage} search={search} onClearSearch={() => setSearch("")} />}
           {view === "Customers" && <CustomersPage customers={filteredCustomers} onCreate={() => openRecordDialog({ kind: "customer" })} onEdit={(customer) => openRecordDialog({ kind: "customer", record: customer })} onArchive={(customer) => beginArchive("customer", customer)} canManage={canManage} search={search} onClearSearch={() => setSearch("")} />}
+          {view === "People" && <PeoplePage employees={initialData.employees} teams={initialData.teams} viewerEmployeeId={viewer.employeeId} search={search} onClearSearch={() => setSearch("")} canManageEmployees={canManageEmployees} canManageTeams={canManage} onAction={performAction} />}
           {view === "Approvals" && <ApprovalsPage approvals={filteredApprovals} onReview={setApprovalReview} busy={mutationPending} canDecide={canDecideApprovals} employeeId={viewer.employeeId} search={search} onClearSearch={() => setSearch("")} />}
           {view === "Activity" && <ActivityPage activity={filteredActivity} search={search} onClearSearch={() => setSearch("")} />}
+          {view === "Integrations" && <FoundryIntegrationsPage status={integrationStatus} />}
         </div>
       </main>
 
-      {recordDialog && <RecordDialog state={recordDialog} customers={initialData.customers} onClose={() => setRecordDialog(null)} onSubmit={performAction} />}
+      {recordDialog && <RecordDialog state={recordDialog} customers={initialData.customers} teams={initialData.teams} onClose={() => setRecordDialog(null)} onSubmit={performAction} />}
       {approvalRequestCase && <ApprovalRequestDialog caseRecord={approvalRequestCase} onClose={() => setApprovalRequestCase(null)} onSubmit={performAction} />}
       {approvalReview && <ApprovalReviewDialog state={approvalReview} onClose={() => setApprovalReview(null)} onSubmit={performAction} />}
       {destructiveAction && <ArchiveConfirmation action={destructiveAction} busy={mutationPending} onOpenChange={(open) => { if (!open && !mutationPending) setDestructiveAction(null); }} onConfirm={performAction} />}
@@ -235,15 +244,26 @@ export function OntixApp({ initialData, viewer }: { initialData: WorkspaceData; 
 
 function successTitle(command: WorkspaceCommand) {
   if (command.type.endsWith("archive")) return "Record archived";
+  if (command.type === "employee.deactivate" || command.type === "team.deactivate") return "Record deactivated";
+  if (command.type === "employee.activate" || command.type === "team.activate") return "Record reactivated";
+  if (command.type === "employee.create") return "Employee added";
+  if (command.type === "team.create") return "Team added";
   if (command.type === "approval.decide") return command.decision === "APPROVED" ? "Approval recorded" : "Request rejected";
   if (command.type === "case.escalate") return "Case escalated";
+  if (command.type === "case.resolve") return "Case resolved";
   if (command.type === "case.assign") return "Case assignment updated";
   if (command.type === "case.requestApproval") return "Approval requested";
   return "Changes saved";
 }
 
 function successDescription(command: WorkspaceCommand) {
+  if (command.type === "case.resolve") return "The case and its audit history have been updated.";
+  if (command.type === "employee.activate") return "The employee is active again. They can sign in if an administrator has provisioned an account.";
+  if (command.type === "team.activate") return "The team is active again and available for new assignments.";
+  if (command.type === "employee.deactivate") return "Ontix access was disabled, active sessions were revoked, and history was preserved.";
+  if (command.type === "team.deactivate") return "Existing work retains the team link; new assignments will use active teams.";
   if (command.type === "approval.decide") return "The decision is saved to the approval history.";
+  if (command.type === "employee.create") return "The employee record is saved. Login access must be provisioned separately.";
   if (command.type === "case.requestApproval") return "The request is now in the approval queue.";
   if (command.type === "case.assign") return command.employeeId ? "The case owner was updated." : "The case is now unassigned.";
   return "The workspace has been updated successfully.";
@@ -284,7 +304,7 @@ function Overview({ data, cases, approvals, activity, search, onClearSearch, onO
     <div className="metrics-grid">{cards.map(({ label, value, change, icon: Icon, accent }) => <article className="metric-card" key={label}><div className="metric-top"><span>{label}</span><span className={`metric-icon ${accent}`}><Icon size={18} aria-hidden="true" /></span></div><div className="metric-value">{value.toLocaleString()}</div><div className="metric-foot"><span className={`metric-trend ${accent}`} aria-hidden="true">{label === "Pending approvals" ? <CircleAlert size={14} /> : <ArrowUpRight size={14} />}</span><span>{change}</span></div></article>)}</div>
     <div className="overview-grid">
       <section className="panel attention-panel"><div className="panel-heading"><div><span className="eyebrow">PRIORITY QUEUE</span><h2>Cases to watch</h2></div><button className="text-link" onClick={() => onOpen("Cases")}>View all <ArrowRight size={16} aria-hidden="true" /></button></div>
-        {attentionCases.length ? <div className="case-queue">{attentionCases.map((item) => <div className="queue-row" key={item.id}><span className={`priority-indicator ${item.priority.toLowerCase()}`} aria-hidden="true" /><div className="queue-main"><div className="queue-title-line"><strong>{item.title}</strong><StatusBadge status={item.status} /></div><div className="queue-meta"><span>{item.caseKey}</span><span>{item.customer?.name ?? "Customer"}</span><span className={isOverdue(item.slaDeadline) ? "overdue" : ""}><Clock3 size={13} aria-hidden="true" /> Due {formatDate(item.slaDeadline)}</span></div></div><Button variant="ghost" size="icon" className="icon-button compact" disabled={busy || !canWorkCases || item.priority === "HIGH" || ["CLOSED", "RESOLVED"].includes(item.status)} title="Escalate case" aria-label={`Escalate ${item.caseKey}`} onClick={() => onAction({ type: "case.escalate", caseId: item.id })}><ArrowUpRight size={17} aria-hidden="true" /></Button></div>)}</div> : search ? <EmptyState icon={Search} title="No matching cases" description="Try another term or clear your search." action={<Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button>} /> : <EmptyState icon={CircleCheck} title="All clear" description="No active cases need attention." />}
+        {attentionCases.length ? <div className="case-queue">{attentionCases.map((item) => <div className="queue-row" key={item.id}><span className={`priority-indicator ${item.priority.toLowerCase()}`} aria-hidden="true" /><div className="queue-main"><div className="queue-title-line"><strong>{item.title}</strong><StatusBadge status={item.status} /></div><div className="queue-meta"><span>{item.caseKey}</span><span>{item.customer?.name ?? "Customer"}</span><span className={isOverdue(item.slaDeadline) ? "overdue" : ""}><Clock3 size={13} aria-hidden="true" /> Due {formatDate(item.slaDeadline)}</span></div></div><Button variant="ghost" size="icon" className="icon-button compact" disabled={busy || !canWorkCases || item.priority === "CRITICAL" || ["CLOSED", "RESOLVED"].includes(item.status)} title="Escalate case" aria-label={`Escalate ${item.caseKey}`} onClick={() => onAction({ type: "case.escalate", caseId: item.id })}><ArrowUpRight size={17} aria-hidden="true" /></Button></div>)}</div> : search ? <EmptyState icon={Search} title="No matching cases" description="Try another term or clear your search." action={<Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button>} /> : <EmptyState icon={CircleCheck} title="All clear" description="No active cases need attention." />}
       </section>
       <section className="panel approvals-panel"><div className="panel-heading"><div><span className="eyebrow">DECISIONS</span><h2>Pending approvals</h2></div><button className="text-link" onClick={() => onOpen("Approvals")}>View all <ArrowRight size={16} aria-hidden="true" /></button></div>
         {pending.length ? <div className="approval-list">{pending.map((item) => <div className="approval-row" key={item.id}><span className="approval-mark"><CheckCheck size={17} aria-hidden="true" /></span><div className="approval-copy"><strong>{item.title}</strong><span>{item.approvalKey} · {item.requestedBy.name}</span></div><strong className="approval-amount">{item.amount ? formatMoney(item.amount) : "Review"}</strong>{canDecideApprovals && item.requestedBy.id !== employeeId && <div className="approval-actions"><button className="tiny-action approve" disabled={busy} aria-label={`Approve ${item.title}`} onClick={() => onReview({ approval: item, decision: "APPROVED" })}><Check size={15} aria-hidden="true" /></button><button className="tiny-action reject" disabled={busy} aria-label={`Reject ${item.title}`} onClick={() => onReview({ approval: item, decision: "REJECTED" })}><X size={15} aria-hidden="true" /></button></div>}</div>)}</div> : search ? <EmptyState icon={Search} title="No matching approvals" description="Try another term or clear your search." action={<Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button>} /> : <EmptyState icon={Check} title="No decisions waiting" description="New requests will appear here." />}
@@ -294,10 +314,11 @@ function Overview({ data, cases, approvals, activity, search, onClearSearch, onO
   </>;
 }
 
-function CasesPage({ cases, employees, onAction, onCreate, onRequestApproval, busy, canWorkCases, canRequestApprovals, search, onClearSearch }: {
+function CasesPage({ cases, employees, onAction, onResolve, onCreate, onRequestApproval, busy, canWorkCases, canRequestApprovals, search, onClearSearch }: {
   cases: CaseRecord[];
   employees: Employee[];
   onAction: (command: WorkspaceCommand) => void;
+  onResolve: (caseId: string) => Promise<boolean>;
   onCreate: () => void;
   onRequestApproval: (record: CaseRecord) => void;
   busy: boolean;
@@ -311,9 +332,9 @@ function CasesPage({ cases, employees, onAction, onCreate, onRequestApproval, bu
     { id: "customer", label: "Customer", header: "Customer", sortValue: (row) => row.customer?.name ?? "", cell: (row) => row.customer?.name ?? "—" },
     { id: "priority", label: "Priority", header: "Priority", sortValue: (row) => row.priority, cell: (row) => <><StatusBadge status={row.priority} />{row.escalationLevel > 0 && <small className="escalation-tag">Escalated {row.escalationLevel}×</small>}</> },
     { id: "status", label: "Status", header: "Status", sortValue: (row) => row.status, cell: (row) => <StatusBadge status={row.status} /> },
-    { id: "owner", label: "Owner", header: "Owner", sortValue: (row) => row.assignedEmployee?.name ?? "", cell: (row) => <Select className="inline-select" aria-label={`Assign ${row.caseKey}`} value={row.assignedEmployeeId ?? ""} onChange={(event) => onAction({ type: "case.assign", caseId: row.id, employeeId: event.currentTarget.value || null })} disabled={busy || !canWorkCases}><option value="">Unassigned</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</Select> },
+    { id: "owner", label: "Owner", header: "Owner", sortValue: (row) => row.assignedEmployee?.name ?? "", cell: (row) => <Select className="inline-select" aria-label={`Assign ${row.caseKey}`} value={row.assignedEmployeeId ?? ""} onChange={(event) => onAction({ type: "case.assign", caseId: row.id, employeeId: event.currentTarget.value || null })} disabled={busy || !canWorkCases}><option value="">Unassigned</option>{row.assignedEmployeeId && !employees.some((employee) => employee.id === row.assignedEmployeeId) && <option value={row.assignedEmployeeId} disabled>{row.assignedEmployee?.name ?? "Inactive employee"} · inactive</option>}{employees.filter((employee) => employee.isActive !== false || employee.id === row.assignedEmployeeId).map((employee) => <option key={employee.id} value={employee.id} disabled={employee.isActive === false}>{employee.name}{employee.isActive === false ? " · inactive" : ""}</option>)}</Select> },
     { id: "sla", label: "SLA", header: "SLA", sortValue: (row) => new Date(row.slaDeadline), cell: (row) => <span className={isOverdue(row.slaDeadline) ? "overdue" : "date-cell"}>{formatDate(row.slaDeadline)}</span> },
-    { id: "actions", label: "Actions", header: "Actions", cell: (row) => <div className="row-actions"><Button variant="ghost" size="icon" className="icon-button compact" title="Escalate case" aria-label={`Escalate ${row.caseKey}`} disabled={busy || !canWorkCases || row.priority === "HIGH" || ["CLOSED", "RESOLVED"].includes(row.status)} onClick={() => onAction({ type: "case.escalate", caseId: row.id })}><ArrowUpRight size={16} aria-hidden="true" /></Button>{canRequestApprovals && <Button variant="outline" size="sm" disabled={busy || ["CLOSED", "RESOLVED"].includes(row.status)} onClick={() => onRequestApproval(row)}>Request approval</Button>}</div> },
+    { id: "actions", label: "Actions", header: "Actions", cell: (row) => <div className="row-actions"><Button variant="ghost" size="icon" className="icon-button compact" title="Escalate case" aria-label={`Escalate ${row.caseKey}`} disabled={busy || !canWorkCases || row.priority === "CRITICAL" || ["CLOSED", "RESOLVED"].includes(row.status)} onClick={() => onAction({ type: "case.escalate", caseId: row.id })}><ArrowUpRight size={16} aria-hidden="true" /></Button>{canRequestApprovals && ["OPEN", "IN_PROGRESS"].includes(row.status) && <Button variant="outline" size="sm" disabled={busy} onClick={() => onRequestApproval(row)}>Request approval</Button>}{canWorkCases && ["OPEN", "IN_PROGRESS"].includes(row.status) && <Button variant="outline" size="sm" disabled={busy} onClick={() => void onResolve(row.id)}>Resolve</Button>}</div> },
   ];
   return <><PageHeading eyebrow="SERVICE OPERATIONS" title="Operational cases" description="Triage requests, coordinate owners, and keep service commitments on track." action={canWorkCases ? <Button onClick={onCreate}><Plus size={16} /> New case</Button> : undefined} />
     <div className="list-summary"><span><strong>{cases.length}</strong> {cases.length === 1 ? "record" : "records"}</span><span className="summary-spacer" /><span className="legend-dot high" /> High priority<span className="legend-dot medium" /> Medium priority</div>
@@ -384,9 +405,10 @@ function ActivityList({ items, emptyLabel = "No recent events." }: { items: Acti
   return items.length ? <div className="activity-list">{items.map((item) => <div className="activity-row" key={item.id}><span className="activity-avatar" aria-hidden="true">{item.actor?.name.slice(0, 1) ?? "O"}</span><div className="activity-copy"><strong>{item.summary}</strong><span>{item.actor?.name ?? "Ontix"} · {titleCase(item.objectType)} · {titleCase(item.action)}</span></div><time dateTime={item.createdAt}>{formatDate(item.createdAt)}</time></div>)}</div> : <div className="empty-inline" role="status">{emptyLabel}</div>;
 }
 
-function RecordDialog({ state, customers, onClose, onSubmit }: {
+function RecordDialog({ state, customers, teams, onClose, onSubmit }: {
   state: RecordDialogState;
   customers: Customer[];
+  teams: WorkspaceData["teams"];
   onClose: () => void;
   onSubmit: (command: WorkspaceCommand) => Promise<boolean>;
 }) {
@@ -414,6 +436,7 @@ function RecordDialog({ state, customers, onClose, onSubmit }: {
     } else if (kind === "project") {
       const input = {
         name: value("name"), description: value("description"), customerId: value("customerId"),
+        teamId: value("teamId") || null,
         status: value("status") || "PLANNING", priority: value("priority") || "MEDIUM",
         startDate: value("startDate"), dueDate: value("dueDate"), budget: value("budget") || "0",
         progress: editing ? Number(value("progress")) : 0,
@@ -454,6 +477,7 @@ function RecordDialog({ state, customers, onClose, onSubmit }: {
           <FormField label="Project name" required error={errors.name}><Input name="name" placeholder="e.g. Fleet visibility rollout" defaultValue={current && "name" in current ? current.name : ""} required maxLength={160} /></FormField>
           <FormField label="Description" error={errors.description}><Textarea name="description" placeholder="What outcome will this project deliver?" defaultValue={current && "description" in current ? current.description : ""} maxLength={4000} /></FormField>
           <FormField label="Customer" required error={errors.customerId}><Select name="customerId" defaultValue={current && "customerId" in current ? current.customerId : ""} required><option value="">Choose a customer</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</Select></FormField>
+          <FormField label="Delivery team" error={errors.teamId}><Select name="teamId" defaultValue={current && "teamId" in current ? current.teamId ?? "" : ""}><option value="">Unassigned</option>{teams.filter((team) => team.isActive || team.id === (current && "teamId" in current ? current.teamId : null)).map((team) => <option key={team.id} value={team.id}>{team.name}{team.isActive ? "" : " · inactive"}</option>)}</Select></FormField>
           <div className="form-row"><FormField label="Status" required error={errors.status}><Select name="status" defaultValue={current && "status" in current ? current.status : "PLANNING"}>{selectOptions(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "AT_RISK"])}</Select></FormField><FormField label="Priority" required error={errors.priority}><Select name="priority" defaultValue={current && "priority" in current ? current.priority : "MEDIUM"}>{selectOptions(["LOW", "MEDIUM", "HIGH", "CRITICAL"])}</Select></FormField></div>
           <div className="form-row"><FormField label="Start date" required error={errors.startDate}><Input name="startDate" type="date" defaultValue={current && "startDate" in current ? toLocalDateInput(current.startDate) : toLocalDateInput()} required /></FormField><FormField label="Due date" required error={errors.dueDate}><Input name="dueDate" type="date" defaultValue={current && "dueDate" in current ? toLocalDateInput(current.dueDate) : toLocalDateInput()} required /></FormField></div>
           <div className="form-row"><FormField label="Budget (USD)" error={errors.budget}><Input name="budget" type="number" min="0" step="0.01" defaultValue={current && "budget" in current ? current.budget : "0"} /></FormField>{editing && <FormField label="Progress (%)" required error={errors.progress}><Input name="progress" type="number" min="0" max="100" step="1" defaultValue={current && "progress" in current ? String(current.progress) : "0"} required /></FormField>}</div>

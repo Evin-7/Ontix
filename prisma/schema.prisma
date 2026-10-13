@@ -12,6 +12,7 @@ model Team {
   name        String    @unique
   department  String
   description String    @default("")
+  isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   employees   Employee[]
   projects    Project[]
@@ -63,8 +64,28 @@ model AuthUser {
   employee      Employee?     @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   sessions      AuthSession[]
   accounts      AuthAccount[]
+  foundryConnection FoundryConnection?
 
   @@map("auth_users")
+}
+
+// Foundry OAuth tokens are encrypted by the application before persistence.
+// They are deliberately kept out of Better Auth's generic account token fields.
+model FoundryConnection {
+  id                       String    @id @default(cuid())
+  authUserId               String    @unique
+  encryptedAccessToken     String    @db.Text
+  encryptedRefreshToken    String?   @db.Text
+  accessTokenExpiresAt     DateTime
+  scope                    String    @default("")
+  connectedAt              DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  lastSuccessfulRequestAt  DateTime?
+  revokedAt                DateTime?
+  authUser                 AuthUser  @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+
+  @@index([accessTokenExpiresAt, revokedAt])
+  @@map("foundry_connections")
 }
 
 model AuthSession {

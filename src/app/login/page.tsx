@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/app/login/login-form";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { OntixLogo } from "@/components/branding/ontix-logo";
+import { getDataProviderMode } from "@/server/providers/provider-mode";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -10,6 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
+  if (getDataProviderMode() === "foundry") redirect("/");
+
   return (
     <main className="login-page">
       <div className="login-header">

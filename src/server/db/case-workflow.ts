@@ -13,6 +13,12 @@ export async function assignCase(
   input: { caseId: string; employeeId: string | null; actorId: string },
 ) {
   return prisma.$transaction(async (tx) => {
+    if (input.employeeId) {
+      const employee = await tx.$queryRaw<{ id: string }[]>`
+        SELECT "id" FROM "employees" WHERE "id" = ${input.employeeId} AND "isActive" = TRUE FOR UPDATE
+      `;
+      if (employee.length === 0) throw new WorkflowConflictError("Only active employees can be assigned to a case.");
+    }
     const current = await tx.operationalCase.findUnique({
       where: { id: input.caseId },
       select: {
@@ -62,9 +68,45 @@ export async function assignCase(
   });
 }
 
+/** Resolves an open case with a revision compare-and-set and an atomic audit event. */
+export async function resolveCase(
+  prisma: PrismaClient,
+  input: { caseId: string; actorId: string },
+) {
+  return prisma.$transaction(async (tx) => {
+    const current = await tx.operationalCase.findUnique({
+      where: { id: input.caseId },
+      select: { id: true, caseKey: true, status: true, revision: true },
+    });
+    if (!current) throw new WorkflowConflictError("The case no longer exists.");
+    if (current.status !== "OPEN" && current.status !== "IN_PROGRESS") {
+      throw new WorkflowConflictError("Only open or in-progress cases can be resolved. Finish any pending approval first.");
+    }
+
+    const resolvedAt = new Date();
+    const changed = await tx.operationalCase.updateMany({
+      where: { id: current.id, status: current.status, revision: current.revision },
+      data: { status: "RESOLVED", resolutionDate: resolvedAt, revision: { increment: 1 } },
+    });
+    if (changed.count !== 1) throw new WorkflowConflictError("The case changed while it was being resolved.");
+
+    await tx.activityEvent.create({
+      data: {
+        actorId: input.actorId,
+        action: "RESOLVED",
+        objectType: "OperationalCase",
+        objectId: current.id,
+        summary: `${current.caseKey} resolved`,
+        beforeJson: JSON.stringify({ status: current.status, revision: current.revision }),
+        afterJson: JSON.stringify({ status: "RESOLVED", revision: current.revision + 1 }),
+      },
+    });
+    return tx.operationalCase.findUniqueOrThrow({ where: { id: current.id } });
+  });
+}
+
 /**
- * Raises an active case by one priority level. The current schema and fixtures
- * use LOW/MEDIUM/HIGH, so HIGH is the defined escalation ceiling. Concurrent
+ * Raises an active case by one priority level, up to CRITICAL. Concurrent
  * updates fail by revision.
  */
 export async function escalateCase(
@@ -74,24 +116,21 @@ export async function escalateCase(
   return prisma.$transaction(async (tx) => {
     const current = await tx.operationalCase.findUnique({
       where: { id: input.caseId },
-      select: { id: true, caseKey: true, status: true, priority: true, revision: true },
+      select: { id: true, caseKey: true, status: true, priority: true, escalationLevel: true, revision: true },
     });
 
     if (!current) throw new WorkflowConflictError("The case no longer exists.");
     if (!ACTIVE_CASE_STATUSES.has(current.status)) {
       throw new WorkflowConflictError("A completed case cannot be escalated.");
     }
-    const nextPriority = current.priority === "LOW" ? "MEDIUM" : current.priority === "MEDIUM" ? "HIGH" : null;
-    if (current.priority === "HIGH") {
-      throw new WorkflowConflictError("The case is already at the current escalation level.");
-    }
+    const nextPriority = current.priority === "LOW" ? "MEDIUM" : current.priority === "MEDIUM" ? "HIGH" : current.priority === "HIGH" ? "CRITICAL" : null;
     if (!nextPriority) {
-      throw new WorkflowConflictError("The case priority cannot be escalated from its current value.");
+      throw new WorkflowConflictError("The case is already at the highest priority.");
     }
 
     const changed = await tx.operationalCase.updateMany({
       where: { id: current.id, status: current.status, revision: current.revision },
-      data: { priority: nextPriority, revision: { increment: 1 } },
+      data: { priority: nextPriority, escalationLevel: { increment: 1 }, revision: { increment: 1 } },
     });
 
     if (changed.count !== 1) {
@@ -105,8 +144,8 @@ export async function escalateCase(
         objectType: "OperationalCase",
         objectId: current.id,
         summary: `${current.caseKey} escalated from ${current.priority} to ${nextPriority}`,
-        beforeJson: JSON.stringify({ priority: current.priority, revision: current.revision }),
-        afterJson: JSON.stringify({ priority: nextPriority, revision: current.revision + 1 }),
+        beforeJson: JSON.stringify({ priority: current.priority, escalationLevel: current.escalationLevel, revision: current.revision }),
+        afterJson: JSON.stringify({ priority: nextPriority, escalationLevel: current.escalationLevel + 1, revision: current.revision + 1 }),
       },
     });
 

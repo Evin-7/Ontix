@@ -62,3 +62,29 @@ export const approvalDecisionSchema = z.object({
   decision: z.enum(["APPROVED", "REJECTED"]),
   comment: z.string().trim().max(1000).default(""),
 });
+
+export const employeeInputSchema = z.object({
+  employeeNumber: z.string().trim().min(2).max(32).regex(/^[A-Za-z0-9_-]+$/, "Use letters, numbers, hyphens, or underscores."),
+  name: z.string().trim().min(2).max(140),
+  email: z.email().max(254),
+  title: z.string().trim().min(2).max(120),
+  department: z.string().trim().min(2).max(100),
+  role: z.enum(["ADMINISTRATOR", "MANAGER", "DEVELOPER", "ANALYST"]),
+  teamId: z.string().trim().max(128).nullable().optional(),
+});
+
+export const employeePatchSchema = employeeInputSchema.partial().refine(
+  (input) => Object.keys(input).length > 0,
+  "Provide at least one employee field to update.",
+);
+
+export const teamInputSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  department: z.string().trim().min(2).max(100),
+  description: z.string().trim().max(500).default(""),
+});
+
+export const teamPatchSchema = teamInputSchema.partial().refine(
+  (input) => Object.keys(input).length > 0,
+  "Provide at least one team field to update.",
+);

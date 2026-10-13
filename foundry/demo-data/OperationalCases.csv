@@ -1,0 +1,9 @@
+id,projectId,title,priority,status,assignedEmployeeId
+CASE-5001,PRJ-2001,Vehicle telemetry variance,HIGH,IN_PROGRESS,EMP-4002
+CASE-5002,PRJ-2001,Preventive maintenance backlog,MEDIUM,OPEN,EMP-4003
+CASE-5003,PRJ-2002,Dispatch capacity forecast gap,HIGH,WAITING_APPROVAL,EMP-4001
+CASE-5004,PRJ-2003,Substation inspection exception,CRITICAL,OPEN,EMP-4001
+CASE-5005,PRJ-2003,Meter data reconciliation,MEDIUM,RESOLVED,EMP-4006
+CASE-5006,PRJ-2004,Supplier quality deviation,HIGH,IN_PROGRESS,EMP-4005
+CASE-5007,PRJ-2005,Cold-chain handoff delay,CRITICAL,OPEN,EMP-4004
+CASE-5008,PRJ-2002,Route exception review,LOW,RESOLVED,EMP-4003

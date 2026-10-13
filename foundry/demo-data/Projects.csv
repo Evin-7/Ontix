@@ -1,0 +1,6 @@
+id,customerId,name,status,budget,startDate
+PRJ-2001,CUS-1001,Fleet Reliability Program,IN_PROGRESS,850000,2026-07-20
+PRJ-2002,CUS-1001,Regional Dispatch Optimization,PLANNING,420000,2026-09-01
+PRJ-2003,CUS-1002,Grid Modernization Phase 1,IN_PROGRESS,1200000,2026-06-15
+PRJ-2004,CUS-1003,Factory Quality Uplift,AT_RISK,630000,2026-08-10
+PRJ-2005,CUS-1004,Clinical Supply Visibility,PLANNING,510000,2026-09-15

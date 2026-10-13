@@ -29,6 +29,12 @@ export async function createProject(rawInput: unknown) {
   const input = projectInputSchema.parse(rawInput);
   if (input.dueDate < input.startDate) throw new ServiceError("Due date must be on or after the start date.");
   return prisma.$transaction(async (tx) => {
+    if (input.teamId) {
+      const team = await tx.$queryRaw<{ id: string }[]>`
+        SELECT "id" FROM "teams" WHERE "id" = ${input.teamId} AND "isActive" = TRUE FOR UPDATE
+      `;
+      if (team.length === 0) throw new ServiceError("Choose an active delivery team or leave the project unassigned.");
+    }
     const project = await tx.project.create({
       data: {
         ...input,
@@ -54,6 +60,12 @@ export async function updateProject(id: string, rawInput: unknown) {
   return prisma.$transaction(async (tx) => {
     const before = await tx.project.findUnique({ where: { id } });
     if (!before || before.status === "ARCHIVED") throw new WorkflowConflictError("Project not found.");
+    if (changes.teamId && changes.teamId !== before.teamId) {
+      const team = await tx.$queryRaw<{ id: string }[]>`
+        SELECT "id" FROM "teams" WHERE "id" = ${changes.teamId} AND "isActive" = TRUE FOR UPDATE
+      `;
+      if (team.length === 0) throw new ServiceError("Choose an active delivery team or leave the project unassigned.");
+    }
     const effectiveStart = changes.startDate ?? before.startDate;
     const effectiveDue = changes.dueDate ?? before.dueDate;
     if (effectiveDue < effectiveStart) throw new ServiceError("Due date must be on or after the start date.");

@@ -2,13 +2,17 @@
 
 ![Ontix logo](../public/ontix-logo.svg)
 
+## Current integration state
+
+The Foundry enrollment and `ontix` project were verified in the existing authenticated Brave session. A single empty dataset was created, but fictional rows have not yet been imported. No Foundry Ontology types, links, actions, OSDK application, or authenticated Ontix request have been verified. The dashboard's Integrations view therefore says **Not connected**.
+
 ## Describe the integration accurately
 
 Ontix is a Next.js App Router operations application with server-side services, role-checked workflows, transactional Neon persistence, and an Ontology-style data model explorer. In the current checkout, Neon is the active database. The relationship explorer is a simulation over Local Demo records; there is no live Palantir Foundry connection or Carbon Workspace.
 
 Suggested wording:
 
-> “I built an operations app that models customers, projects, teams, employees, cases, approvals, and audit events as connected business objects. The current demo provider is Neon/PostgreSQL, with a clearly marked Ontology-style layer. I researched the official Palantir OSDK and built the application boundary so a real Foundry provider can be added once there is an authorized enrollment and generated Ontology SDK.”
+> “I built an operations app that models customers, projects, teams, employees, cases, approvals, and audit events as connected business objects. The current demo provider is Neon/PostgreSQL, with a clearly marked Ontology-style layer. The Foundry project is accessible and the integration boundary is prepared, but live OSDK reads and actions are still pending the generated Ontology SDK and server-side credentials.”
 
 ## Local Demo walkthrough
 
@@ -21,6 +25,6 @@ Suggested wording:
 
 ## What remains for a genuine Foundry demonstration
 
-Create an AIP Developer Tier enrollment if available for your location, create a backend-service application in Developer Console, generate an OSDK from the target Ontology, and supply the application-specific package and credentials in private server configuration. Ontix must then implement and test real queries, link traversal, and actions before any of those can be presented as Foundry behavior. See [OSDK_INTEGRATION_STATUS.md](OSDK_INTEGRATION_STATUS.md) and [PALANTIR_ACCESS_RESEARCH.md](PALANTIR_ACCESS_RESEARCH.md).
+Import the fictional CSVs, repair the unindexed ontology types, configure and test the five requested actions, generate the TypeScript OSDK, and complete a real per-user OAuth/OSDK test. Ontix must not present records or workflow results as Foundry behavior until real reads, links, and actions are verified. See [FOUNDRY_SETUP.md](FOUNDRY_SETUP.md), [ONTOLOGY_SCHEMA.md](ONTOLOGY_SCHEMA.md), [OSDK_INTEGRATION.md](OSDK_INTEGRATION.md), [OSDK_INTEGRATION_STATUS.md](OSDK_INTEGRATION_STATUS.md), and [PALANTIR_ACCESS_RESEARCH.md](PALANTIR_ACCESS_RESEARCH.md).
 
 A Carbon Workspace is created inside Foundry from Foundry resources. A deployed Ontix URL could be added as an external navigation link by an authorized Carbon administrator, but that does not embed Ontix or create a Carbon/OSDK connection.

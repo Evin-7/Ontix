@@ -8,18 +8,20 @@ import { listCases } from "@/lib/services/cases";
 import { listCustomers } from "@/lib/services/customers";
 import { listEmployees } from "@/lib/services/employees";
 import { listProjects } from "@/lib/services/projects";
+import { listTeams } from "@/lib/services/teams";
 import { requireNeonDemoProvider } from "@/server/providers/provider-mode";
 
 export async function loadWorkspace() {
   requireNeonDemoProvider();
   await requireActor();
-  const [customers, projects, cases, approvals, activity, employees, customerCount, projectCount, activeCaseCount, pendingApprovalCount, casesByStatus, projectsByStatus] = await Promise.all([
+  const [customers, projects, cases, approvals, activity, employees, teams, customerCount, projectCount, activeCaseCount, pendingApprovalCount, casesByStatus, projectsByStatus] = await Promise.all([
     listCustomers(),
     listProjects(),
     listCases(),
     listApprovals(),
     listAuditActivity(),
     listEmployees(),
+    listTeams(),
     prisma.customer.count({ where: { archivedAt: null } }),
     prisma.project.count({ where: { status: { not: "ARCHIVED" } } }),
     prisma.operationalCase.count({ where: { status: { notIn: ["RESOLVED", "CLOSED"] } } }),
@@ -115,6 +117,14 @@ export async function loadWorkspace() {
     employees: employees.map(({ projectAssignments, ...employee }) => ({
       ...employee,
       assignedProjects: projectAssignments.map(({ project }) => project),
+    })),
+    teams: teams.map((team) => ({
+      id: team.id,
+      name: team.name,
+      department: team.department,
+      description: team.description,
+      isActive: team.isActive,
+      _count: team._count,
     })),
   };
 }

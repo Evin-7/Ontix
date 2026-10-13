@@ -13,6 +13,8 @@ Set these as server-side environment variables in the hosting environment:
 - `DATA_PROVIDER=neon-demo`: explicitly select the Neon Local Demo provider (`local` remains accepted as a compatibility alias).
 - `DATABASE_ENVIRONMENT` and `DATABASE_BRANCH_NAME`: set for the dedicated development branch when running guarded local mutation scripts.
 
+For Vercel, add the pooled `DATABASE_URL`, canonical `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, and `DATA_PROVIDER=neon-demo` as server-side Environment Variables for the intended deployment environment. Keep `DIRECT_DATABASE_URL` in the separately controlled migration/release environment; runtime queries use only the pooler. Never add either database URL to a `NEXT_PUBLIC_*` variable. This checkout is not currently linked to a Vercel project, so deployment secrets must be configured in Vercel project settings after the private Neon URLs are ready.
+
 Keep all database credentials and auth secrets out of `NEXT_PUBLIC_*`, client components, generated static assets, logs, and commits. Palantir access tokens, if a separate Foundry provider is later configured, must be kept in their own server-side secret scope and never shared with the Neon provider.
 
 ## Build and run
@@ -40,4 +42,4 @@ The first administrator is provisioned out of band by the development-only boots
 
 ## Foundry provider boundary
 
-The Local Demo provider reads and writes Neon records only. Its Ontology-style relationship explorer is simulated from those records. `DATA_PROVIDER=foundry` currently fails closed with setup guidance; it does not claim to make a Foundry connection or fall back to Neon. A real Foundry OSDK provider requires an authorized environment, generated Ontology SDK, server-side credentials, and permission rules. Keep its client and operation path independent. Details: [PROVIDERS.md](PROVIDERS.md) and [OSDK_INTEGRATION_STATUS.md](OSDK_INTEGRATION_STATUS.md).
+The Local Demo provider reads and writes Neon records only. Its Ontology-style relationship explorer is simulated from those records. `DATA_PROVIDER=foundry` currently fails closed with setup guidance; it does not claim to make a Foundry connection or fall back to Neon. The Foundry enrollment is accessible in the existing browser session, but a real OSDK provider still requires the generated Ontology SDK, service-user permissions, server-side credentials, and verified data operations. Keep its client and operation path independent. Details: [FOUNDRY_SETUP.md](FOUNDRY_SETUP.md), [PROVIDERS.md](PROVIDERS.md), and [OSDK_INTEGRATION_STATUS.md](OSDK_INTEGRATION_STATUS.md).

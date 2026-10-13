@@ -24,30 +24,35 @@ const teamRows = [
     name: "Platform Operations",
     department: "Engineering",
     description: "Fictional team coordinating platform operations.",
+    isActive: true,
   },
   {
     id: "team-customer-success",
     name: "Customer Success",
     department: "Operations",
     description: "Fictional team supporting customer delivery.",
+    isActive: true,
   },
   {
     id: "team-fleet-response",
     name: "Fleet Response",
     department: "Operations",
     description: "Fictional team handling fleet service requests.",
+    isActive: true,
   },
   {
     id: "team-data-quality",
     name: "Data Quality",
     department: "Engineering",
     description: "Fictional team resolving operational data issues.",
+    isActive: true,
   },
   {
     id: "team-governance",
     name: "Governance",
     department: "Compliance",
     description: "Fictional team coordinating access and approvals.",
+    isActive: true,
   },
 ].map((team) => ({ ...team, createdAt: FIXTURE_NOW }));
 

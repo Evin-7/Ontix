@@ -1,35 +1,35 @@
 # OSDK integration status
 
-## Current state
+Updated 2026-10-14. Local source changes and Foundry UI state are reported separately.
 
-**Genuine Foundry integration: not connected.** No real OSDK query, relationship traversal, action, or network response has been run from Ontix. This checkout contains no authorized Foundry stack URL, generated OSDK package, client ID, client secret, or service-user permissions.
+## Foundry UI state
 
-`DATA_PROVIDER=neon-demo` runs the existing Local Demo. Its Data model page performs authenticated, server-side relationship queries over Neon records and is explicitly labeled as an Ontology-style simulation. Existing case and approval actions continue to use Ontix authorization, transactional writes, and audit logs. None of these operations reach Foundry.
+The enabled **Ontix Web Integration** public client uses user permissions and Authorization Code + PKCE. Its registered callback is `http://127.0.0.1:3000/api/foundry/oauth/callback`. The app is restricted to six Ontix object types, five dependent links, and three saved action types. The OAuth flow currently requests Ontology read/write scopes; `offline_access` is not requested. Scopes do not override app restrictions or the Foundry user's permissions.
 
-`DATA_PROVIDER=foundry` displays setup guidance and stops before business data access. It does not fall back to Neon. A complete Foundry provider is not yet implemented because the types and methods are generated for a specific authorized Ontology; adding a generic client without that generated contract would not enable real object queries or actions.
+`OperationalCase`, `ApprovalRequest`, and `Project` already had edits enabled when checked. `UpdateCaseStatus`, `AssignCaseToEmployee`, and `UpdateProjectStatus` are saved and restricted to the app. `ApproveRequest` and `RejectRequest` are held because current fictional Employee IDs cannot be mapped safely to Foundry user IDs. On 2026-10-14, the Customer and ApprovalRequest legacy timestamp mismatches were fixed with derived datasets; both object types now show **Indexed** with four objects. The action editor's Test Run form is empty, so no action test has been submitted.
 
-## Integration design after account setup
+## Repository implementation
 
-Use a Foundry **backend service** and confidential OAuth client on the Next.js Node.js server. Palantir’s OSDK supports TypeScript and is generated for a particular Ontology in Developer Console. The official client and OAuth packages are `@osdk/client` and `@osdk/oauth`; the generated package and its private registry instructions come from the user’s Developer Console application.
+Developer Console generated `@ontix-web-integration/sdk@0.2.0` using generator 2.80.0. The tarball is checked into `foundry/generated-sdk/`; official `@osdk/client`, `@osdk/oauth`, and `@osdk/foundry` dependencies are installed. Foundry mode now performs snapshot-paged reads of all six generated object types and calls the three saved Ontology actions from server-side handlers. These calls are not live-verified. Full dashboard CRUD and approval decisions remain incomplete.
 
-The service-user trade-off must remain visible: calls run with the service user’s Foundry permissions, not automatically as the signed-in Ontix employee. Ontix must keep its own authentication and role checks server-side, while the service user receives only minimum necessary Foundry resource access. Do not send Foundry client secrets or access tokens to the browser.
+The repository also contains Next.js Route Handlers for OAuth initiation, callback, refresh-token support, and local disconnect. The current flow binds state and PKCE to the signed-in local user, uses PKCE S256, keeps the verifier in an integrity-protected HttpOnly cookie, encrypts Foundry tokens with AES-256-GCM, and persists them in an additive `FoundryConnection` table. This is still coupled to the local Better Auth identity and Prisma session/token storage; it is not yet a Foundry-only login. `DATABASE_URL`, `DIRECT_DATABASE_URL`, and `BETTER_AUTH_SECRET` are absent from the local environment, so OAuth persistence has not been exercised.
 
-Suggested private server settings after the OSDK is generated:
+Better Auth remains the local user, session, and role provider. Foundry OAuth is a linked user grant, not a replacement identity provider. The Integrations page can report OSDK verified only after all six object reads succeed for the signed-in Foundry user. No such live check has succeeded yet. `DATA_PROVIDER=foundry` remains fail-closed for business data and must not use Neon records as fallback.
 
-| Setting | Purpose |
-| --- | --- |
-| `FOUNDRY_STACK_URL` | The user’s Foundry enrollment URL. |
-| `FOUNDRY_CLIENT_ID` | Developer Console backend application identifier. |
-| `FOUNDRY_CLIENT_SECRET` | Confidential OAuth secret, kept in server-only secret storage. |
-| `FOUNDRY_ONTOLOGY_RID` | The generated SDK’s Ontology RID. |
-| Generated OSDK package + version | Ontology-specific object, link, action, and query bindings from the private Artifacts registry. |
+## Remaining verification
 
-These values are not currently consumed by Ontix. Do not configure `DATA_PROVIDER=foundry` expecting a live provider yet. Do not commit generated registry authentication or credential files.
+- Verify the now-indexed Customer and ApprovalRequest records through an authenticated OSDK request.
+- Repair the Test Run pane so action rules can be verified without committing edits.
+- Establish a reliable Foundry user-to-Employee identity mapping, then implement and test `ApproveRequest` and `RejectRequest` with atomic approval/case edits.
+- Regenerate OSDK after those actions are saved, then implement and verify supported relationship reads and the approved action calls.
+- Replace local Better Auth identity and Prisma-backed token persistence only after a secure Foundry session strategy is selected and verified.
+- Complete live Foundry consent, six OSDK reads, link traversals, one permitted action, token refresh, logout/disconnect, expiry/revocation, and unauthorized access tests.
+- Keep the current dual-provider implementation intact until Foundry covers authentication, business persistence, authorization, sessions, workflows, and audit history.
 
-## Testing boundary
+## References
 
-Palantir publishes `@osdk/unit-testing`, an **experimental** package available through `@osdk/unit-testing/experimental`. Its `createMockClient`, mock objects, and object sets support unit tests for code written against a generated OSDK without contacting Foundry. They do not establish a connection or prove real permissions, ontology data, or remote action behavior.
-
-The package is not installed in this checkout because there is no generated OSDK client or Foundry-backed service code to test with it. Once those exist, use those official mocks for isolated tests and run a separate, explicitly authorized smoke test against the configured development enrollment. Only a successful real response should be described as a genuine integration.
-
-References: [OSDK overview](https://www.palantir.com/docs/foundry/ontology-sdk/overview), [TypeScript OSDK](https://www.palantir.com/docs/foundry/ontology-sdk/typescript-osdk), [server-side OSDK setup](https://www.palantir.com/docs/foundry/developer-console/how-to-bootstrapping-server-side-typescript), [OSDK unit testing](https://www.palantir.com/docs/foundry/ontology-sdk/typescript-osdk-testing).
+- [OAuth2 clients for Foundry](https://www.palantir.com/docs/foundry/platform-security-third-party/writing-oauth2-clients)
+- [Application restrictions](https://www.palantir.com/docs/foundry/developer-console/application-restrictions)
+- [TypeScript OSDK v2](https://www.palantir.com/docs/foundry/ontology-sdk/typescript-osdk)
+- [Ontology action types](https://www.palantir.com/docs/foundry/action-types/getting-started)
+- [Action Test Run](https://www.palantir.com/docs/foundry/action-types/test-run)

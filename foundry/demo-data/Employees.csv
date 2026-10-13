@@ -1,0 +1,9 @@
+id,name,email,teamId,role
+EMP-4001,Jordan Lee,jordan.lee@example.com,TEAM-3001,OPERATIONS_LEAD
+EMP-4002,Taylor Morgan,taylor.morgan@example.com,TEAM-3001,CASE_MANAGER
+EMP-4003,Casey Rivera,casey.rivera@example.com,TEAM-3001,ANALYST
+EMP-4004,Avery Patel,avery.patel@example.com,TEAM-3002,PROJECT_MANAGER
+EMP-4005,Morgan Ellis,morgan.ellis@example.com,TEAM-3002,DELIVERY_LEAD
+EMP-4006,Riley Chen,riley.chen@example.com,TEAM-3003,DATA_ENGINEER
+EMP-4007,Quinn Brooks,quinn.brooks@example.com,TEAM-3003,INTEGRATION_SPECIALIST
+EMP-4008,Drew Kim,drew.kim@example.com,TEAM-3002,APPROVAL_OWNER

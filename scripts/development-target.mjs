@@ -35,7 +35,8 @@ export function assertDevelopmentDatabase() {
   if (
     pooled.hostname.includes("example") ||
     direct.hostname.includes("example") ||
-    /replace[_ -]?me|placeholder/i.test(`${pooled.username} ${pooled.password}`)
+    /replace|placeholder|change[_ -]?me|your[_ -]?password/i.test(`${pooled.username} ${pooled.password}`) ||
+    /replace|placeholder|example/i.test(`${pooledValue} ${directValue}`)
   ) {
     throw new Error("replace the safe placeholders with the connection strings from your Neon development branch");
   }

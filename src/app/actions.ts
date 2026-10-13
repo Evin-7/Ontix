@@ -9,9 +9,11 @@ import {
 } from "@/lib/auth/dal";
 import { archiveCustomer, createCustomer, updateCustomer } from "@/lib/services/customers";
 import { decideApprovalRequest, requestApprovalForCase } from "@/lib/services/approvals";
-import { assignOperationalCase, createCase, escalateOperationalCase } from "@/lib/services/cases";
+import { assignOperationalCase, createCase, escalateOperationalCase, resolveOperationalCase } from "@/lib/services/cases";
 import { archiveProject, createProject, updateProject } from "@/lib/services/projects";
-import { ServiceError } from "@/lib/services/errors";
+import { safeDatabaseErrorMessage, ServiceError } from "@/lib/services/errors";
+import { activateEmployee, createEmployee, deactivateEmployee, updateEmployee } from "@/lib/services/employees";
+import { activateTeam, createTeam, deactivateTeam, updateTeam } from "@/lib/services/teams";
 import { WorkflowConflictError } from "@/server/db/approval-workflow";
 import { queryOntologyDemoObject } from "@/lib/services/ontology-demo";
 import { ProviderNotReadyError, requireNeonDemoProvider } from "@/server/providers/provider-mode";
@@ -30,8 +32,17 @@ const commandSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("case.create"), input: z.unknown() }),
   z.object({ type: z.literal("case.assign"), caseId: idSchema, employeeId: idSchema.nullable() }),
   z.object({ type: z.literal("case.escalate"), caseId: idSchema }),
+  z.object({ type: z.literal("case.resolve"), caseId: idSchema }),
   z.object({ type: z.literal("case.requestApproval"), caseId: idSchema, input: z.unknown() }),
   z.object({ type: z.literal("approval.decide"), approvalId: idSchema, decision: z.enum(["APPROVED", "REJECTED"]), comment: z.string().trim().max(1000) }),
+  z.object({ type: z.literal("employee.create"), input: z.unknown() }),
+  z.object({ type: z.literal("employee.update"), employeeId: idSchema, input: z.unknown() }),
+  z.object({ type: z.literal("employee.deactivate"), employeeId: idSchema }),
+  z.object({ type: z.literal("employee.activate"), employeeId: idSchema }),
+  z.object({ type: z.literal("team.create"), input: z.unknown() }),
+  z.object({ type: z.literal("team.update"), teamId: idSchema, input: z.unknown() }),
+  z.object({ type: z.literal("team.deactivate"), teamId: idSchema }),
+  z.object({ type: z.literal("team.activate"), teamId: idSchema }),
 ]);
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -42,7 +53,7 @@ function publicError(error: unknown) {
   if (error instanceof AuthorizationDeniedError) return error.message;
   if (error instanceof WorkflowConflictError || error instanceof ServiceError) return error.message;
   if (error instanceof ProviderNotReadyError) return error.message;
-  return "The request could not be completed. Try again.";
+  return safeDatabaseErrorMessage(error) ?? "The request could not be completed. Try again.";
 }
 
 export async function runWorkspaceCommand(rawCommand: unknown): Promise<ActionResult> {
@@ -80,6 +91,9 @@ export async function runWorkspaceCommand(rawCommand: unknown): Promise<ActionRe
       case "case.escalate":
         await escalateOperationalCase(command.caseId);
         break;
+      case "case.resolve":
+        await resolveOperationalCase(command.caseId);
+        break;
       case "case.requestApproval":
         await requestApprovalForCase(command.caseId, command.input);
         break;
@@ -88,6 +102,30 @@ export async function runWorkspaceCommand(rawCommand: unknown): Promise<ActionRe
           decision: command.decision,
           comment: command.comment,
         });
+        break;
+      case "employee.create":
+        await createEmployee(command.input);
+        break;
+      case "employee.update":
+        await updateEmployee(command.employeeId, command.input);
+        break;
+      case "employee.deactivate":
+        await deactivateEmployee(command.employeeId);
+        break;
+      case "employee.activate":
+        await activateEmployee(command.employeeId);
+        break;
+      case "team.create":
+        await createTeam(command.input);
+        break;
+      case "team.update":
+        await updateTeam(command.teamId, command.input);
+        break;
+      case "team.deactivate":
+        await deactivateTeam(command.teamId);
+        break;
+      case "team.activate":
+        await activateTeam(command.teamId);
         break;
     }
     revalidatePath("/");

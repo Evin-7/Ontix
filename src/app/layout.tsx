@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   applicationName: "Ontix",
   title: "Ontix | Enterprise Operations Platform",
   description: "Connected Data. Smarter Operations.",
-  metadataBase: new URL(process.env.BETTER_AUTH_URL ?? "http://127.0.0.1:3000"),
+  metadataBase: new URL(process.env.ONTIX_APPLICATION_URL ?? process.env.BETTER_AUTH_URL ?? "http://127.0.0.1:3000"),
   openGraph: {
     type: "website",
     siteName: "Ontix",

@@ -27,11 +27,15 @@ Copy `.env.example` to ignored `.env.local`. Obtain both database URLs from the 
 | `BETTER_AUTH_SECRET` | Session signing and encryption | At least 32 random characters; keep server-side |
 | `BOOTSTRAP_ADMIN_*` | One-time admin provisioning | Private `.env.local` values; remove the password after provisioning |
 
+The checked-in `.env.example` uses the provided pooled endpoint shape with a safe password placeholder. Obtain `DIRECT_DATABASE_URL` from the Neon Console for the same development branch; do not infer or construct its hostname. Replace both placeholders only in ignored `.env.local`.
+
 The development-target guard validates Neon hosts, pooled/direct pairing, TLS, branch labels, and matching database/user/password without printing connection details. It cannot independently prove which Neon branch an endpoint belongs to. Before running a migration or seed, verify in the Neon Console that both URLs belong to the dedicated development branch. Keep `.env.local` out of source control, logs, screenshots, browser bundles, and issue reports.
 
 ## Schema and migrations
 
 Existing business tables stay intact: teams, employees, legacy sessions, customers, projects, project assignments, operational cases, approvals, and activity events. The Prisma model for the physical `employees` table is named `Employee`; only the Prisma model name changed. Business foreign keys and audit actors continue to reference `employees.id`.
+
+Team lifecycle uses an additive `isActive` flag; the migration defaults existing teams to active and preserves their history and relationships. Employee and team removal is a soft deactivation so existing references remain intact; both can be reactivated. Employee directory creation does not create login credentials; administrators provision Better Auth access separately. Only administrators can manage employee records and roles, and the last active administrator cannot be deactivated or demoted. Deactivating an employee revokes their current Better Auth sessions; their linked credentials remain available if the employee is later reactivated.
 
 The additive auth migration creates independent `auth_users`, `auth_sessions`, `auth_accounts`, `auth_verifications`, and `auth_rate_limits` tables. Each auth user may link to one employee. Better Auth credentials and session tokens never appear in page props. The linked employee's active state and role determine access on every server operation.
 

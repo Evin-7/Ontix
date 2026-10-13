@@ -36,10 +36,10 @@ const adapter = new PrismaNeon(
   },
   {
     onPoolError(error) {
-      console.error("Neon connection pool error:", error.message);
+      console.error("Neon connection pool error:", { errorType: error.name, code: "code" in error ? error.code : undefined });
     },
     onConnectionError(error) {
-      console.error("Neon connection error:", error.message);
+      console.error("Neon connection error:", { errorType: error.name, code: "code" in error ? error.code : undefined });
     },
   },
 );

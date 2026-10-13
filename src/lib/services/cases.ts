@@ -4,8 +4,9 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "@/server/db/prisma";
 import { requireActor, requirePermission } from "@/lib/auth/dal";
 import { appendAudit } from "@/lib/services/audit";
+import { ServiceError } from "@/lib/services/errors";
 import { caseInputSchema } from "@/lib/validation";
-import { assignCase, escalateCase } from "@/server/db/case-workflow";
+import { assignCase, escalateCase, resolveCase } from "@/server/db/case-workflow";
 
 export async function listCases() {
   await requireActor();
@@ -24,6 +25,12 @@ export async function createCase(rawInput: unknown) {
   const actor = await requirePermission("cases:create");
   const input = caseInputSchema.parse(rawInput);
   return prisma.$transaction(async (tx) => {
+    if (input.assignedEmployeeId) {
+      const employee = await tx.$queryRaw<{ id: string }[]>`
+        SELECT "id" FROM "employees" WHERE "id" = ${input.assignedEmployeeId} AND "isActive" = TRUE FOR UPDATE
+      `;
+      if (employee.length === 0) throw new ServiceError("Choose an active employee as the case owner.");
+    }
     const operationalCase = await tx.operationalCase.create({
       data: { ...input, caseKey: `CASE-${randomUUID().slice(0, 8).toUpperCase()}` },
     });
@@ -47,4 +54,9 @@ export async function assignOperationalCase(caseId: string, employeeId: string |
 export async function escalateOperationalCase(caseId: string) {
   const actor = await requirePermission("cases:work");
   return escalateCase(prisma, { caseId, actorId: actor.employeeId });
+}
+
+export async function resolveOperationalCase(caseId: string) {
+  const actor = await requirePermission("cases:work");
+  return resolveCase(prisma, { caseId, actorId: actor.employeeId });
 }

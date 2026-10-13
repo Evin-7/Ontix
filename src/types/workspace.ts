@@ -9,12 +9,25 @@ export type Viewer = {
 
 export type Employee = {
   id: string;
+  employeeNumber?: string;
   name: string;
+  email?: string;
   title: string;
+  department?: string;
   role: string;
   teamId: string | null;
+  isActive?: boolean;
   team?: { id: string; name: string; department: string } | null;
   assignedProjects?: { id: string; name: string; projectKey: string; status: string }[];
+};
+
+export type Team = {
+  id: string;
+  name: string;
+  department: string;
+  description: string;
+  isActive: boolean;
+  _count?: { employees: number; projects: number };
 };
 
 export type Customer = {
@@ -107,6 +120,7 @@ export type WorkspaceData = {
   approvals: Approval[];
   activity: Activity[];
   employees: Employee[];
+  teams: Team[];
 };
 
 export type WorkspaceCommand =
@@ -119,5 +133,14 @@ export type WorkspaceCommand =
   | { type: "case.create"; input: unknown }
   | { type: "case.assign"; caseId: string; employeeId: string | null }
   | { type: "case.escalate"; caseId: string }
+  | { type: "case.resolve"; caseId: string }
   | { type: "case.requestApproval"; caseId: string; input: unknown }
-  | { type: "approval.decide"; approvalId: string; decision: "APPROVED" | "REJECTED"; comment: string };
+  | { type: "approval.decide"; approvalId: string; decision: "APPROVED" | "REJECTED"; comment: string }
+  | { type: "employee.create"; input: unknown }
+  | { type: "employee.update"; employeeId: string; input: unknown }
+  | { type: "employee.deactivate"; employeeId: string }
+  | { type: "employee.activate"; employeeId: string }
+  | { type: "team.create"; input: unknown }
+  | { type: "team.update"; teamId: string; input: unknown }
+  | { type: "team.deactivate"; teamId: string }
+  | { type: "team.activate"; teamId: string };

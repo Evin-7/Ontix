@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { approvalDecisionSchema, customerInputSchema, projectInputSchema } from "./validation";
+import { approvalDecisionSchema, customerInputSchema, employeeInputSchema, projectInputSchema, teamInputSchema } from "./validation";
 
 describe("server-side input validation", () => {
   it("rejects malformed customer input before service operations", () => {
@@ -30,5 +30,26 @@ describe("server-side input validation", () => {
   it("rejects approval decisions outside the supported transition set", () => {
     expect(approvalDecisionSchema.safeParse({ decision: "PENDING", comment: "" }).success).toBe(false);
     expect(approvalDecisionSchema.safeParse({ decision: "APPROVED", comment: "Review complete." }).success).toBe(true);
+  });
+
+  it("validates employee and team records before database operations", () => {
+    expect(employeeInputSchema.safeParse({
+      employeeNumber: "OX-2048",
+      name: "Jordan Lee",
+      email: "jordan@example.test",
+      title: "Operations analyst",
+      department: "Operations",
+      role: "ANALYST",
+      teamId: null,
+    }).success).toBe(true);
+    expect(employeeInputSchema.safeParse({
+      employeeNumber: "OX-2048",
+      name: "Jordan Lee",
+      email: "invalid",
+      title: "Operations analyst",
+      department: "Operations",
+      role: "SUPERUSER",
+    }).success).toBe(false);
+    expect(teamInputSchema.safeParse({ name: "Service Delivery", department: "Operations", description: "Fictional delivery team." }).success).toBe(true);
   });
 });

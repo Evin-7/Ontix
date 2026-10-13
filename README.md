@@ -6,7 +6,7 @@
 
 Ontix is a full-stack operations workspace for customer accounts, projects, employees, operational cases, approvals, and audit activity. One Next.js App Router application serves the UI and server-side application logic. Local Demo records persist in Neon PostgreSQL through Prisma.
 
-Neon is a separate relational database provider. It is not Palantir Foundry or a genuine Palantir Ontology. The Data model view is a clearly labeled simulation over Neon records. A genuine Foundry OSDK provider is not connected: no authorized enrollment or generated OSDK client is configured. `DATA_PROVIDER=foundry` fails closed instead of switching to Neon.
+Neon is a separate relational database provider. It is not Palantir Foundry or a genuine Palantir Ontology. The Data model view is a clearly labeled simulation over Neon records. Ontix now has a Developer Console generated TypeScript OSDK 2.80.0 package and a server-only read-verification path. No authenticated Foundry request has succeeded yet because the local Neon and Better Auth credentials are not configured. `DATA_PROVIDER=foundry` still fails closed for business data instead of switching to Neon.
 
 ## Local setup
 
@@ -41,7 +41,8 @@ If Neon credentials are not configured, schema generation, type checks, unit tes
 - **Authentication and authorization:** Better Auth provides database-backed email/password sessions. Public sign-up is disabled. A login must be linked to an active employee. The employee role is checked server-side for every service operation; UI visibility is only a convenience and does not replace authorization.
 - **Modular services:** `src/lib/services/` contains customer, project, employee, operational case, approval, audit, and workspace read services. Data changes and audit events use one database transaction.
 - **Local Demo provider:** Prisma ORM 7 uses Neon’s pooled endpoint for runtime operations and the matching direct endpoint for Prisma CLI migrations. Runtime runs on Node.js; Neon adapter pool size is capped at five connections per process.
-- **Foundry provider:** Not connected yet. The `foundry` mode fails closed; a genuine implementation requires an authorized Foundry enrollment, generated OSDK, and server-side credentials. See [docs/PROVIDERS.md](docs/PROVIDERS.md).
+- **Foundry provider:** The generated OSDK and user-scoped server verification path are installed, but no live request has been verified. `foundry` mode remains fail-closed for business data; see [docs/FOUNDRY_SETUP.md](docs/FOUNDRY_SETUP.md) and [docs/PROVIDERS.md](docs/PROVIDERS.md).
+- **Current verification:** [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) records actual Foundry resources and local check results.
 - **Ontology-style demo:** The Data model page can query relationships between Neon-backed customer, project, team, employee, case, approval, and audit records. It is not a Palantir integration.
 
 ## Data and workflows
