@@ -1,0 +1,3 @@
+ALTER TABLE "projects" ADD COLUMN "revision" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "operational_cases" ADD COLUMN "escalationLevel" INTEGER NOT NULL DEFAULT 0;

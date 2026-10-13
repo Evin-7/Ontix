@@ -1,0 +1,63 @@
+{
+  "name": "ontix",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "prisma generate && node scripts/build-next.mjs",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "db:generate": "prisma generate",
+    "db:validate": "prisma validate",
+    "db:migrate": "node scripts/assert-development-database.mjs && prisma migrate deploy",
+    "db:seed": "node scripts/assert-development-database.mjs && tsx prisma/seed.ts",
+    "db:status": "node scripts/assert-development-database.mjs && prisma migrate status",
+    "db:connectivity": "node scripts/assert-development-database.mjs && tsx scripts/verify-database.ts",
+    "db:bootstrap-admin": "node scripts/assert-development-database.mjs && tsx scripts/bootstrap-admin.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@better-auth/prisma-adapter": "1.7.7",
+    "@neondatabase/serverless": "1.2.0",
+    "@prisma/adapter-neon": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "better-auth": "1.7.7",
+    "dotenv": "18.0.7",
+    "lucide-react": "0.577.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "ws": "8.22.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@types/node": "20.19.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/ws": "8.18.2",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "jsdom": "26.1.0",
+    "postcss": "8.5.30",
+    "prettier": "3.9.10",
+    "prisma": "7.10.0",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2",
+    "vitest": "4.1.11"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.2",
+    "mysql2": "3.24.5"
+  }
+}
