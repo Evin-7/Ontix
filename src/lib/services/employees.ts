@@ -9,6 +9,18 @@ export async function listEmployees() {
     where: { isActive: true },
     take: 500,
     orderBy: { name: "asc" },
-    select: { id: true, name: true, title: true, role: true, teamId: true },
+    select: {
+      id: true,
+      name: true,
+      title: true,
+      role: true,
+      teamId: true,
+      team: { select: { id: true, name: true, department: true } },
+      projectAssignments: {
+        select: {
+          project: { select: { id: true, name: true, projectKey: true, status: true } },
+        },
+      },
+    },
   });
 }

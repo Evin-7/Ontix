@@ -2,7 +2,7 @@
 
 ## Provider boundary
 
-Neon PostgreSQL is the persistent database for the Local Demo provider. One Next.js App Router application uses Prisma ORM 7 for server-side reads and writes. Neon does not represent Palantir Foundry or a genuine Foundry Ontology. The Foundry OSDK provider has a separate client, authentication, operations, and permission boundary; this checkout does not contain an authorized OSDK client. See [PROVIDERS.md](PROVIDERS.md).
+Neon PostgreSQL is the persistent database for the Local Demo provider. One Next.js App Router application uses Prisma ORM 7 for server-side reads and writes. Neon does not represent Palantir Foundry or a genuine Foundry Ontology. This checkout does not contain an authorized Foundry OSDK provider; the `foundry` mode fails closed. See [PROVIDERS.md](PROVIDERS.md).
 
 ## Runtime and connections
 
@@ -22,7 +22,7 @@ Copy `.env.example` to ignored `.env.local`. Obtain both database URLs from the 
 | `DIRECT_DATABASE_URL` | Prisma migrations and status | Matching direct endpoint; host does not include `-pooler` |
 | `DATABASE_ENVIRONMENT` | Local mutation guard | `development` |
 | `DATABASE_BRANCH_NAME` | Human safety guard | Dedicated branch name, not `main`, `prod`, or `production` |
-| `DATA_PROVIDER` | Provider identity | `local` |
+| `DATA_PROVIDER` | Provider identity | `neon-demo` |
 | `BETTER_AUTH_URL` | Auth origin | Local URL for development; exact canonical origin in deployment |
 | `BETTER_AUTH_SECRET` | Session signing and encryption | At least 32 random characters; keep server-side |
 | `BOOTSTRAP_ADMIN_*` | One-time admin provisioning | Private `.env.local` values; remove the password after provisioning |

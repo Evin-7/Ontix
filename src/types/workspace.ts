@@ -13,6 +13,8 @@ export type Employee = {
   title: string;
   role: string;
   teamId: string | null;
+  team?: { id: string; name: string; department: string } | null;
+  assignedProjects?: { id: string; name: string; projectKey: string; status: string }[];
 };
 
 export type Customer = {
@@ -43,6 +45,7 @@ export type Project = {
   revision: number;
   customer?: { id: string; name: string };
   team?: { id: string; name: string } | null;
+  assignments?: { employee: { id: string; name: string; title: string; role: string } }[];
   _count?: { assignments: number; cases: number };
 };
 

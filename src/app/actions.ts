@@ -13,6 +13,9 @@ import { assignOperationalCase, createCase, escalateOperationalCase } from "@/li
 import { archiveProject, createProject, updateProject } from "@/lib/services/projects";
 import { ServiceError } from "@/lib/services/errors";
 import { WorkflowConflictError } from "@/server/db/approval-workflow";
+import { queryOntologyDemoObject } from "@/lib/services/ontology-demo";
+import { ProviderNotReadyError, requireNeonDemoProvider } from "@/server/providers/provider-mode";
+import type { OntologyDemoObjectGraph } from "@/types/ontology-demo";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -38,6 +41,7 @@ function publicError(error: unknown) {
   if (error instanceof AuthenticationRequiredError) return "Your session has expired. Sign in again.";
   if (error instanceof AuthorizationDeniedError) return error.message;
   if (error instanceof WorkflowConflictError || error instanceof ServiceError) return error.message;
+  if (error instanceof ProviderNotReadyError) return error.message;
   return "The request could not be completed. Try again.";
 }
 
@@ -46,6 +50,7 @@ export async function runWorkspaceCommand(rawCommand: unknown): Promise<ActionRe
   if (!parsed.success) return { ok: false, error: "The request is invalid." };
 
   try {
+    requireNeonDemoProvider();
     const command = parsed.data;
     switch (command.type) {
       case "customer.create":
@@ -93,10 +98,34 @@ export async function runWorkspaceCommand(rawCommand: unknown): Promise<ActionRe
       !(error instanceof AuthenticationRequiredError) &&
       !(error instanceof AuthorizationDeniedError) &&
       !(error instanceof WorkflowConflictError) &&
-      !(error instanceof ServiceError)
+      !(error instanceof ServiceError) &&
+      !(error instanceof ProviderNotReadyError)
     ) {
       console.error("[Ontix] Unexpected workspace command failure", {
         command: parsed.data.type,
+        errorType: error instanceof Error ? error.name : "UnknownError",
+      });
+    }
+    return { ok: false, error: publicError(error) };
+  }
+}
+
+export type OntologyQueryResult =
+  | { ok: true; graph: OntologyDemoObjectGraph }
+  | { ok: false; error: string };
+
+export async function queryOntologyDemo(rawInput: unknown): Promise<OntologyQueryResult> {
+  try {
+    return { ok: true, graph: await queryOntologyDemoObject(rawInput) };
+  } catch (error) {
+    if (
+      !(error instanceof ZodError) &&
+      !(error instanceof AuthenticationRequiredError) &&
+      !(error instanceof AuthorizationDeniedError) &&
+      !(error instanceof ServiceError) &&
+      !(error instanceof ProviderNotReadyError)
+    ) {
+      console.error("[Ontix] Ontology-style demo query failed", {
         errorType: error instanceof Error ? error.name : "UnknownError",
       });
     }

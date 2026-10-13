@@ -4,7 +4,7 @@
 
 Ontix is a full-stack operations workspace for customer accounts, projects, employees, operational cases, approvals, and audit activity. One Next.js App Router application serves the UI and server-side application logic. Local Demo records persist in Neon PostgreSQL through Prisma.
 
-Neon is a separate relational database provider. It is not Palantir Foundry or a genuine Palantir Ontology. The Foundry OSDK provider remains a separate integration boundary; this checkout has no generated OSDK client or authorized Foundry credentials.
+Neon is a separate relational database provider. It is not Palantir Foundry or a genuine Palantir Ontology. The Data model view is a clearly labeled simulation over Neon records. A genuine Foundry OSDK provider is not connected: no authorized enrollment or generated OSDK client is configured. `DATA_PROVIDER=foundry` fails closed instead of switching to Neon.
 
 ## Local setup
 
@@ -39,7 +39,8 @@ If Neon credentials are not configured, schema generation, type checks, unit tes
 - **Authentication and authorization:** Better Auth provides database-backed email/password sessions. Public sign-up is disabled. A login must be linked to an active employee. The employee role is checked server-side for every service operation; UI visibility is only a convenience and does not replace authorization.
 - **Modular services:** `src/lib/services/` contains customer, project, employee, operational case, approval, audit, and workspace read services. Data changes and audit events use one database transaction.
 - **Local Demo provider:** Prisma ORM 7 uses Neon’s pooled endpoint for runtime operations and the matching direct endpoint for Prisma CLI migrations. Runtime runs on Node.js; Neon adapter pool size is capped at five connections per process.
-- **Foundry provider:** OSDK authentication, generated clients, Foundry objects, and actions stay separate from Neon. See [docs/PROVIDERS.md](docs/PROVIDERS.md).
+- **Foundry provider:** Not connected yet. The `foundry` mode fails closed; a genuine implementation requires an authorized Foundry enrollment, generated OSDK, and server-side credentials. See [docs/PROVIDERS.md](docs/PROVIDERS.md).
+- **Ontology-style demo:** The Data model page can query relationships between Neon-backed customer, project, team, employee, case, approval, and audit records. It is not a Palantir integration.
 
 ## Data and workflows
 

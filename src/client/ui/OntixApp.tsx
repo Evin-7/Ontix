@@ -19,6 +19,7 @@ import {
   Gauge,
   Layers3,
   LogOut,
+  Network,
   Plus,
   RefreshCw,
   Search,
@@ -48,6 +49,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { notify } from "@/lib/notifications";
+import { OntologyModelExplorer } from "@/client/ui/OntologyModelExplorer";
 import {
   approvalInputSchema,
   caseInputSchema,
@@ -69,7 +71,7 @@ import type {
   WorkspaceData,
 } from "@/types/workspace";
 
-type View = "Overview" | "Cases" | "Projects" | "Customers" | "Approvals" | "Activity";
+type View = "Overview" | "Data model" | "Cases" | "Projects" | "Customers" | "Approvals" | "Activity";
 type RecordDialogState = { kind: "customer"; record?: Customer } | { kind: "project"; record?: Project } | { kind: "case" };
 type ApprovalReviewState = { approval: Approval; decision: "APPROVED" | "REJECTED" };
 type DestructiveAction = { title: string; description: string; actionLabel: string; command: WorkspaceCommand };
@@ -77,6 +79,7 @@ type DestructiveAction = { title: string; description: string; actionLabel: stri
 type IconType = typeof Gauge;
 const views: { name: View; icon: IconType }[] = [
   { name: "Overview", icon: Gauge },
+  { name: "Data model", icon: Network },
   { name: "Cases", icon: CircleAlert },
   { name: "Projects", icon: FolderKanban },
   { name: "Customers", icon: Building2 },
@@ -190,7 +193,7 @@ export function OntixApp({ initialData, viewer }: { initialData: WorkspaceData; 
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="provider-card"><div className="provider-title"><Database size={15} aria-hidden="true" /><span>LOCAL DEMO PROVIDER</span></div><strong>Neon PostgreSQL</strong><small>Server-side data provider</small></div>
+          <div className="provider-card"><div className="provider-title"><Database size={15} aria-hidden="true" /><span>ACTIVE DATA SOURCE</span></div><strong>Neon PostgreSQL</strong><small>Ontology-style view is simulated · Foundry is not connected</small></div>
           <div className="profile-row"><div className="avatar" aria-hidden="true">{initials}</div><div><strong>{viewer.name}</strong><span>{titleCase(viewer.role)}</span></div><form action={signOutAction}><button className="logout-button" aria-label="Sign out" title="Sign out">Sign out</button></form></div>
         </div>
       </aside>
@@ -209,6 +212,7 @@ export function OntixApp({ initialData, viewer }: { initialData: WorkspaceData; 
 
         <div className="page-content">
           {view === "Overview" && <Overview data={initialData.dashboard} cases={filteredCases} approvals={filteredApprovals} activity={filteredActivity} search={search} onClearSearch={() => setSearch("")} onOpen={(nextView) => { setView(nextView); setSearch(""); }} onAction={(command) => void performAction(command)} onCreate={openRecordDialog} onReview={setApprovalReview} busy={mutationPending} canManage={canManage} canWorkCases={canWorkCases} canDecideApprovals={canDecideApprovals} employeeId={viewer.employeeId} />}
+          {view === "Data model" && <OntologyModelExplorer data={initialData} search={search} onClearSearch={() => setSearch("")} />}
           {view === "Cases" && <CasesPage cases={filteredCases} employees={initialData.employees} onAction={(command) => void performAction(command)} onCreate={() => openRecordDialog({ kind: "case" })} onRequestApproval={setApprovalRequestCase} busy={mutationPending} canWorkCases={canWorkCases} canRequestApprovals={canWorkCases} search={search} onClearSearch={() => setSearch("")} />}
           {view === "Projects" && <ProjectsPage projects={filteredProjects} onAction={(command) => void performAction(command)} onCreate={() => openRecordDialog({ kind: "project" })} onEdit={(project) => openRecordDialog({ kind: "project", record: project })} onArchive={(project) => beginArchive("project", project)} busy={mutationPending} canManage={canManage} search={search} onClearSearch={() => setSearch("")} />}
           {view === "Customers" && <CustomersPage customers={filteredCustomers} onCreate={() => openRecordDialog({ kind: "customer" })} onEdit={(customer) => openRecordDialog({ kind: "customer", record: customer })} onArchive={(customer) => beginArchive("customer", customer)} canManage={canManage} search={search} onClearSearch={() => setSearch("")} />}

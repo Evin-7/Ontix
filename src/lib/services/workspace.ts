@@ -8,8 +8,10 @@ import { listCases } from "@/lib/services/cases";
 import { listCustomers } from "@/lib/services/customers";
 import { listEmployees } from "@/lib/services/employees";
 import { listProjects } from "@/lib/services/projects";
+import { requireNeonDemoProvider } from "@/server/providers/provider-mode";
 
 export async function loadWorkspace() {
+  requireNeonDemoProvider();
   await requireActor();
   const [customers, projects, cases, approvals, activity, employees, customerCount, projectCount, activeCaseCount, pendingApprovalCount, casesByStatus, projectsByStatus] = await Promise.all([
     listCustomers(),
@@ -75,6 +77,7 @@ export async function loadWorkspace() {
       revision: project.revision,
       customer: project.customer,
       team: project.team,
+      assignments: project.assignments,
       _count: project._count,
     })),
     cases: cases.map((item) => ({
@@ -109,6 +112,9 @@ export async function loadWorkspace() {
       createdAt: item.createdAt.toISOString(),
     })),
     activity: serializedActivity,
-    employees,
+    employees: employees.map(({ projectAssignments, ...employee }) => ({
+      ...employee,
+      assignedProjects: projectAssignments.map(({ project }) => project),
+    })),
   };
 }

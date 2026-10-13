@@ -10,7 +10,7 @@ Set these as server-side environment variables in the hosting environment:
 - `DIRECT_DATABASE_URL`: matching direct endpoint for the migration job only; do not expose it to the application browser or use it for routine runtime queries.
 - `BETTER_AUTH_URL`: the exact canonical HTTPS origin of the deployed app.
 - `BETTER_AUTH_SECRET`: at least 32 random characters, stored in the host secret manager.
-- `DATA_PROVIDER=local`: explicitly select the Local Demo provider.
+- `DATA_PROVIDER=neon-demo`: explicitly select the Neon Local Demo provider (`local` remains accepted as a compatibility alias).
 - `DATABASE_ENVIRONMENT` and `DATABASE_BRANCH_NAME`: set for the dedicated development branch when running guarded local mutation scripts.
 
 Keep all database credentials and auth secrets out of `NEXT_PUBLIC_*`, client components, generated static assets, logs, and commits. Palantir access tokens, if a separate Foundry provider is later configured, must be kept in their own server-side secret scope and never shared with the Neon provider.
@@ -40,4 +40,4 @@ The first administrator is provisioned out of band by the development-only boots
 
 ## Foundry provider boundary
 
-The Local Demo provider reads and writes Neon records only. A real Foundry OSDK integration requires its own authorized environment, generated Ontology SDK, credentials, and permission rules. Keep its client and operation path independent; never use Neon records or tokens as a Foundry fallback. Details: [PROVIDERS.md](PROVIDERS.md).
+The Local Demo provider reads and writes Neon records only. Its Ontology-style relationship explorer is simulated from those records. `DATA_PROVIDER=foundry` currently fails closed with setup guidance; it does not claim to make a Foundry connection or fall back to Neon. A real Foundry OSDK provider requires an authorized environment, generated Ontology SDK, server-side credentials, and permission rules. Keep its client and operation path independent. Details: [PROVIDERS.md](PROVIDERS.md) and [OSDK_INTEGRATION_STATUS.md](OSDK_INTEGRATION_STATUS.md).

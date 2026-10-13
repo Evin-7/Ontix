@@ -17,6 +17,7 @@ export async function listProjects() {
     include: {
       customer: { select: { id: true, name: true } },
       team: { select: { id: true, name: true } },
+      assignments: { select: { employee: { select: { id: true, name: true, title: true, role: true } } } },
       _count: { select: { assignments: true, cases: true } },
     },
     orderBy: [{ dueDate: "asc" }, { name: "asc" }],
