@@ -19,7 +19,7 @@ function chartTooltipStyle() {
   };
 }
 
-function BreakdownChart({ chart }: { chart: OverviewChartSpec }) {
+function BreakdownChart({ chart, isDemo }: { chart: OverviewChartSpec; isDemo: boolean }) {
   const router = useRouter();
   const total = chart.data.reduce((sum, item) => sum + item.count, 0);
   function navigate(item: OverviewChartValue) {
@@ -28,7 +28,7 @@ function BreakdownChart({ chart }: { chart: OverviewChartSpec }) {
 
   return <section className="foundry-chart-card" aria-label={`${chart.title} breakdown`}>
     <div className="foundry-chart-heading">
-      <div><span className="eyebrow">LIVE ONTOLOGY BREAKDOWN</span><h2>{chart.title}</h2></div>
+      <div><span className="eyebrow">{isDemo ? "DEMO DATA BREAKDOWN" : "LIVE ONTOLOGY BREAKDOWN"}</span><h2>{chart.title}</h2></div>
       <span>{displayCount(total)} records</span>
     </div>
     {chart.data.length === 0 ? <p className="foundry-chart-empty">No records in the visible sample.</p> : <>
@@ -60,6 +60,6 @@ function BreakdownChart({ chart }: { chart: OverviewChartSpec }) {
   </section>;
 }
 
-export default function OverviewChartsClient({ charts }: { charts: OverviewChartSpec[] }) {
-  return <div className="foundry-overview-grid">{charts.map((chart) => <BreakdownChart key={chart.title} chart={chart} />)}</div>;
+export default function OverviewChartsClient({ charts, isDemo }: { charts: OverviewChartSpec[]; isDemo: boolean }) {
+  return <div className="foundry-overview-grid">{charts.map((chart) => <BreakdownChart key={chart.title} chart={chart} isDemo={isDemo} />)}</div>;
 }

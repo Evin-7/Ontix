@@ -24,13 +24,14 @@ export type ExplorerRecord = {
 };
 
 export function RecordExplorer({
-  records, columns, filters = [], initialFilters, selectedId, emptyTitle, emptyDescription,
+  records, columns, filters = [], initialFilters, selectedId, isDemo = false, emptyTitle, emptyDescription,
 }: {
   records: ExplorerRecord[];
   columns: ExplorerColumn[];
   filters?: ExplorerFilter[];
   initialFilters?: Record<string, string | undefined>;
   selectedId?: string;
+  isDemo?: boolean;
   emptyTitle: string;
   emptyDescription: string;
 }) {
@@ -68,7 +69,7 @@ export function RecordExplorer({
       : { key, direction: "asc" });
   }
 
-  return <section className="foundry-record-section" aria-label="Foundry records">
+  return <section className="foundry-record-section" aria-label={isDemo ? "Demo workspace records" : "Foundry records"}>
     <div className="foundry-record-toolbar">
       <label className="foundry-record-search"><Search size={17} aria-hidden="true" /><span className="sr-only">Search records</span><Input value={query} onChange={(event) => { setPage(1); setQuery(event.target.value); }} placeholder="Filter this list…" /></label>
       {filters.length > 0 && <div className="foundry-record-filters"><SlidersHorizontal size={15} aria-hidden="true" />
@@ -112,8 +113,9 @@ export function RecordExplorer({
         <DialogHeader><span className="eyebrow">{selected.kind.toUpperCase()} RECORD</span><DialogTitle>{selected.title}</DialogTitle><DialogDescription>{selected.subtitle} · {selected.id}</DialogDescription></DialogHeader>
         <div className="foundry-detail-status"><span>Current status</span><StatusBadge status={selected.status} /></div>
         <div className="foundry-detail-fields">{Object.entries(selected.values).filter(([key, value]) => key !== "status" && value).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{value}</dd></div>)}</div>
-        {selected.action?.type === "project" && <div className="foundry-detail-action-block"><h3>Workflow</h3><p>Update this project through its published Foundry action.</p><FoundryProjectStatusDialog projectId={selected.id} projectName={selected.title} initialStatus={selected.action.initialStatus} /></div>}
-        {selected.action?.type === "case" && <div className="foundry-detail-action-block"><h3>Case actions</h3><p>Changes are subject to your workspace permissions.</p><FoundryCaseDetailActions caseId={selected.id} caseTitle={selected.action.caseTitle} assignedEmployeeId={selected.action.assignedEmployeeId} employees={selected.action.employees} canResolve={selected.action.canResolve} /></div>}
+        {isDemo && (selected.kind === "Project" || selected.kind === "Case") && <div className="foundry-read-only-note">Editing is unavailable in demo mode.</div>}
+        {!isDemo && selected.action?.type === "project" && <div className="foundry-detail-action-block"><h3>Workflow</h3><p>Update this project through its published Foundry action.</p><FoundryProjectStatusDialog projectId={selected.id} projectName={selected.title} initialStatus={selected.action.initialStatus} /></div>}
+        {!isDemo && selected.action?.type === "case" && <div className="foundry-detail-action-block"><h3>Case actions</h3><p>Changes are subject to your workspace permissions.</p><FoundryCaseDetailActions caseId={selected.id} caseTitle={selected.action.caseTitle} assignedEmployeeId={selected.action.assignedEmployeeId} employees={selected.action.employees} canResolve={selected.action.canResolve} /></div>}
         {selected.kind === "Approval" && <div className="foundry-read-only-note">Read only · Approval decisions are not configured as Ontology actions.</div>}
       </DialogContent>}
     </Dialog>

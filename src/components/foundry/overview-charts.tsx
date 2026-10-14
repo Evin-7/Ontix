@@ -9,6 +9,6 @@ const OverviewChartsClient = dynamic(() => import("./overview-charts-client"), {
   loading: () => <div className="foundry-overview-grid">{Array.from({ length: 4 }, (_, index) => <OverviewChartSkeleton key={index} compact />)}</div>,
 });
 
-export function OverviewCharts({ charts }: { charts: OverviewChartSpec[] }) {
-  return <OverviewChartsClient charts={charts} />;
+export function OverviewCharts({ charts, isDemo = false }: { charts: OverviewChartSpec[]; isDemo?: boolean }) {
+  return <OverviewChartsClient charts={charts} isDemo={isDemo} />;
 }

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { OntixLogo } from "@/components/branding/ontix-logo";
-import { getFoundryDashboardSession } from "@/server/providers/foundry/dashboard-context";
+import { getOntixDashboardSession } from "@/server/providers/ontix/dashboard-context";
 import { getDataProviderMode } from "@/server/providers/provider-mode";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 
 const signInMessages: Record<string, string> = {
   "setup-required": "Foundry sign-in is not ready. Check the server setup details below.",
+  "demo-unavailable": "Demo sign-in is not available right now. Please try again later.",
   "access-denied": "Your Foundry account is not assigned to a configured Ontix access group.",
   failed: "We couldn’t complete sign-in. Please try again.",
   denied: "Foundry sign-in was cancelled.",
@@ -28,7 +29,7 @@ async function FoundrySignIn({ searchParams }: { searchParams?: Promise<{ foundr
   let current = null;
   let sessionProblem = false;
   try {
-    current = await getFoundryDashboardSession();
+    current = await getOntixDashboardSession();
   } catch {
     sessionProblem = true;
   }
@@ -60,6 +61,7 @@ async function FoundrySignIn({ searchParams }: { searchParams?: Promise<{ foundr
           <p className="foundry-login-copy">Sign in securely to continue.</p>
           {message && <p className="foundry-login-alert" role="status">{message}</p>}
           <a className="button button-primary foundry-login-button" href="/api/foundry/sign-in">Continue with Palantir Foundry</a>
+          <a className="button button-secondary foundry-demo-button" href="/demo-login">Explore Demo</a>
         </div>
       </section>
     </main>

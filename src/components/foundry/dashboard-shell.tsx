@@ -38,7 +38,7 @@ const titles: Record<string, string> = {
 
 type SearchResult = { id: string; type: string; title: string; subtitle: string; href: string };
 
-function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+function GlobalSearch({ open, onOpenChange, isDemo }: { open: boolean; onOpenChange: (open: boolean) => void; isDemo: boolean }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [pendingQuery, setPendingQuery] = useState<string | null>(null);
@@ -52,7 +52,8 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (op
     const timer = window.setTimeout(async () => {
       setPendingQuery(normalizedQuery);
       try {
-        const response = await fetch(`/api/foundry/search?q=${encodeURIComponent(query.trim())}`, {
+        const endpoint = isDemo ? "/api/demo/search" : "/api/foundry/search";
+        const response = await fetch(`${endpoint}?q=${encodeURIComponent(query.trim())}`, {
           credentials: "same-origin", cache: "no-store", signal: controller.signal,
         });
         if (!response.ok) throw new Error("Search unavailable");
@@ -67,7 +68,7 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (op
       }
     }, 280);
     return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [open, query]);
+  }, [open, query, isDemo]);
 
   const groups = useMemo(() => results.reduce<Record<string, SearchResult[]>>((all, result) => {
     (all[result.type] ??= []).push(result);
@@ -113,7 +114,7 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (op
   );
 }
 
-export function DashboardShell({ children, role }: { children: React.ReactNode; role: FoundryRole }) {
+export function DashboardShell({ children, role, mode }: { children: React.ReactNode; role: FoundryRole | "DEMO"; mode: "foundry" | "demo" }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -151,9 +152,9 @@ export function DashboardShell({ children, role }: { children: React.ReactNode; 
         </div>)}
       </nav>
       <div className="foundry-sidebar-bottom">
-        <div className="foundry-connection-card"><span className="connection-dot online" /><span><strong>Foundry connected</strong><small>Live Ontology access</small></span><ShieldCheck size={16} aria-label="Connected" /></div>
-        <div className="foundry-profile"><span className="foundry-avatar">F</span><span><strong>Foundry user</strong><small>{role.replaceAll("_", " ").toLowerCase()}</small></span></div>
-        <form action="/api/foundry/sign-out" method="post"><button className="foundry-signout" type="submit">Sign out</button></form>
+        <div className="foundry-connection-card"><span className="connection-dot online" /><span><strong>{mode === "demo" ? "Demo Workspace" : "Foundry connected"}</strong><small>{mode === "demo" ? "Fictional sample records" : "Live Ontology access"}</small></span>{mode === "foundry" && <ShieldCheck size={16} aria-label="Connected" />}</div>
+        <div className="foundry-profile"><span className="foundry-avatar">{mode === "demo" ? "D" : "F"}</span><span><strong>{mode === "demo" ? "Demo visitor" : "Foundry user"}</strong><small>{mode === "demo" ? "Read only" : role.replaceAll("_", " ").toLowerCase()}</small></span></div>
+        <form action={mode === "demo" ? "/api/demo/sign-out" : "/api/foundry/sign-out"} method="post"><button className="foundry-signout" type="submit">Sign out</button></form>
       </div>
     </aside>
   );
@@ -177,14 +178,14 @@ export function DashboardShell({ children, role }: { children: React.ReactNode; 
             <button className="foundry-search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search workspace">
               <Search size={16} aria-hidden="true" /><span>Search records</span><kbd><Command size={11} aria-hidden="true" /> K</kbd>
             </button>
-            <span className="foundry-topbar-connection"><i /> <span>Foundry</span></span>
+            <span className={`foundry-topbar-connection ${mode === "demo" ? "is-demo" : ""}`}><i /> <span>{mode === "demo" ? "Demo workspace" : "Foundry"}</span></span>
             <ThemeToggle />
             <Link className="foundry-topbar-avatar" href="/settings" aria-label="Account and settings">{role.slice(0, 1)}</Link>
           </div>
         </header>
         <main className="foundry-page-content">{children}</main>
       </div>
-      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} isDemo={mode === "demo"} />
     </div>
   );
 }

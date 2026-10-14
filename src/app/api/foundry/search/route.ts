@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasDemoSessionCookie } from "@/server/providers/demo/auth";
 import { getFoundryModuleContext } from "@/server/providers/foundry/dashboard-context";
 
 export const runtime = "nodejs";
@@ -10,6 +11,9 @@ const routeByType = {
 } as const;
 
 export async function GET(request: Request) {
+  if (await hasDemoSessionCookie()) {
+    return NextResponse.json({ error: "Demo sessions cannot access Foundry data." }, { status: 403, headers: { "Cache-Control": "private, no-store" } });
+  }
   const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   if (query.length < 2 || query.length > 100) {
     return NextResponse.json({ results: [] }, { headers: { "Cache-Control": "private, no-store" } });

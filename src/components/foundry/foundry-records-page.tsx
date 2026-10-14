@@ -8,7 +8,7 @@ import { RecordExplorer, type ExplorerColumn, type ExplorerFilter, type Explorer
 import { OverviewCharts } from "@/components/foundry/overview-charts";
 import { buildOverviewCharts } from "@/components/foundry/overview-metrics";
 import { RefreshDataButton } from "@/components/foundry/refresh-data-button";
-import { getFoundryModuleContext } from "@/server/providers/foundry/dashboard-context";
+import { getOntixModuleContext } from "@/server/providers/ontix/dashboard-context";
 import type { FoundryWorkspaceModule } from "@/server/providers/foundry/workspace";
 
 const copy: Record<Exclude<FoundryWorkspaceModule, "overview">, { title: string; description: string; kind: ExplorerRecord["kind"]; columns: ExplorerColumn[]; filters: Array<{ key: string; label: string }> }> = {
@@ -30,7 +30,7 @@ function uniqueOptions(records: ExplorerRecord[], key: string) {
   return [...new Set(records.map((record) => record.values[key]).filter((value) => Boolean(value) && value !== "—"))].sort((a, b) => a.localeCompare(b));
 }
 
-function recordsFor(module: Exclude<FoundryWorkspaceModule, "overview">, workspace: NonNullable<Awaited<ReturnType<typeof getFoundryModuleContext>>>["workspace"], role: string) {
+function recordsFor(module: Exclude<FoundryWorkspaceModule, "overview">, workspace: NonNullable<Awaited<ReturnType<typeof getOntixModuleContext>>>["workspace"], role: string) {
   const customerNames = new Map(workspace.customers.map((customer) => [customer.id, customer.name]));
   const projectNames = new Map(workspace.projects.map((project) => [project.id, project.name]));
   const employeeNames = new Map(workspace.employees.map((employee) => [employee.id, employee.name]));
@@ -69,7 +69,7 @@ function recordsFor(module: Exclude<FoundryWorkspaceModule, "overview">, workspa
   return { rows, customerNames, projectNames, employeeNames, teamNames };
 }
 
-function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typeof getFoundryModuleContext>>>["workspace"] }) {
+function Overview({ workspace, isDemo }: { workspace: NonNullable<Awaited<ReturnType<typeof getOntixModuleContext>>>["workspace"]; isDemo: boolean }) {
   const openCases = workspace.cases.filter((entry) => ["OPEN", "IN_PROGRESS", "WAITING_APPROVAL", "ESCALATED"].includes(entry.status));
   const pendingApprovals = workspace.approvals.filter((entry) => entry.status === "PENDING");
   const metrics: Array<{ label: string; value: number; detail: string; href: string; Icon: LucideIcon; tone: string }> = [
@@ -87,7 +87,7 @@ function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typ
   const checkedAt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(workspace.checkedAt));
 
   return <div className="foundry-module-page">
-    <PageHeader eyebrow="OPERATIONS INTELLIGENCE" title="Overview" description="A live view of delivery, customer, and operational work across your workspace." actions={<><span className="foundry-last-sync"><i /> Last successful data refresh · {checkedAt}</span><RefreshDataButton /></>} />
+    <PageHeader eyebrow="OPERATIONS INTELLIGENCE" title="Overview" description={isDemo ? "Explore a fictional sample of delivery and operations data." : "A live view of delivery, customer, and operational work across your workspace."} actions={isDemo ? <span className="foundry-demo-data-label">Sample data · fictional records</span> : <><span className="foundry-last-sync"><i /> Last successful data refresh · {checkedAt}</span><RefreshDataButton /></>} />
     <section className="foundry-metric-grid" aria-label="Workspace metrics">
       {metrics.map(({ label, value, detail, href, Icon, tone }) => <Link href={href as Route} className="foundry-metric-tile" key={label}>
         <span className={`foundry-metric-icon tone-${tone}`}><Icon size={17} strokeWidth={1.9} aria-hidden="true" /></span>
@@ -95,7 +95,7 @@ function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typ
       </Link>)}
     </section>
     {Object.values(workspace.hasMore).some(Boolean) && <p className="foundry-data-limit-note">Charts show up to 500 records per category; totals reflect the full dataset.</p>}
-    <OverviewCharts charts={charts} />
+    <OverviewCharts charts={charts} isDemo={isDemo} />
     <div className="foundry-overview-bottom">
       <section className="foundry-list-card foundry-attention-projects">
         <div className="foundry-list-card-heading"><div><span className="eyebrow">NEEDS ATTENTION</span><h2>Projects requiring attention</h2><p>Projects marked at risk.</p></div><Link href="/projects?status=AT_RISK">All at-risk projects <ArrowRight size={14} /></Link></div>
@@ -111,21 +111,21 @@ function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typ
         </Link>)}</div> : <p className="foundry-muted foundry-list-empty">No high-priority cases in the visible records.</p>}
       </section>
     </div>
-    <p className="foundry-read-source"><span className="connection-dot online" /> Metrics reflect records available to your account.</p>
+    <p className="foundry-read-source"><span className="connection-dot online" /> {isDemo ? "Metrics reflect fictional sample records." : "Metrics reflect records available to your account."}</p>
   </div>;
 }
 
 export async function FoundryRecordsPage({ module, selectedId, initialFilters }: { module: FoundryWorkspaceModule; selectedId?: string; initialFilters?: Record<string, string | undefined> }) {
-  const context = await getFoundryModuleContext(module);
+  const context = await getOntixModuleContext(module);
   if (!context) redirect("/");
-  if (module === "overview") return <Overview workspace={context.workspace} />;
+  if (module === "overview") return <Overview workspace={context.workspace} isDemo={context.mode === "demo"} />;
 
   const config = copy[module];
   const { rows } = recordsFor(module, context.workspace, context.session.role);
   const filters: ExplorerFilter[] = config.filters.map((filter) => ({ ...filter, options: uniqueOptions(rows, filter.key) }));
   return <div className="foundry-module-page">
     <PageHeader eyebrow="WORKSPACE DATA" title={config.title} description={config.description} actions={<><span className="foundry-page-record-total">{context.workspace.totals[module].toLocaleString()} records</span><RefreshDataButton /></>} />
-    <div className="foundry-module-context"><span className="connection-dot online" /> Live data <span>·</span> {context.session.role.replaceAll("_", " ").toLowerCase()} access</div>
-  <RecordExplorer key={`${selectedId ?? ""}:${JSON.stringify(initialFilters ?? {})}`} records={rows} columns={config.columns} filters={filters} initialFilters={initialFilters} selectedId={selectedId} emptyTitle={`No ${config.title.toLowerCase()} found`} emptyDescription={`No ${config.title.toLowerCase()} are currently visible to your account.`} />
+    <div className="foundry-module-context"><span className="connection-dot online" /> {context.mode === "demo" ? "Sample data · read only" : `Live data · ${context.session.role.replaceAll("_", " ").toLowerCase()} access`}</div>
+    <RecordExplorer key={`${selectedId ?? ""}:${JSON.stringify(initialFilters ?? {})}`} records={rows} columns={config.columns} filters={filters} initialFilters={initialFilters} selectedId={selectedId} isDemo={context.mode === "demo"} emptyTitle={`No ${config.title.toLowerCase()} found`} emptyDescription={`No ${config.title.toLowerCase()} are currently visible to your account.`} />
   </div>;
 }

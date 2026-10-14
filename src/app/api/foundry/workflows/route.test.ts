@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+const { hasDemoCookie } = vi.hoisted(() => ({ hasDemoCookie: vi.fn(async () => false) }));
+vi.mock("@/server/providers/demo/auth", () => ({ hasDemoSessionCookie: hasDemoCookie }));
 vi.mock("@/server/providers/foundry/workflows", () => ({
   assignFoundryCase: vi.fn(),
   resolveFoundryCase: vi.fn(),
@@ -25,6 +27,7 @@ function request(body: unknown, headers: Record<string, string> = {}) {
 describe("Foundry workflow Route Handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    hasDemoCookie.mockResolvedValue(false);
     vi.mocked(assignFoundryCase).mockResolvedValue({ ok: true });
     vi.mocked(resolveFoundryCase).mockResolvedValue({ ok: true });
     vi.mocked(updateFoundryProjectStatus).mockResolvedValue({ ok: true });
@@ -37,6 +40,17 @@ describe("Foundry workflow Route Handler", () => {
     expect(assignFoundryCase).not.toHaveBeenCalled();
     expect(resolveFoundryCase).not.toHaveBeenCalled();
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("blocks demo sessions server-side before calling any Foundry action", async () => {
+    hasDemoCookie.mockResolvedValueOnce(true);
+    const response = await POST(request({ action: "resolve-case", caseId: "CASE-5001" }));
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ code: "forbidden", error: "Editing is unavailable in demo mode." });
+    expect(resolveFoundryCase).not.toHaveBeenCalled();
+    expect(updateFoundryProjectStatus).not.toHaveBeenCalled();
+    expect(assignFoundryCase).not.toHaveBeenCalled();
   });
 
   it("rejects malformed action input before calling Foundry", async () => {

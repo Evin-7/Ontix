@@ -18,6 +18,8 @@
     "db:status": "node scripts/assert-development-database.mjs && prisma migrate status",
     "db:connectivity": "node scripts/assert-development-database.mjs && tsx scripts/verify-database.ts",
     "db:bootstrap-admin": "node scripts/assert-development-database.mjs && tsx scripts/bootstrap-admin.ts",
+    "demo:credentials": "node scripts/setup-demo-credentials.mjs",
+    "demo:smoke": "node scripts/smoke-demo-login.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

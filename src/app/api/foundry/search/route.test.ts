@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { getContext } = vi.hoisted(() => ({ getContext: vi.fn() }));
+const { hasDemoCookie } = vi.hoisted(() => ({ hasDemoCookie: vi.fn(async () => false) }));
+vi.mock("@/server/providers/demo/auth", () => ({ hasDemoSessionCookie: hasDemoCookie }));
 vi.mock("@/server/providers/foundry/dashboard-context", () => ({ getFoundryModuleContext: getContext }));
 
 import { GET } from "./route";
 
-afterEach(() => vi.clearAllMocks());
+afterEach(() => { vi.clearAllMocks(); hasDemoCookie.mockResolvedValue(false); });
 
 describe("Foundry search route", () => {
   it("searches only records from the authenticated server-side workspace and returns detail links", async () => {
@@ -40,5 +42,13 @@ describe("Foundry search route", () => {
     getContext.mockResolvedValue(null);
     const response = await GET(new Request("https://ontix.test/api/foundry/search?q=case"));
     expect(response.status).toBe(401);
+  });
+
+  it("does not query Foundry when a demo cookie is present", async () => {
+    hasDemoCookie.mockResolvedValueOnce(true);
+    const response = await GET(new Request("https://ontix.test/api/foundry/search?q=case"));
+
+    expect(response.status).toBe(403);
+    expect(getContext).not.toHaveBeenCalled();
   });
 });
