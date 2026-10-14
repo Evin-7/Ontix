@@ -5,11 +5,17 @@ import { decryptFoundryToken, encryptFoundryToken, isLegacyFoundryToken } from "
 
 export class FoundryTokenError extends Error {
   readonly failureCode: FoundryOAuthFailureCode;
+  readonly httpStatus?: number;
 
-  constructor(message = "The Foundry connection needs to be reconnected.", failureCode: FoundryOAuthFailureCode = "other") {
+  constructor(
+    message = "The Foundry connection needs to be reconnected.",
+    failureCode: FoundryOAuthFailureCode = "other",
+    httpStatus?: number,
+  ) {
     super(message);
     this.name = "FoundryTokenError";
     this.failureCode = failureCode;
+    this.httpStatus = httpStatus;
   }
 }
 
@@ -20,6 +26,13 @@ export type FoundryOAuthFailureCode =
   | "unauthorized_client"
   | "unsupported_grant_type"
   | "invalid_scope"
+  | "provider-error-other"
+  | "token-service-unavailable"
+  | "token-payload-invalid"
+  | "access-token-missing"
+  | "refresh-token-missing"
+  | "expiration-invalid"
+  | "token-type-invalid"
   | "other";
 
 export type ParsedTokenResponse = {
@@ -29,7 +42,7 @@ export type ParsedTokenResponse = {
   scope: string;
 };
 
-type TokenEndpointFailure = { ok: false; error: FoundryOAuthFailureCode };
+type TokenEndpointFailure = { ok: false; error: FoundryOAuthFailureCode; httpStatus: number };
 type TokenEndpointResult = { ok: true; tokens: ParsedTokenResponse } | TokenEndpointFailure;
 
 const OAUTH_FAILURE_CODES: readonly FoundryOAuthFailureCode[] = [
@@ -44,28 +57,36 @@ const OAUTH_FAILURE_CODES: readonly FoundryOAuthFailureCode[] = [
 function safeOAuthFailureCode(value: unknown): FoundryOAuthFailureCode {
   return typeof value === "string" && OAUTH_FAILURE_CODES.includes(value as FoundryOAuthFailureCode)
     ? value as FoundryOAuthFailureCode
-    : "other";
+    : "provider-error-other";
 }
 
-function parseTokenResponse(value: unknown): ParsedTokenResponse | null {
-  if (!value || typeof value !== "object") return null;
+function parseTokenResponse(value: unknown): { tokens: ParsedTokenResponse } | { failureCode: FoundryOAuthFailureCode } {
+  if (!value || typeof value !== "object") return { failureCode: "token-payload-invalid" };
   const record = value as Record<string, unknown>;
   const accessToken = record.access_token;
   const refreshToken = record.refresh_token;
   const expiresRaw = record.expires_in;
   const expiresIn = typeof expiresRaw === "string" ? Number(expiresRaw) : expiresRaw;
   const tokenType = record.token_type;
-  if (
-    typeof accessToken !== "string" || accessToken.length < 8 || accessToken.length > 16_384 ||
-    typeof refreshToken !== "string" || refreshToken.length < 8 || refreshToken.length > 16_384 ||
-    typeof expiresIn !== "number" || !Number.isSafeInteger(expiresIn) || expiresIn < 30 || expiresIn > 31_536_000 ||
-    (typeof tokenType === "string" && tokenType.toLowerCase() !== "bearer")
-  ) return null;
+  if (typeof accessToken !== "string" || accessToken.length < 8 || accessToken.length > 16_384) {
+    return { failureCode: "access-token-missing" };
+  }
+  if (typeof refreshToken !== "string" || refreshToken.length < 8 || refreshToken.length > 16_384) {
+    return { failureCode: "refresh-token-missing" };
+  }
+  if (typeof expiresIn !== "number" || !Number.isSafeInteger(expiresIn) || expiresIn < 30 || expiresIn > 31_536_000) {
+    return { failureCode: "expiration-invalid" };
+  }
+  if (typeof tokenType === "string" && tokenType.toLowerCase() !== "bearer") {
+    return { failureCode: "token-type-invalid" };
+  }
   return {
-    accessToken,
-    refreshToken,
-    expiresIn,
-    scope: typeof record.scope === "string" ? record.scope.slice(0, 2048) : "",
+    tokens: {
+      accessToken,
+      refreshToken,
+      expiresIn,
+      scope: typeof record.scope === "string" ? record.scope.slice(0, 2048) : "",
+    },
   };
 }
 
@@ -83,18 +104,22 @@ async function requestToken(body: URLSearchParams): Promise<TokenEndpointResult>
       signal: AbortSignal.timeout(10_000),
     });
   } catch {
-    throw new FoundryTokenError("Foundry token service is unavailable. Try reconnecting later.");
+    throw new FoundryTokenError("Foundry token service is unavailable. Try reconnecting later.", "token-service-unavailable");
   }
   const payload = await response.json().catch(() => null) as unknown;
   if (!response.ok) {
     const error = payload && typeof payload === "object"
-      ? safeOAuthFailureCode((payload as Record<string, unknown>).error)
-      : "other";
-    return { ok: false, error };
+      ? (typeof (payload as Record<string, unknown>).error === "string"
+        ? safeOAuthFailureCode((payload as Record<string, unknown>).error)
+        : "provider-error-other")
+      : "provider-error-other";
+    return { ok: false, error, httpStatus: response.status };
   }
-  const tokens = parseTokenResponse(payload);
-  if (!tokens) throw new FoundryTokenError("Foundry returned an invalid OAuth response. Try reconnecting.");
-  return { ok: true, tokens };
+  const parsed = parseTokenResponse(payload);
+  if (!("tokens" in parsed)) {
+    throw new FoundryTokenError("Foundry returned an invalid OAuth response. Try reconnecting.", parsed.failureCode, response.status);
+  }
+  return { ok: true, tokens: parsed.tokens };
 }
 
 export async function exchangeFoundryCodeForTokens(input: { code: string; verifier: string }): Promise<ParsedTokenResponse> {
@@ -106,7 +131,11 @@ export async function exchangeFoundryCodeForTokens(input: { code: string; verifi
     code_verifier: input.verifier,
     redirect_uri: redirectUri,
   }));
-  if (!result.ok) throw new FoundryTokenError("Foundry authorization was not completed. Reconnect and try again.", result.error);
+  if (!result.ok) throw new FoundryTokenError(
+    "Foundry authorization was not completed. Reconnect and try again.",
+    result.error,
+    result.httpStatus,
+  );
   return result.tokens;
 }
 

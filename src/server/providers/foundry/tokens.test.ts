@@ -33,7 +33,7 @@ describe("Foundry OAuth token failure diagnostics", () => {
     expect((error as Error).message).not.toContain("private-code");
   });
 
-  it("maps unknown provider errors to other", async () => {
+  it("maps unknown provider errors to a safe category with status", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Response.json(
       { error: "provider-specific-private-error" },
       { status: 400 },
@@ -43,7 +43,7 @@ describe("Foundry OAuth token failure diagnostics", () => {
       .catch((value: unknown) => value);
 
     expect(error).toBeInstanceOf(FoundryTokenError);
-    expect(error).toMatchObject({ failureCode: "other" });
+    expect(error).toMatchObject({ failureCode: "provider-error-other", httpStatus: 400 });
     expect((error as Error).message).not.toContain("provider-specific-private-error");
   });
 });
