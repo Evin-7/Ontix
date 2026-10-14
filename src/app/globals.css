@@ -208,6 +208,7 @@ a { color: inherit; text-decoration: none; }
 .foundry-action-stack { min-width: 190px; }
 .foundry-inline-form select { max-width: 155px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--foreground); padding: .42rem .5rem; font: inherit; font-size: .75rem; }
 .foundry-inline-form button, .foundry-action-stack button { border: 0; border-radius: 8px; padding: .45rem .62rem; background: var(--primary); color: white; font: inherit; font-size: .74rem; font-weight: 600; cursor: pointer; }
+.foundry-inline-form button:disabled, .foundry-action-stack button:disabled, .foundry-inline-form select:disabled { cursor: wait; opacity: .65; }
 .foundry-action-stack .foundry-quiet-button { background: transparent; color: var(--primary); }
 .foundry-muted { color: var(--muted); font-size: .76rem; }
 .foundry-empty-cell { color: var(--muted); text-align: center; }

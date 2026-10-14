@@ -115,6 +115,17 @@ export async function getCurrentFoundrySession(): Promise<{
   };
 }
 
+/**
+ * Resolve the current server-side access token without repeating group lookup.
+ * OSDK invokes its token provider for each request, so this also picks up a
+ * rotated token if an action crosses the refresh window.
+ */
+export async function getCurrentFoundryAccessToken(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get(foundrySessionCookieName())?.value;
+  return getFoundrySessionAccessToken(sessionId);
+}
+
 export async function endCurrentFoundrySession() {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get(foundrySessionCookieName())?.value;
