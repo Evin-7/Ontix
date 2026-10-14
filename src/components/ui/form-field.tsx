@@ -37,8 +37,7 @@ export function FormField({
   const generatedId = useId();
   const controlId = id ?? generatedId;
   const hintId = hint ? `${controlId}-hint` : undefined;
-  const errorId = error ? `${controlId}-error` : undefined;
-  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+  const describedBy = hintId;
 
   return (
     <FormFieldContext.Provider value={{ controlId, invalid: Boolean(error), required, describedBy }}>
@@ -49,7 +48,6 @@ export function FormField({
         </label>
         {children}
         {hint && <p className="ui-field__hint text-xs leading-5 text-muted" id={hintId}>{hint}</p>}
-        {error && <p className="ui-field__error text-xs leading-5 text-error" id={errorId} role="alert">{error}</p>}
       </div>
     </FormFieldContext.Provider>
   );

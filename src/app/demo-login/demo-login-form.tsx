@@ -2,6 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { ArrowRight, LoaderCircle } from "lucide-react";
+import { notify } from "@/lib/notifications";
 import { DemoPasswordField } from "./demo-password-field";
 
 export function DemoLoginForm({ enabled }: { enabled: boolean }) {
@@ -9,8 +10,29 @@ export function DemoLoginForm({ enabled }: { enabled: boolean }) {
   const pendingRef = useRef(false);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const form = event.currentTarget;
+    const username = form.elements.namedItem("username") as HTMLInputElement;
+    const password = form.elements.namedItem("password") as HTMLInputElement;
     if (pendingRef.current) {
       event.preventDefault();
+      return;
+    }
+    if (!username.value.trim()) {
+      event.preventDefault();
+      notify.error({ title: "Enter your username." });
+      username.focus();
+      return;
+    }
+    if (username.value.trim().length < 3) {
+      event.preventDefault();
+      notify.error({ title: "Enter a valid username." });
+      username.focus();
+      return;
+    }
+    if (!password.value) {
+      event.preventDefault();
+      notify.error({ title: "Enter your password." });
+      password.focus();
       return;
     }
     pendingRef.current = true;
@@ -18,7 +40,7 @@ export function DemoLoginForm({ enabled }: { enabled: boolean }) {
   }
 
   return (
-    <form className="login-form" action="/api/demo/sign-in" method="post" onSubmit={handleSubmit}>
+    <form className="login-form" action="/api/demo/sign-in" method="post" onSubmit={handleSubmit} noValidate>
       <label className="field">
         <span>Username</span>
         <input name="username" type="text" autoComplete="username" required minLength={3} maxLength={254} />

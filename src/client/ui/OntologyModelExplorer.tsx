@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { Select } from "@/components/ui/select";
+import { notify } from "@/lib/notifications";
 import type { OntologyDemoNode, OntologyDemoObjectGraph, OntologyObjectType } from "@/types/ontology-demo";
 import type { WorkspaceData } from "@/types/workspace";
 
@@ -74,15 +75,20 @@ export function OntologyModelExplorer({
   const queryResult = response?.key === queryKey ? response.result : undefined;
   const loading = Boolean(effectiveObjectId && !queryResult);
   const graph = queryResult?.ok ? queryResult.graph : null;
-  const error = queryResult && !queryResult.ok ? queryResult.error : "";
-
   useEffect(() => {
     if (!effectiveObjectId) return;
     let current = true;
     void queryOntologyDemo({ type: objectType, id: effectiveObjectId }).then((result) => {
-      if (current) setResponse({ key: queryKey, result });
+      if (current) {
+        if (!result.ok) notify.error({ title: result.error });
+        setResponse({ key: queryKey, result });
+      }
     }).catch(() => {
-      if (current) setResponse({ key: queryKey, result: { ok: false, error: "The relationship query could not be completed. Refresh and try again." } });
+      if (current) {
+        const message = "The relationship query could not be completed. Refresh and try again.";
+        notify.error({ title: message });
+        setResponse({ key: queryKey, result: { ok: false, error: message } });
+      }
     });
     return () => { current = false; };
   }, [effectiveObjectId, objectType, queryKey]);
@@ -133,9 +139,8 @@ export function OntologyModelExplorer({
           </div>
 
           {loading && <div className="ontology-query-state" role="status"><LoaderCircle size={18} className="ontology-spinner" aria-hidden="true" /> Querying connected records…</div>}
-          {!loading && error && <div className="ontology-query-error" role="alert">{error}</div>}
-          {!loading && !error && !options.length && <EmptyState icon={Search} title={search ? "No matching objects" : "No objects available"} description={search ? "Try a different search or clear the current query." : "Create records in the workspace to populate this model."} action={search ? <Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button> : undefined} />}
-          {!loading && !error && graph && (
+          {!loading && !queryResult && !options.length && <EmptyState icon={Search} title={search ? "No matching objects" : "No objects available"} description={search ? "Try a different search or clear the current query." : "Create records in the workspace to populate this model."} action={search ? <Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button> : undefined} />}
+          {!loading && graph && (
             <div className="ontology-graph-view">
               <article className="ontology-focus-node">
                 <div className="ontology-node-overline"><span>{graph.object.type}</span>{graph.object.status && <span className="ontology-node-status">{graph.object.status.replaceAll("_", " ")}</span>}</div>

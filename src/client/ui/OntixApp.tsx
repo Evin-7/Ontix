@@ -389,14 +389,12 @@ function RecordDialog({ state, customers, teams, onClose, onSubmit }: {
   const kind = state.kind;
   const editing = "record" in state && Boolean(state.record);
   const current = editing ? state.record : undefined;
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const title = editing ? `Edit ${kind}` : kind === "case" ? "Open a case" : kind === "project" ? "Create project" : "Add customer";
   const selectOptions = (values: string[]) => values.map((value) => <option key={value} value={value}>{titleCase(value)}</option>);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrors({});
     const values = new FormData(event.currentTarget);
     const value = (name: string) => String(values.get(name) ?? "").trim();
     let command: WorkspaceCommand;
@@ -405,7 +403,10 @@ function RecordDialog({ state, customers, teams, onClose, onSubmit }: {
     if (kind === "customer") {
       const input = { name: value("name"), industry: value("industry"), email: value("email"), phone: value("phone") };
       validation = editing ? customerPatchSchema.safeParse(input) : customerInputSchema.safeParse(input);
-      if (!validation.success) return setErrors(toFieldErrors(validation.error.issues));
+      if (!validation.success) {
+        notify.error({ title: Object.values(toFieldErrors(validation.error.issues))[0] ?? "Check the form details and try again." });
+        return;
+      }
       command = editing ? { type: "customer.update", customerId: state.record!.id, input: validation.data } : { type: "customer.create", input: validation.data };
     } else if (kind === "project") {
       const input = {
@@ -418,7 +419,10 @@ function RecordDialog({ state, customers, teams, onClose, onSubmit }: {
       validation = editing
         ? projectPatchSchema.safeParse({ ...input, revision: state.record!.revision })
         : projectInputSchema.safeParse(input);
-      if (!validation.success) return setErrors(toFieldErrors(validation.error.issues));
+      if (!validation.success) {
+        notify.error({ title: Object.values(toFieldErrors(validation.error.issues))[0] ?? "Check the form details and try again." });
+        return;
+      }
       command = editing ? { type: "project.update", projectId: state.record!.id, input: validation.data } : { type: "project.create", input: validation.data };
     } else {
       const input = {
@@ -426,7 +430,10 @@ function RecordDialog({ state, customers, teams, onClose, onSubmit }: {
         priority: value("priority") || "MEDIUM", category: value("category"), slaDeadline: value("slaDeadline"),
       };
       validation = caseInputSchema.safeParse(input);
-      if (!validation.success) return setErrors(toFieldErrors(validation.error.issues));
+      if (!validation.success) {
+        notify.error({ title: Object.values(toFieldErrors(validation.error.issues))[0] ?? "Check the form details and try again." });
+        return;
+      }
       command = { type: "case.create", input: validation.data };
     }
 
@@ -443,25 +450,25 @@ function RecordDialog({ state, customers, teams, onClose, onSubmit }: {
       <DialogHeader><span className="eyebrow">WORKSPACE RECORD</span><DialogTitle>{title}</DialogTitle></DialogHeader>
       <form onSubmit={(event) => void submit(event)} className="dialog-form" noValidate>
         {kind === "customer" && <>
-          <FormField label="Company name" required error={errors.name}><Input name="name" placeholder="e.g. Northstar Logistics" defaultValue={current && "name" in current ? current.name : ""} required maxLength={140} /></FormField>
-          <div className="form-row"><FormField label="Industry" required error={errors.industry}><Input name="industry" placeholder="Transportation" defaultValue={current && "industry" in current ? current.industry : ""} required maxLength={100} /></FormField><FormField label="Phone" required error={errors.phone}><Input name="phone" type="tel" placeholder="+1 555 010 1000" defaultValue={current && "phone" in current ? current.phone : ""} required maxLength={40} /></FormField></div>
-          <FormField label="Contact email" required error={errors.email}><Input name="email" type="email" placeholder="operations@example.test" defaultValue={current && "email" in current ? current.email : ""} required maxLength={254} /></FormField>
+          <FormField label="Company name" required><Input name="name" placeholder="e.g. Northstar Logistics" defaultValue={current && "name" in current ? current.name : ""} required maxLength={140} /></FormField>
+          <div className="form-row"><FormField label="Industry" required><Input name="industry" placeholder="Transportation" defaultValue={current && "industry" in current ? current.industry : ""} required maxLength={100} /></FormField><FormField label="Phone" required><Input name="phone" type="tel" placeholder="+1 555 010 1000" defaultValue={current && "phone" in current ? current.phone : ""} required maxLength={40} /></FormField></div>
+          <FormField label="Contact email" required><Input name="email" type="email" placeholder="operations@example.test" defaultValue={current && "email" in current ? current.email : ""} required maxLength={254} /></FormField>
         </>}
         {kind === "project" && <>
-          <FormField label="Project name" required error={errors.name}><Input name="name" placeholder="e.g. Fleet visibility rollout" defaultValue={current && "name" in current ? current.name : ""} required maxLength={160} /></FormField>
-          <FormField label="Description" error={errors.description}><Textarea name="description" placeholder="What outcome will this project deliver?" defaultValue={current && "description" in current ? current.description : ""} maxLength={4000} /></FormField>
-          <FormField label="Customer" required error={errors.customerId}><Select name="customerId" defaultValue={current && "customerId" in current ? current.customerId : ""} required><option value="">Choose a customer</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</Select></FormField>
-          <FormField label="Delivery team" error={errors.teamId}><Select name="teamId" defaultValue={current && "teamId" in current ? current.teamId ?? "" : ""}><option value="">Unassigned</option>{teams.filter((team) => team.isActive || team.id === (current && "teamId" in current ? current.teamId : null)).map((team) => <option key={team.id} value={team.id}>{team.name}{team.isActive ? "" : " · inactive"}</option>)}</Select></FormField>
-          <div className="form-row"><FormField label="Status" required error={errors.status}><Select name="status" defaultValue={current && "status" in current ? current.status : "PLANNING"}>{selectOptions(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "AT_RISK"])}</Select></FormField><FormField label="Priority" required error={errors.priority}><Select name="priority" defaultValue={current && "priority" in current ? current.priority : "MEDIUM"}>{selectOptions(["LOW", "MEDIUM", "HIGH", "CRITICAL"])}</Select></FormField></div>
-          <div className="form-row"><FormField label="Start date" required error={errors.startDate}><Input name="startDate" type="date" defaultValue={current && "startDate" in current ? toLocalDateInput(current.startDate) : toLocalDateInput()} required /></FormField><FormField label="Due date" required error={errors.dueDate}><Input name="dueDate" type="date" defaultValue={current && "dueDate" in current ? toLocalDateInput(current.dueDate) : toLocalDateInput()} required /></FormField></div>
-          <div className="form-row"><FormField label="Budget (USD)" error={errors.budget}><Input name="budget" type="number" min="0" step="0.01" defaultValue={current && "budget" in current ? current.budget : "0"} /></FormField>{editing && <FormField label="Progress (%)" required error={errors.progress}><Input name="progress" type="number" min="0" max="100" step="1" defaultValue={current && "progress" in current ? String(current.progress) : "0"} required /></FormField>}</div>
+          <FormField label="Project name" required><Input name="name" placeholder="e.g. Fleet visibility rollout" defaultValue={current && "name" in current ? current.name : ""} required maxLength={160} /></FormField>
+          <FormField label="Description"><Textarea name="description" placeholder="What outcome will this project deliver?" defaultValue={current && "description" in current ? current.description : ""} maxLength={4000} /></FormField>
+          <FormField label="Customer" required><Select name="customerId" defaultValue={current && "customerId" in current ? current.customerId : ""} required><option value="">Choose a customer</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</Select></FormField>
+          <FormField label="Delivery team"><Select name="teamId" defaultValue={current && "teamId" in current ? current.teamId ?? "" : ""}><option value="">Unassigned</option>{teams.filter((team) => team.isActive || team.id === (current && "teamId" in current ? current.teamId : null)).map((team) => <option key={team.id} value={team.id}>{team.name}{team.isActive ? "" : " · inactive"}</option>)}</Select></FormField>
+          <div className="form-row"><FormField label="Status" required><Select name="status" defaultValue={current && "status" in current ? current.status : "PLANNING"}>{selectOptions(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "AT_RISK"])}</Select></FormField><FormField label="Priority" required><Select name="priority" defaultValue={current && "priority" in current ? current.priority : "MEDIUM"}>{selectOptions(["LOW", "MEDIUM", "HIGH", "CRITICAL"])}</Select></FormField></div>
+          <div className="form-row"><FormField label="Start date" required><Input name="startDate" type="date" defaultValue={current && "startDate" in current ? toLocalDateInput(current.startDate) : toLocalDateInput()} required /></FormField><FormField label="Due date" required><Input name="dueDate" type="date" defaultValue={current && "dueDate" in current ? toLocalDateInput(current.dueDate) : toLocalDateInput()} required /></FormField></div>
+          <div className="form-row"><FormField label="Budget (USD)"><Input name="budget" type="number" min="0" step="0.01" defaultValue={current && "budget" in current ? current.budget : "0"} /></FormField>{editing && <FormField label="Progress (%)" required><Input name="progress" type="number" min="0" max="100" step="1" defaultValue={current && "progress" in current ? String(current.progress) : "0"} required /></FormField>}</div>
         </>}
         {kind === "case" && <>
-          <FormField label="Case title" required error={errors.title}><Input name="title" placeholder="Summarize the customer issue" required maxLength={180} /></FormField>
-          <FormField label="Description" error={errors.description}><Textarea name="description" placeholder="Add useful context for the team" maxLength={4000} /></FormField>
-          <FormField label="Customer" required error={errors.customerId}><Select name="customerId" defaultValue="" required><option value="">Choose a customer</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</Select></FormField>
-          <div className="form-row"><FormField label="Category" required error={errors.category}><Input name="category" placeholder="Data quality" required maxLength={80} /></FormField><FormField label="Priority" required error={errors.priority}><Select name="priority" defaultValue="MEDIUM">{selectOptions(["LOW", "MEDIUM", "HIGH", "CRITICAL"])}</Select></FormField></div>
-          <FormField label="SLA deadline" required error={errors.slaDeadline}><Input name="slaDeadline" type="datetime-local" defaultValue={toLocalDateTimeInput()} required /></FormField>
+          <FormField label="Case title" required><Input name="title" placeholder="Summarize the customer issue" required maxLength={180} /></FormField>
+          <FormField label="Description"><Textarea name="description" placeholder="Add useful context for the team" maxLength={4000} /></FormField>
+          <FormField label="Customer" required><Select name="customerId" defaultValue="" required><option value="">Choose a customer</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</Select></FormField>
+          <div className="form-row"><FormField label="Category" required><Input name="category" placeholder="Data quality" required maxLength={80} /></FormField><FormField label="Priority" required><Select name="priority" defaultValue="MEDIUM">{selectOptions(["LOW", "MEDIUM", "HIGH", "CRITICAL"])}</Select></FormField></div>
+          <FormField label="SLA deadline" required><Input name="slaDeadline" type="datetime-local" defaultValue={toLocalDateTimeInput()} required /></FormField>
         </>}
         <DialogFooter><Button variant="outline" type="button" onClick={onClose} disabled={busy}>Cancel</Button><Button type="submit" loading={busy} loadingLabel="Saving…">{title}</Button></DialogFooter>
       </form>
@@ -476,16 +483,15 @@ function ApprovalReviewDialog({ state, onClose, onSubmit }: {
 }) {
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
   const approving = state.decision === "APPROVED";
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = comment.trim();
     if (!approving && trimmed.length < 5) {
-      setError("Add a short reason of at least 5 characters before rejecting this request.");
+      const message = "Add a short reason of at least 5 characters before rejecting this request.";
+      notify.error({ title: message });
       return;
     }
-    setError("");
     setBusy(true);
     try {
       if (await onSubmit({ type: "approval.decide", approvalId: state.approval.id, decision: state.decision, comment: trimmed })) onClose();
@@ -497,7 +503,7 @@ function ApprovalReviewDialog({ state, onClose, onSubmit }: {
     <DialogContent size="sm" showCloseButton={!busy}>
       <DialogHeader><span className="eyebrow">APPROVAL {state.approval.approvalKey}</span><DialogTitle>{approving ? "Approve request?" : "Reject request?"}</DialogTitle><DialogDescription>{state.approval.title} · Requested by {state.approval.requestedBy.name}{state.approval.amount ? ` · ${formatMoney(state.approval.amount)}` : ""}</DialogDescription></DialogHeader>
       <form className="dialog-form" onSubmit={(event) => void submit(event)} noValidate>
-        <FormField label={approving ? "Decision note" : "Reason for rejection"} hint={approving ? "Optional. This note is recorded in the approval history." : "A short reason is required and will be recorded in the approval history."} error={error} required={!approving}><Textarea value={comment} onChange={(event) => setComment(event.currentTarget.value)} maxLength={1000} required={!approving} placeholder={approving ? "Add context for this decision" : "Explain why this request is being rejected"} /></FormField>
+        <FormField label={approving ? "Decision note" : "Reason for rejection"} hint={approving ? "Optional. This note is recorded in the approval history." : "A short reason is required and will be recorded in the approval history."} required={!approving}><Textarea value={comment} onChange={(event) => setComment(event.currentTarget.value)} maxLength={1000} required={!approving} placeholder={approving ? "Add context for this decision" : "Explain why this request is being rejected"} /></FormField>
         <DialogFooter><Button variant="outline" type="button" onClick={onClose} disabled={busy}>Cancel</Button><Button type="submit" variant={approving ? "primary" : "destructive"} loading={busy} loadingLabel="Saving decision…">{approving ? "Approve request" : "Reject request"}</Button></DialogFooter>
       </form>
     </DialogContent>
@@ -509,11 +515,9 @@ function ApprovalRequestDialog({ caseRecord, onClose, onSubmit }: {
   onClose: () => void;
   onSubmit: (command: WorkspaceCommand) => Promise<boolean>;
 }) {
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrors({});
     const values = new FormData(event.currentTarget);
     const amountValue = String(values.get("amount") ?? "").trim();
     const raw = {
@@ -523,7 +527,10 @@ function ApprovalRequestDialog({ caseRecord, onClose, onSubmit }: {
       ...(amountValue ? { amount: amountValue } : {}),
     };
     const validation = approvalInputSchema.safeParse(raw);
-    if (!validation.success) return setErrors(toFieldErrors(validation.error.issues));
+    if (!validation.success) {
+      notify.error({ title: Object.values(toFieldErrors(validation.error.issues))[0] ?? "Check the form details and try again." });
+      return;
+    }
     setBusy(true);
     try {
       if (await onSubmit({ type: "case.requestApproval", caseId: caseRecord.id, input: validation.data })) onClose();
@@ -535,10 +542,10 @@ function ApprovalRequestDialog({ caseRecord, onClose, onSubmit }: {
     <DialogContent size="md" showCloseButton={!busy}>
       <DialogHeader><span className="eyebrow">{caseRecord.caseKey} · {caseRecord.title}</span><DialogTitle>Request approval</DialogTitle></DialogHeader>
       <form className="dialog-form" onSubmit={(event) => void submit(event)} noValidate>
-        <FormField label="Request type" required error={errors.type}><Input name="type" placeholder="e.g. Expense or exception" required maxLength={80} /></FormField>
-        <FormField label="Title" required error={errors.title}><Input name="title" placeholder="A concise decision request" required maxLength={180} /></FormField>
-        <FormField label="Justification" required error={errors.justification}><Textarea name="justification" placeholder="Explain the business need and relevant context" required maxLength={2000} /></FormField>
-        <FormField label="Amount (USD)" hint="Leave blank if this request has no monetary amount." error={errors.amount}><Input name="amount" type="number" min="0" step="0.01" placeholder="0.00" /></FormField>
+        <FormField label="Request type" required><Input name="type" placeholder="e.g. Expense or exception" required maxLength={80} /></FormField>
+        <FormField label="Title" required><Input name="title" placeholder="A concise decision request" required maxLength={180} /></FormField>
+        <FormField label="Justification" required><Textarea name="justification" placeholder="Explain the business need and relevant context" required maxLength={2000} /></FormField>
+        <FormField label="Amount (USD)" hint="Leave blank if this request has no monetary amount."><Input name="amount" type="number" min="0" step="0.01" placeholder="0.00" /></FormField>
         <DialogFooter><Button variant="outline" type="button" onClick={onClose} disabled={busy}>Cancel</Button><Button type="submit" loading={busy} loadingLabel="Submitting…">Submit request</Button></DialogFooter>
       </form>
     </DialogContent>

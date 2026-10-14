@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { OntixLogo } from "@/components/branding/ontix-logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ErrorToast } from "@/components/ui/error-toast";
 import { getCurrentDemoSession, isDemoAuthenticationConfigured } from "@/server/providers/demo/auth";
 import { DemoLoginForm } from "./demo-login-form";
 
@@ -33,7 +34,7 @@ export default async function DemoLoginPage({ searchParams }: { searchParams?: P
     <section className="login-card demo-login-card">
       <div className="login-kicker">DEMO WORKSPACE</div>
       <h1>Explore Ontix</h1>
-      {message && <p className="login-error" role="alert">{message}</p>}
+      <ErrorToast message={message} clearQueryParams={["error"]} />
       <DemoLoginForm enabled={isDemoAuthenticationConfigured()} />
       <Link className="demo-login-back" href="/">Back to sign in</Link>
     </section>

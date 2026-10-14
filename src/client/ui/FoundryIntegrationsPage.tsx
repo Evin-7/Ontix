@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { verifyFoundryConnection } from "@/app/foundry-actions";
 import { AlertTriangle, ArrowUpRight, CheckCircle2, CircleSlash2, KeyRound, Network, PlugZap } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { notify } from "@/lib/notifications";
 import type { FoundryIntegrationStatus } from "@/types/integrations";
 
 export function FoundryIntegrationsPage({ status }: { status: FoundryIntegrationStatus }) {
@@ -13,7 +14,11 @@ export function FoundryIntegrationsPage({ status }: { status: FoundryIntegration
   const accountLinked = status.oauthAccountLinked;
 
   function verifyAccess() {
-    startTransition(async () => setVerification(await verifyFoundryConnection()));
+    startTransition(async () => {
+      const result = await verifyFoundryConnection();
+      setVerification(result);
+      if (!result.ok) notify.error({ title: result.error });
+    });
   }
 
   return (
@@ -66,10 +71,8 @@ export function FoundryIntegrationsPage({ status }: { status: FoundryIntegration
           {accountLinked && <button className="button button-secondary" type="button" onClick={verifyAccess} disabled={isChecking}>{isChecking ? "Checking Foundry…" : "Verify live OSDK access"}</button>}
           {accountLinked && <form action="/api/foundry/oauth/logout" method="post"><button className="button button-secondary" type="submit">Disconnect Foundry</button></form>}
         </div>
-        {verification && <p className={`integration-note ${verification.ok ? "" : "integration-error"}`} role="status" aria-live="polite">
-          {verification.ok
-            ? `All six object-type reads succeeded at ${new Date(verification.checkedAt).toLocaleString()}. The per-type values above show whether the one-row sample returned data; 0 means the query succeeded but returned no indexed rows.`
-            : verification.error}
+        {verification?.ok && <p className="integration-note" role="status" aria-live="polite">
+          {`All six object-type reads succeeded at ${new Date(verification.checkedAt).toLocaleString()}. The per-type values above show whether the one-row sample returned data; 0 means the query succeeded but returned no indexed rows.`}
         </p>}
         {accountLinked && <p className="integration-note">Disconnect removes the encrypted tokens from Ontix. To revoke Foundry consent too, remove Ontix Web Integration from your Foundry account’s authorized applications.</p>}
         <ul className="integration-issues">

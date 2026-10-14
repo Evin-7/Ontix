@@ -143,7 +143,6 @@ a { color: inherit; text-decoration: none; }
 .ui-select__item-indicator { display: flex; flex: 0 0 auto; margin-left: auto; color: #4f46e5; }
 @keyframes ui-select-enter { from { opacity: 0; transform: translateY(-2px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .ontology-query-state { display: flex; min-height: 120px; align-items: center; justify-content: center; gap: 9px; color: var(--muted); font-size: 12px; }
-.ontology-query-error { padding: 13px; border: 1px solid color-mix(in srgb, var(--error) 25%, var(--border)); border-radius: 8px; color: var(--error); background: color-mix(in srgb, var(--error) 5%, var(--surface)); font-size: 12px; }
 .ontology-spinner { animation: ontology-spin 1.1s linear infinite; }
 @keyframes ontology-spin { to { transform: rotate(360deg); } }
 .ontology-graph-view { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.5fr); gap: 16px; padding-top: 3px; }
@@ -249,7 +248,6 @@ a { color: inherit; text-decoration: none; }
 .demo-login-back:hover { color: var(--primary); }
 .foundry-demo-data-label { color: var(--muted); font-size: 10px; }
 .foundry-topbar-connection.is-demo { color: var(--primary); font-weight: 550; }
-.foundry-login-alert { margin: 18px 0 0; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--warning) 40%, var(--border)); border-radius: 9px; color: var(--foreground); background: color-mix(in srgb, var(--warning) 7%, var(--surface)); font-size: 12px; line-height: 1.55; }
 .dark .foundry-login-content { background: var(--background); }
 
 .foundry-app { min-height: 100dvh; --sidebar-width: 258px; }
@@ -433,7 +431,6 @@ a { color: inherit; text-decoration: none; }
 .foundry-search-input-wrap kbd, .foundry-search-footer kbd { padding: 2px 5px; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); background: var(--surface); font-size: 9px; white-space: nowrap; }
 .foundry-search-results { max-height: min(58vh, 490px); overflow-y: auto; padding: 11px 20px 16px; }
 .foundry-search-hint { margin: 0; padding: 22px 5px; color: var(--muted); text-align: center; font-size: 11px; }
-.foundry-search-error { color: var(--error); }
 .foundry-search-group { padding-top: 8px; }
 .foundry-search-group h3 { margin: 0 0 4px; padding: 4px 2px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .foundry-search-group > a { display: flex; min-width: 0; align-items: center; gap: 9px; padding: 8px 6px; border-radius: 7px; }
@@ -630,7 +627,6 @@ a { color: inherit; text-decoration: none; }
 .integration-setup-panel { margin-top: 14px; padding: 19px; }
 .integration-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0; }
 .integration-note { max-width: 850px; margin: 12px 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
-.integration-error { color: var(--error); }
 .integration-issues { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .integration-issues li { display: flex; align-items: flex-start; gap: 8px; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .integration-issues li svg { flex: 0 0 auto; margin-top: 1px; color: var(--warning); }
@@ -850,7 +846,6 @@ tr:last-child td { border-bottom: 0; }
 .login-submit { display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; gap: 9px; margin-top: 2px; font-size: 14px; }
 .login-security { display: flex; align-items: flex-start; gap: 8px; padding-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .login-security svg { flex: 0 0 auto; color: var(--success); }
-.login-error { margin: -5px 0 0; color: var(--error); font-size: 12px; line-height: 1.5; }
 .login-footnote { margin: 0; color: var(--muted); font-size: 11px; letter-spacing: .03em; }
 .spin { animation: spin .9s linear infinite; }
 @keyframes ui-fade-in { from { opacity: 0; } to { opacity: 1; } }

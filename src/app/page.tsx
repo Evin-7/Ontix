@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { OntixLogo } from "@/components/branding/ontix-logo";
+import { ErrorToast } from "@/components/ui/error-toast";
 import { getOntixDashboardSession } from "@/server/providers/ontix/dashboard-context";
 import { getDataProviderMode } from "@/server/providers/provider-mode";
 
@@ -58,7 +59,7 @@ async function FoundrySignIn({ searchParams }: { searchParams?: Promise<{ foundr
         <div className="foundry-login-card">
           <div className="foundry-login-mobile-brand"><OntixLogo size="medium" /></div>
           <h2>Sign in to Ontix</h2>
-          {message && <p className="foundry-login-alert" role="status">{message}</p>}
+          <ErrorToast message={message} clearQueryParams={["foundry", "reason"]} />
           <div className="foundry-login-actions">
             <a className="button button-primary foundry-login-button" href="/api/foundry/sign-in">Continue with Palantir Foundry</a>
             <a className="button button-secondary foundry-demo-button" href="/demo-login">Explore Demo</a>

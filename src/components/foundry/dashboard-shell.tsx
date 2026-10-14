@@ -11,6 +11,7 @@ import {
 import { OntixLogo } from "@/components/branding/ontix-logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { notify } from "@/lib/notifications";
 type FoundryRole = "ADMINISTRATOR" | "MANAGER" | "DEVELOPER" | "ANALYST";
 
 const sections = [
@@ -43,7 +44,6 @@ function GlobalSearch({ open, onOpenChange, isDemo }: { open: boolean; onOpenCha
   const [results, setResults] = useState<SearchResult[]>([]);
   const [pendingQuery, setPendingQuery] = useState<string | null>(null);
   const [resultQuery, setResultQuery] = useState("");
-  const [failedQuery, setFailedQuery] = useState("");
 
   useEffect(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
@@ -60,9 +60,8 @@ function GlobalSearch({ open, onOpenChange, isDemo }: { open: boolean; onOpenCha
         const payload = await response.json() as { results?: SearchResult[] };
         setResults(payload.results ?? []);
         setResultQuery(normalizedQuery);
-        setFailedQuery("");
       } catch {
-        if (!controller.signal.aborted) setFailedQuery(normalizedQuery);
+        if (!controller.signal.aborted) notify.error({ title: "Search is temporarily unavailable. Your session is unchanged." });
       } finally {
         if (!controller.signal.aborted) setPendingQuery(null);
       }
@@ -76,7 +75,6 @@ function GlobalSearch({ open, onOpenChange, isDemo }: { open: boolean; onOpenCha
   }, {}), [results]);
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const isCurrentPending = pendingQuery === normalizedQuery;
-  const hasCurrentError = normalizedQuery.length >= 2 && failedQuery === normalizedQuery;
   const currentGroups = resultQuery === normalizedQuery ? groups : {};
 
   return (
@@ -94,9 +92,8 @@ function GlobalSearch({ open, onOpenChange, isDemo }: { open: boolean; onOpenCha
         <div className="foundry-search-results" aria-live="polite">
           {query.trim().length < 2 && <p className="foundry-search-hint">Type at least 2 characters to search.</p>}
           {isCurrentPending && <p className="foundry-search-hint">Searching…</p>}
-          {hasCurrentError && <p className="foundry-search-hint foundry-search-error">Search is temporarily unavailable. Your session is unchanged.</p>}
-          {!isCurrentPending && !hasCurrentError && query.trim().length >= 2 && resultQuery === normalizedQuery && results.length === 0 && <p className="foundry-search-hint">No matching records are visible to this account.</p>}
-          {!isCurrentPending && !hasCurrentError && Object.entries(currentGroups).map(([type, matches]) => (
+          {!isCurrentPending && query.trim().length >= 2 && resultQuery === normalizedQuery && results.length === 0 && <p className="foundry-search-hint">No matching records are visible to this account.</p>}
+          {!isCurrentPending && Object.entries(currentGroups).map(([type, matches]) => (
             <section className="foundry-search-group" key={type}>
               <h3>{type}</h3>
               {matches.map((result) => <Link key={`${type}:${result.id}`} href={result.href as Route} onClick={() => onOpenChange(false)}>
