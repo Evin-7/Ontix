@@ -891,6 +891,7 @@ tr:last-child td { border-bottom: 0; }
 /* Theme-aware Sonner presentation */
 [data-sonner-toaster] { --normal-bg: var(--surface) !important; --normal-border: var(--border) !important; --normal-text: var(--foreground) !important; --success-bg: var(--surface) !important; --success-border: color-mix(in srgb, var(--success) 34%, var(--border)) !important; --success-text: var(--foreground) !important; --error-bg: var(--surface) !important; --error-border: color-mix(in srgb, var(--error) 34%, var(--border)) !important; --error-text: var(--foreground) !important; --warning-bg: var(--surface) !important; --warning-border: color-mix(in srgb, var(--warning) 34%, var(--border)) !important; --warning-text: var(--foreground) !important; --info-bg: var(--surface) !important; --info-border: color-mix(in srgb, var(--info) 34%, var(--border)) !important; --info-text: var(--foreground) !important; }
 [data-sonner-toast] { border-radius: 10px !important; box-shadow: var(--shadow-md) !important; font-family: inherit !important; }
+[data-sonner-toast] [data-close-button] { top: 0 !important; right: 0 !important; bottom: auto !important; left: auto !important; transform: translate(35%, -35%) !important; }
 [data-sonner-toast] [data-title] { font-weight: 600 !important; }
 .dark [data-sonner-toast] [data-button] { color: #0b1220 !important; }
 
