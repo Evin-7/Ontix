@@ -4,6 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { getFoundryOAuthConfig } from "./config";
 import { configuredFoundryRoleGroups, getCurrentFoundryGroupIds, resolveFoundryRole, FoundryGroupAuthorizationError } from "./groups";
+import type { FoundryRole } from "./groups";
 import {
   consumeFoundryOAuthState,
   createFoundrySession,
@@ -93,7 +94,7 @@ export async function establishFoundrySession(tokens: ParsedTokenResponse) {
 }
 
 export async function getCurrentFoundrySession(): Promise<{
-  session: FoundrySessionSummary & { role: string };
+  session: FoundrySessionSummary & { role: FoundryRole };
   accessToken: string;
 } | null> {
   const cookieStore = await cookies();

@@ -25,12 +25,14 @@ export function DialogOverlay(props: ComponentProps<typeof DialogPrimitive.Overl
 type DialogContentProps = ComponentProps<typeof DialogPrimitive.Content> & {
   size?: "sm" | "md" | "lg" | "xl";
   showCloseButton?: boolean;
+  centered?: boolean;
 };
 
 export function DialogContent({
   className,
   size = "md",
   showCloseButton = true,
+  centered = true,
   children,
   ...props
 }: DialogContentProps) {
@@ -47,7 +49,8 @@ export function DialogContent({
       <DialogPrimitive.Content
         {...props}
         className={[
-          "ui-dialog__content fixed left-1/2 top-1/2 z-50 max-h-[min(90dvh,48rem)] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[14px] border border-border bg-surface p-6 text-foreground shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-primary sm:p-7",
+          "ui-dialog__content fixed z-50 max-h-[min(90dvh,48rem)] w-[calc(100vw-2rem)] overflow-y-auto rounded-[14px] border border-border bg-surface p-6 text-foreground shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-primary sm:p-7",
+          centered ? "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" : "",
           sizeClass,
           className,
         ].filter(Boolean).join(" ")}

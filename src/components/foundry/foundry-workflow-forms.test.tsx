@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) 
 vi.mock("sonner", () => ({ toast: { success: successMock, error: errorMock } }));
 
 import { toast } from "sonner";
-import { FoundryProjectStatusForm } from "./foundry-workflow-forms";
+import { FoundryProjectStatusDialog, FoundryProjectStatusForm } from "./foundry-workflow-forms";
 
 afterEach(() => {
   cleanup();
@@ -80,5 +80,24 @@ describe("Foundry workflow form recovery", () => {
     expect(select.value).toBe("AT_RISK");
     expect(refreshMock).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
+  });
+
+  it("keeps the project status drawer open with the selected value after a Foundry permission denial", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ ok: false, code: "action_denied", error: "Foundry denied this action." }),
+    }));
+    render(<FoundryProjectStatusDialog projectId="PRJ-1" projectName="Dispatch modernization" initialStatus="PLANNING" />);
+    fireEvent.click(screen.getByRole("button", { name: "Update status" }));
+    const select = screen.getByRole("combobox", { name: "New status" }) as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: "IN_PROGRESS" } });
+    await act(async () => {
+      fireEvent.submit(select.closest("form")!);
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Foundry denied this action."));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(select.value).toBe("IN_PROGRESS");
+    expect(refreshMock).not.toHaveBeenCalled();
   });
 });

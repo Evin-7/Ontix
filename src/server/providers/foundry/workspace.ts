@@ -8,13 +8,18 @@ import {
   Project,
   Team,
 } from "@ontix-web-integration/sdk";
-import type { Client } from "@osdk/client";
 import { createFoundryClientWithTokenProvider } from "./client";
 
 const PAGE_SIZE = 100;
 const MAX_PAGES = 5;
 
 type Page<T> = { data: T[]; nextPageToken: string | undefined; totalCount: string };
+type CustomerRecord = { id: string; name?: string | null; industry?: string | null; status?: string | null; createdAt?: unknown };
+type ProjectRecord = { id: string; customerId?: string | null; name?: string | null; status?: string | null; budget?: number | null; startDate?: unknown };
+type EmployeeRecord = { id: string; name?: string | null; email?: string | null; teamId?: string | null; role?: string | null };
+type TeamRecord = { id: string; name?: string | null; department?: string | null };
+type CaseRecord = { id: string; projectId?: string | null; title?: string | null; priority?: string | null; status?: string | null; assignedEmployeeId?: string | null };
+type ApprovalRecord = { id: string; caseId?: string | null; requestedBy?: string | null; status?: string | null; createdAt?: unknown };
 
 export async function readBoundedFoundryPages<T>(fetchPage: (args: {
   $pageSize: number;
@@ -52,21 +57,42 @@ export function normalizeFoundryDate(value: unknown): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-function createWorkspaceQueries(client: Client) {
-  return Promise.all([
-    readBoundedFoundryPages((args) => client(Customer).fetchPage(args)),
-    readBoundedFoundryPages((args) => client(Project).fetchPage(args)),
-    readBoundedFoundryPages((args) => client(Employee).fetchPage(args)),
-    readBoundedFoundryPages((args) => client(Team).fetchPage(args)),
-    readBoundedFoundryPages((args) => client(OperationalCase).fetchPage(args)),
-    readBoundedFoundryPages((args) => client(ApprovalRequest).fetchPage(args)),
-  ]);
+export type FoundryWorkspaceModule = "overview" | "projects" | "cases" | "customers" | "employees" | "teams" | "approvals";
+type Collection = "customers" | "projects" | "employees" | "teams" | "cases" | "approvals";
+type CollectedPage = { data: unknown[]; totalCount: number; hasMore: boolean };
+
+function pageAs<T>(page: CollectedPage | undefined) {
+  return { ...(page ?? { totalCount: 0, hasMore: false }), data: (page?.data ?? []) as T[] };
 }
 
-export async function getFoundryWorkspaceWithToken(accessToken: string) {
+const MODULE_COLLECTIONS: Record<FoundryWorkspaceModule, readonly Collection[]> = {
+  overview: ["customers", "projects", "employees", "teams", "cases", "approvals"],
+  projects: ["customers", "projects"],
+  cases: ["projects", "employees", "cases", "approvals"],
+  customers: ["customers", "projects"],
+  employees: ["employees", "teams"],
+  teams: ["teams", "employees"],
+  approvals: ["approvals", "cases"],
+};
+
+export async function getFoundryWorkspaceWithToken(accessToken: string, module: FoundryWorkspaceModule = "overview") {
   const client = createFoundryClientWithTokenProvider(async () => accessToken);
-  const [customerPage, projectPage, employeePage, teamPage, casePage, approvalPage] =
-    await createWorkspaceQueries(client);
+  const queries: Record<Collection, () => Promise<CollectedPage>> = {
+    customers: async () => readBoundedFoundryPages((args) => client(Customer).fetchPage(args)),
+    projects: async () => readBoundedFoundryPages((args) => client(Project).fetchPage(args)),
+    employees: async () => readBoundedFoundryPages((args) => client(Employee).fetchPage(args)),
+    teams: async () => readBoundedFoundryPages((args) => client(Team).fetchPage(args)),
+    cases: async () => readBoundedFoundryPages((args) => client(OperationalCase).fetchPage(args)),
+    approvals: async () => readBoundedFoundryPages((args) => client(ApprovalRequest).fetchPage(args)),
+  };
+  const selected = await Promise.all(MODULE_COLLECTIONS[module].map(async (key) => [key, await queries[key]()] as const));
+  const pages = Object.fromEntries(selected) as Partial<Record<Collection, CollectedPage>>;
+  const customerPage = pageAs<CustomerRecord>(pages.customers);
+  const projectPage = pageAs<ProjectRecord>(pages.projects);
+  const employeePage = pageAs<EmployeeRecord>(pages.employees);
+  const teamPage = pageAs<TeamRecord>(pages.teams);
+  const casePage = pageAs<CaseRecord>(pages.cases);
+  const approvalPage = pageAs<ApprovalRecord>(pages.approvals);
 
   const customers = customerPage.data.map((row) => ({
     id: row.id,
