@@ -104,6 +104,10 @@ function classifyProviderDetail(value: unknown): FoundryProviderDetail {
   return "other-description";
 }
 
+function safeCorrelationId(value: unknown): string | undefined {
+  return typeof value === "string" && /^[A-Za-z0-9._:-]{8,128}$/.test(value) ? value : undefined;
+}
+
 function parseTokenResponse(value: unknown): { tokens: ParsedTokenResponse } | { failureCode: FoundryOAuthFailureCode } {
   if (!value || typeof value !== "object") return { failureCode: "token-payload-invalid" };
   const record = value as Record<string, unknown>;
@@ -135,14 +139,16 @@ function parseTokenResponse(value: unknown): { tokens: ParsedTokenResponse } | {
 }
 
 async function requestToken(body: URLSearchParams): Promise<TokenEndpointResult> {
-  const { stackUrl } = getFoundryOAuthConfig();
+  const { stackUrl, clientId, redirectUri, applicationUrl } = getFoundryOAuthConfig();
   const endpoint = new URL("/multipass/api/oauth2/token", stackUrl);
+  const headers = new Headers({ "content-type": "application/x-www-form-urlencoded", accept: "application/json" });
+  const encodedBody = body.toString();
   let response: Response;
   try {
     response = await fetch(endpoint, {
       method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
-      body,
+      headers,
+      body: encodedBody,
       cache: "no-store",
       redirect: "error",
       signal: AbortSignal.timeout(10_000),
@@ -163,6 +169,32 @@ async function requestToken(body: URLSearchParams): Promise<TokenEndpointResult>
     const record = payload && typeof payload === "object" ? payload as Record<string, unknown> : null;
     const providerCode = record?.error ?? record?.error_code ?? record?.errorCode ?? record?.code;
     const providerDescription = record?.error_description ?? record?.description ?? record?.message;
+    if (body.get("grant_type") === "authorization_code") {
+      // Log the serialized request's shape, never its code, verifier, token, or raw provider message.
+      const encodedParameters = new URLSearchParams(encodedBody);
+      const requiredParameters = ["client_id", "grant_type", "code", "code_verifier", "redirect_uri"];
+      const providerCorrelationId = safeCorrelationId(
+        record?.errorInstanceId ?? record?.error_instance_id ??
+        response.headers.get("x-request-id") ?? response.headers.get("x-correlation-id"),
+      );
+      console.error("[Foundry token request] Rejected", {
+        method: "POST",
+        endpointMatchesStack: endpoint.origin === stackUrl.origin && endpoint.pathname === "/multipass/api/oauth2/token",
+        formContentType: headers.get("content-type") === "application/x-www-form-urlencoded",
+        authorizationHeaderPresent: headers.has("authorization"),
+        parameterNames: [...encodedParameters.keys()].sort(),
+        requiredParametersUnique: requiredParameters.every((name) => encodedParameters.getAll(name).length === 1),
+        serializationPreserved: requiredParameters.every((name) => encodedParameters.get(name) === body.get(name)),
+        clientMatchesConfiguration: encodedParameters.get("client_id") === clientId,
+        redirectMatchesConfiguration: encodedParameters.get("redirect_uri") === redirectUri,
+        redirectMatchesApplicationOrigin: encodedParameters.get("redirect_uri") ===
+          new URL("/api/foundry/oauth/callback", applicationUrl).toString(),
+        codePresent: Boolean(encodedParameters.get("code")),
+        verifierSyntaxValid: /^[A-Za-z0-9_-]{43,128}$/.test(encodedParameters.get("code_verifier") ?? ""),
+        providerResponseFields: record ? Object.keys(record).filter((name) => /^[A-Za-z][A-Za-z0-9_]{0,47}$/.test(name)).sort() : [],
+        ...(providerCorrelationId ? { providerCorrelationId } : {}),
+      });
+    }
     return {
       ok: false,
       error: safeOAuthFailureCode(providerCode),

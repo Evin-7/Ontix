@@ -16,6 +16,7 @@ describe("Foundry OAuth token failure diagnostics", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("exposes only an allow-listed OAuth error code", async () => {
@@ -60,5 +61,38 @@ describe("Foundry OAuth token failure diagnostics", () => {
 
     expect(error).toMatchObject({ failureCode: "provider-permission_denied", providerDetail: "redirect-uri" });
     expect((error as Error).message).not.toContain(description);
+  });
+
+  it("reports the production request shape without exposing OAuth values", async () => {
+    const verifier = "v".repeat(43);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const fetchSpy = vi.fn(async (_url: URL, init?: RequestInit) => {
+      const sent = new URLSearchParams(String(init?.body));
+      expect(sent.get("code") === "private-code").toBe(true);
+      expect(sent.get("code_verifier") === verifier).toBe(true);
+      expect(new Headers(init?.headers).get("authorization")).toBeNull();
+      return Response.json({ error: "permission_denied", errorInstanceId: "123e4567-e89b-12d3-a456-426614174000" }, { status: 403 });
+    });
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await exchangeFoundryCodeForTokens({ code: "private-code", verifier }).catch(() => {});
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith("[Foundry token request] Rejected", expect.objectContaining({
+      endpointMatchesStack: true,
+      formContentType: true,
+      authorizationHeaderPresent: false,
+      requiredParametersUnique: true,
+      serializationPreserved: true,
+      clientMatchesConfiguration: true,
+      redirectMatchesConfiguration: true,
+      redirectMatchesApplicationOrigin: true,
+      codePresent: true,
+      verifierSyntaxValid: true,
+      providerResponseFields: ["error", "errorInstanceId"],
+      providerCorrelationId: "123e4567-e89b-12d3-a456-426614174000",
+    }));
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain("private-code");
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(verifier);
   });
 });
