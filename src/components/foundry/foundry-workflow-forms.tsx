@@ -135,7 +135,7 @@ export function FoundryResolveCaseButton({ caseId }: { caseId: string }) {
   </form>;
 }
 
-export function FoundryProjectStatusDialog({ projectId, projectName, initialStatus }: {
+export function FoundryProjectStatusDialog({ projectId, initialStatus }: {
   projectId: string; projectName: string; initialStatus: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -159,7 +159,7 @@ export function FoundryProjectStatusDialog({ projectId, projectName, initialStat
     <Button variant="outline" size="sm" onClick={() => { setStatus(projectStatusOrDefault(initialStatus)); setOpen(true); }}>Update status</Button>
     <Dialog open={open} onOpenChange={(next) => { if (!pending) setOpen(next); }}>
       <DialogContent size="sm">
-        <DialogHeader><DialogTitle>Update project status</DialogTitle><DialogDescription>Change the workflow status for {projectName}. The new status will be checked and saved.</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>Update project status</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="foundry-action-form">
           <label htmlFor={`project-status-${projectId}`}>New status</label>
           <Select className="foundry-action-select" id={`project-status-${projectId}`} value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus)} disabled={pending}>
