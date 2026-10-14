@@ -60,8 +60,10 @@ async function FoundrySignIn({ searchParams }: { searchParams?: Promise<{ foundr
           <h2>Sign in to Ontix</h2>
           <p className="foundry-login-copy">Sign in securely to continue.</p>
           {message && <p className="foundry-login-alert" role="status">{message}</p>}
-          <a className="button button-primary foundry-login-button" href="/api/foundry/sign-in">Continue with Palantir Foundry</a>
-          <a className="button button-secondary foundry-demo-button" href="/demo-login">Explore Demo</a>
+          <div className="foundry-login-actions">
+            <a className="button button-primary foundry-login-button" href="/api/foundry/sign-in">Continue with Palantir Foundry</a>
+            <a className="button button-secondary foundry-demo-button" href="/demo-login">Explore Demo</a>
+          </div>
         </div>
       </section>
     </main>
