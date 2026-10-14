@@ -9,9 +9,9 @@ export const runtime = "nodejs";
 const signInMessages: Record<string, string> = {
   "setup-required": "Foundry sign-in is not ready. Check the server setup details below.",
   "access-denied": "Your Foundry account is not assigned to a configured Ontix access group.",
-  failed: "Foundry sign-in could not be completed. Check the OAuth configuration and try again.",
+  failed: "We couldn’t complete sign-in. Please try again.",
   denied: "Foundry sign-in was cancelled.",
-  "action-failed": "Foundry could not complete the change. Your session is still active; try again.",
+  "action-failed": "Unable to save changes. Please try again.",
 };
 
 const setupReasons: Record<string, string> = {

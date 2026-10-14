@@ -25,7 +25,7 @@ function fillLoginForm() {
 }
 
 describe("login failure handling", () => {
-  it("shows a safe message and a global toast for rejected credentials", async () => {
+  it("shows a safe inline message for rejected credentials without duplicating it in a toast", async () => {
     signInEmailMock.mockResolvedValue({ error: { status: 401 } });
     render(<LoginForm />);
     fillLoginForm();
@@ -33,7 +33,7 @@ describe("login failure handling", () => {
 
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toContain("Sign in could not be completed");
-    expect(notifyErrorMock).toHaveBeenCalledWith(expect.objectContaining({ title: "Unable to sign in" }));
+    expect(notifyErrorMock).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Sign in to Ontix" }).hasAttribute("disabled")).toBe(false);
   });
 
@@ -46,7 +46,7 @@ describe("login failure handling", () => {
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toContain("service could not be reached");
     expect(screen.getByRole("button", { name: "Sign in to Ontix" }).hasAttribute("disabled")).toBe(false);
-    expect(notifyErrorMock).toHaveBeenCalledWith(expect.objectContaining({ title: "Connection problem" }));
+    expect(notifyErrorMock).not.toHaveBeenCalled();
   });
 
   it("navigates only after a successful server response", async () => {

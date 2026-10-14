@@ -51,6 +51,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { notify } from "@/lib/notifications";
+import { notificationCopy, workspaceErrorMessage, workspaceSuccessMessage } from "@/lib/notification-copy";
+import { toFieldErrors } from "@/lib/validation-messages";
 import { OntologyModelExplorer } from "@/client/ui/OntologyModelExplorer";
 import { PeoplePage } from "@/client/ui/PeoplePage";
 import { FoundryIntegrationsPage } from "@/client/ui/FoundryIntegrationsPage";
@@ -143,22 +145,21 @@ export function OntixApp({ initialData, viewer, integrationStatus }: { initialDa
 
   const performAction = async (command: WorkspaceCommand): Promise<boolean> => {
     const pendingId = "ontix:workspace-action";
-    notify.loading({ id: pendingId, title: "Saving changes", description: "Please wait while the workspace is updated." });
+    notify.loading({ id: pendingId, title: "Saving changes…" });
     setMutationPending(true);
     try {
       const result = await runWorkspaceCommand(command);
       notify.dismiss(pendingId);
       if (!result.ok) {
-        notify.error({ title: "Unable to save changes", description: result.error });
-        if (result.error.toLowerCase().includes("session has expired")) router.refresh();
+        notify.error({ title: workspaceErrorMessage(result.error) });
         return false;
       }
       router.refresh();
-      notify.success({ title: successTitle(command), description: successDescription(command) });
+      notify.success({ title: workspaceSuccessMessage(command) });
       return true;
     } catch {
       notify.dismiss(pendingId);
-      notify.error({ title: "Request failed", description: "Check your connection and try again. Your changes were not saved." });
+      notify.error({ title: notificationCopy.requestFailed });
       return false;
     } finally {
       setMutationPending(false);
@@ -240,33 +241,6 @@ export function OntixApp({ initialData, viewer, integrationStatus }: { initialDa
       {destructiveAction && <ArchiveConfirmation action={destructiveAction} busy={mutationPending} onOpenChange={(open) => { if (!open && !mutationPending) setDestructiveAction(null); }} onConfirm={performAction} />}
     </div>
   );
-}
-
-function successTitle(command: WorkspaceCommand) {
-  if (command.type.endsWith("archive")) return "Record archived";
-  if (command.type === "employee.deactivate" || command.type === "team.deactivate") return "Record deactivated";
-  if (command.type === "employee.activate" || command.type === "team.activate") return "Record reactivated";
-  if (command.type === "employee.create") return "Employee added";
-  if (command.type === "team.create") return "Team added";
-  if (command.type === "approval.decide") return command.decision === "APPROVED" ? "Approval recorded" : "Request rejected";
-  if (command.type === "case.escalate") return "Case escalated";
-  if (command.type === "case.resolve") return "Case resolved";
-  if (command.type === "case.assign") return "Case assignment updated";
-  if (command.type === "case.requestApproval") return "Approval requested";
-  return "Changes saved";
-}
-
-function successDescription(command: WorkspaceCommand) {
-  if (command.type === "case.resolve") return "The case and its audit history have been updated.";
-  if (command.type === "employee.activate") return "The employee is active again. They can sign in if an administrator has provisioned an account.";
-  if (command.type === "team.activate") return "The team is active again and available for new assignments.";
-  if (command.type === "employee.deactivate") return "Ontix access was disabled, active sessions were revoked, and history was preserved.";
-  if (command.type === "team.deactivate") return "Existing work retains the team link; new assignments will use active teams.";
-  if (command.type === "approval.decide") return "The decision is saved to the approval history.";
-  if (command.type === "employee.create") return "The employee record is saved. Login access must be provisioned separately.";
-  if (command.type === "case.requestApproval") return "The request is now in the approval queue.";
-  if (command.type === "case.assign") return command.employeeId ? "The case owner was updated." : "The case is now unassigned.";
-  return "The workspace has been updated successfully.";
 }
 
 function PageHeading({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) {
@@ -583,13 +557,4 @@ function ArchiveConfirmation({ action, busy, onOpenChange, onConfirm }: {
       <AlertDialogFooter><AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel><AlertDialogAction disabled={busy} onClick={(event) => { event.preventDefault(); void onConfirm(action.command).then((success) => { if (success) onOpenChange(false); }); }}>{busy ? "Archiving…" : action.actionLabel}</AlertDialogAction></AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>;
-}
-
-function toFieldErrors(issues: ReadonlyArray<{ path: PropertyKey[]; message: string }>) {
-  const errors: Record<string, string> = {};
-  for (const issue of issues) {
-    const key = String(issue.path[0] ?? "form");
-    if (!errors[key]) errors[key] = issue.message;
-  }
-  return errors;
 }

@@ -13,8 +13,8 @@ export default function WorkspaceError({ reset }: { error: Error & { digest?: st
         <div className="route-state-brand"><OntixLogo size="small" /></div>
         <span className="route-state-icon error-icon"><Database size={24} /></span>
         <p className="route-state-kicker">SERVICE STATUS</p>
-        <h1>Workspace temporarily unavailable</h1>
-        <p>Ontix couldn’t complete this request. Try again, or contact your administrator if the problem continues.</p>
+        <h1>We couldn’t load this workspace</h1>
+        <p>Your session is still active. Try again, or contact your administrator if the problem continues.</p>
         <div className="route-state-actions">
           <button className="button button-primary" onClick={reset}>
             <RefreshCw size={16} /> Try again

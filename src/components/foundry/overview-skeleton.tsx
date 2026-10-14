@@ -8,7 +8,7 @@ export function OverviewChartSkeleton({ compact = false }: { compact?: boolean }
 }
 
 export function OverviewSkeleton() {
-  return <div className="overview-loading" role="status" aria-label="Loading Foundry overview" aria-busy="true">
+  return <div className="overview-loading" role="status" aria-label="Loading overview" aria-busy="true">
     <div className="overview-loading-heading"><span /><i /><i /></div>
     <div className="overview-loading-kpis">{Array.from({ length: 6 }, (_, index) => <div key={index}><i /><span /><strong /><small /></div>)}</div>
     <div className="overview-loading-charts">{Array.from({ length: 4 }, (_, index) => <OverviewChartSkeleton key={index} />)}</div>

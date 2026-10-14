@@ -14,6 +14,7 @@ vi.mock("sonner", () => ({ toast: { success: successMock, error: errorMock } }))
 
 import { toast } from "sonner";
 import { FoundryCaseDetailActions, FoundryProjectStatusDialog, FoundryProjectStatusForm } from "./foundry-workflow-forms";
+import { notificationCopy, workflowErrorMessage } from "@/lib/notification-copy";
 
 afterEach(() => {
   cleanup();
@@ -37,7 +38,7 @@ describe("Foundry workflow form recovery", () => {
       await Promise.resolve();
     });
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Foundry denied this action."));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("You don’t have permission to make this change.", expect.any(Object)));
     expect(select.value).toBe("IN_PROGRESS");
     expect(refreshMock).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
@@ -48,7 +49,7 @@ describe("Foundry workflow form recovery", () => {
     }));
   });
 
-  it("toasts success and refreshes the Foundry dashboard after a saved update", async () => {
+  it("shows a clear success message and refreshes after the server confirms an update", async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
     vi.stubGlobal("fetch", fetchMock);
     render(<FoundryProjectStatusForm projectId="PRJ-2002" projectName="Regional Dispatch Optimization" initialStatus="PLANNING" />);
@@ -60,7 +61,7 @@ describe("Foundry workflow form recovery", () => {
       await Promise.resolve();
     });
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Foundry saved the project workflow change."));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(notificationCopy.projectStatusUpdated, expect.any(Object)));
     expect(refreshMock).toHaveBeenCalledTimes(1);
     expect(toast).toBeDefined();
   });
@@ -76,7 +77,7 @@ describe("Foundry workflow form recovery", () => {
       await Promise.resolve();
     });
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("network unavailable"));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Unable to update the project status. Please try again.", expect.any(Object)));
     expect(select.value).toBe("AT_RISK");
     expect(refreshMock).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
@@ -95,7 +96,7 @@ describe("Foundry workflow form recovery", () => {
       fireEvent.submit(select.closest("form")!);
       await Promise.resolve();
     });
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Foundry denied this action."));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("You don’t have permission to make this change.", expect.any(Object)));
     expect(screen.getByRole("dialog")).toBeTruthy();
     expect(select.value).toBe("IN_PROGRESS");
     expect(refreshMock).not.toHaveBeenCalled();
@@ -111,7 +112,7 @@ describe("Foundry workflow form recovery", () => {
     const saveButton = screen.getByRole("button", { name: "Saving…" });
     expect((saveButton as HTMLButtonElement).disabled).toBe(true);
     await act(async () => { complete({ ok: true, json: async () => ({ ok: true }) }); });
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Project workflow updated in Foundry."));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(notificationCopy.projectStatusUpdated, expect.any(Object)));
   });
 
   it("shows pending states for case assignment and resolution without duplicate actions", async () => {
@@ -124,12 +125,20 @@ describe("Foundry workflow form recovery", () => {
     await act(async () => { fireEvent.submit(assignmentForm); await Promise.resolve(); });
     expect((screen.getByRole("button", { name: "Assigning…" }) as HTMLButtonElement).disabled).toBe(true);
     await act(async () => { complete({ ok: true, json: async () => ({ ok: true }) }); });
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Case assignment saved in Foundry."));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(notificationCopy.caseAssigned, expect.any(Object)));
 
     fireEvent.click(screen.getByRole("button", { name: "Resolve case" }));
     await act(async () => { fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Resolve case" })); await Promise.resolve(); });
     expect((screen.getByRole("button", { name: "Resolving…" }) as HTMLButtonElement).disabled).toBe(true);
     await act(async () => { complete({ ok: true, json: async () => ({ ok: true }) }); });
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Case resolved in Foundry."));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(notificationCopy.caseResolved, expect.any(Object)));
+  });
+});
+
+describe("notification wording", () => {
+  it("keeps common workflow failures concise and free of backend details", () => {
+    expect(workflowErrorMessage("action_denied", "resolve-case")).toBe("You don’t have permission to make this change.");
+    expect(workflowErrorMessage("conflict", "assign-case")).toBe("This item has changed. Refresh and try again.");
+    expect(workflowErrorMessage("provider_error", "update-project-status")).toBe("Unable to update the project status. Please try again.");
   });
 });

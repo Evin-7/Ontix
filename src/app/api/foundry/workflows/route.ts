@@ -65,7 +65,9 @@ export async function POST(request: Request) {
   }
 
   if (!result.ok) {
-    return NextResponse.json(result, { status: responseStatus(result.code) });
+    // The browser needs only a stable failure code. Provider diagnostics stay
+    // in sanitized server logs and are mapped to friendly copy by the UI.
+    return NextResponse.json({ ok: false, code: result.code }, { status: responseStatus(result.code) });
   }
 
   revalidatePath("/");

@@ -83,7 +83,7 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (op
       <DialogContent size="lg" className="foundry-search-dialog" aria-describedby="foundry-search-description">
         <DialogHeader>
           <DialogTitle>Search the workspace</DialogTitle>
-          <DialogDescription id="foundry-search-description">Search records you can access in the Foundry Ontology.</DialogDescription>
+          <DialogDescription id="foundry-search-description">Search records available to your account.</DialogDescription>
         </DialogHeader>
         <label className="foundry-search-input-wrap">
           <Search size={18} aria-hidden="true" />
@@ -92,8 +92,8 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (op
           <kbd>ESC</kbd>
         </label>
         <div className="foundry-search-results" aria-live="polite">
-          {query.trim().length < 2 && <p className="foundry-search-hint">Type at least 2 characters to search Foundry records.</p>}
-          {isCurrentPending && <p className="foundry-search-hint">Searching Foundry…</p>}
+          {query.trim().length < 2 && <p className="foundry-search-hint">Type at least 2 characters to search.</p>}
+          {isCurrentPending && <p className="foundry-search-hint">Searching…</p>}
           {hasCurrentError && <p className="foundry-search-hint foundry-search-error">Search is temporarily unavailable. Your session is unchanged.</p>}
           {!isCurrentPending && !hasCurrentError && query.trim().length >= 2 && resultQuery === normalizedQuery && results.length === 0 && <p className="foundry-search-hint">No matching records are visible to this account.</p>}
           {!isCurrentPending && !hasCurrentError && Object.entries(currentGroups).map(([type, matches]) => (
@@ -107,7 +107,7 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (op
             </section>
           ))}
         </div>
-        <div className="foundry-search-footer"><span><kbd>⌘</kbd> <kbd>K</kbd> to search</span><span>Results follow Foundry access</span></div>
+        <div className="foundry-search-footer"><span><kbd>⌘</kbd> <kbd>K</kbd> to search</span><span>Results follow your access</span></div>
       </DialogContent>
     </Dialog>
   );
@@ -138,7 +138,7 @@ export function DashboardShell({ children, role }: { children: React.ReactNode; 
         </Link>
         {mobile ? <button className="foundry-icon-button mobile-close" onClick={() => setMobileOpen(false)} aria-label="Close navigation"><X size={19} /></button> : <button className="foundry-collapse-button" onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}><ChevronLeft size={16} className={collapsed ? "rotate-180" : ""} /></button>}
       </div>
-      <div className="foundry-workspace-label"><span className="foundry-workspace-mark"><OntixLogo variant="icon" size="small" decorative /></span><span><strong>Ontix Operations</strong><small>Foundry workspace</small></span></div>
+      <div className="foundry-workspace-label"><span className="foundry-workspace-mark"><OntixLogo variant="icon" size="small" decorative /></span><span><strong>Ontix Operations</strong><small>Enterprise workspace</small></span></div>
       <nav className="foundry-nav">
         {sections.map((section) => <div className="foundry-nav-section" key={section.title}>
           <p>{section.title}</p>

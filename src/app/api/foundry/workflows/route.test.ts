@@ -65,7 +65,7 @@ describe("Foundry workflow Route Handler", () => {
     const response = await POST(request({ action: "update-project-status", projectId: "PRJ-2002", status: "AT_RISK" }));
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toMatchObject({ ok: false, code: "action_denied" });
+    expect(await response.json()).toEqual({ ok: false, code: "action_denied" });
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 

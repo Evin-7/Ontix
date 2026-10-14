@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { employeeInputSchema, employeePatchSchema, teamInputSchema, teamPatchSchema } from "@/lib/validation";
+import { toFieldErrors } from "@/lib/validation-messages";
 import type { Employee, Team, WorkspaceCommand } from "@/types/workspace";
 
 type PersonDialog = { kind: "employee"; record?: Employee } | { kind: "team"; record?: Team };
@@ -196,13 +197,4 @@ function RecordDialog({ state, teams, onClose, onAction, setBusy }: {
       </form>
     </DialogContent>
   </Dialog>;
-}
-
-function toFieldErrors(issues: ReadonlyArray<{ path: PropertyKey[]; message: string }>) {
-  const errors: FieldErrors = {};
-  for (const issue of issues) {
-    const key = String(issue.path[0] ?? "form");
-    if (!errors[key]) errors[key] = issue.message;
-  }
-  return errors;
 }

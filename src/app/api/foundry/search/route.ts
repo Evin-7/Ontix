@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   }
   try {
     const context = await getFoundryModuleContext("overview");
-    if (!context) return NextResponse.json({ error: "Sign in with Foundry to search." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+    if (!context) return NextResponse.json({ error: "Sign in to search your workspace." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
     const needle = query.toLocaleLowerCase();
     const sources = [
       { type: "Projects", path: routeByType.Projects, rows: context.workspace.projects.map((r) => ({ id: r.id, title: r.name, subtitle: `Project · ${r.status.replaceAll("_", " ")}`, text: `${r.id} ${r.name} ${r.status}` })) },
@@ -33,6 +33,6 @@ export async function GET(request: Request) {
     ).slice(0, 30);
     return NextResponse.json({ results }, { headers: { "Cache-Control": "private, no-store" } });
   } catch {
-    return NextResponse.json({ error: "Foundry search is temporarily unavailable." }, { status: 503, headers: { "Cache-Control": "private, no-store" } });
+    return NextResponse.json({ error: "Search is temporarily unavailable." }, { status: 503, headers: { "Cache-Control": "private, no-store" } });
   }
 }

@@ -6,7 +6,7 @@ export default function Loading() {
       <section className="route-state-card loading-card">
         <OntixLogo size="medium" className="loading-brand" />
         <h1>Preparing your workspace</h1>
-        <p>Checking your secure Foundry session.</p>
+        <p>Checking your secure session.</p>
         <div className="loading-indicator" aria-hidden="true">
           <span /><span /><span />
         </div>

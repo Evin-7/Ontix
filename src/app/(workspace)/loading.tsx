@@ -7,6 +7,6 @@ export default function WorkspaceLoading() {
       <div className="record-module-loading__columns"><i /><i /><i /><i /><i /></div>
       {Array.from({ length: 7 }, (_, index) => <div className="record-module-loading__row" key={index}><i /><i /><i /><i /><i /></div>)}
     </div>
-    <span className="sr-only">Foundry records are loading. The dashboard navigation remains available.</span>
+    <span className="sr-only">Workspace records are loading. The dashboard navigation remains available.</span>
   </div>;
 }

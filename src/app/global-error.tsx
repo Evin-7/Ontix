@@ -21,7 +21,7 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
                 <span className="route-state-icon error-icon"><TriangleAlert size={24} /></span>
                 <p className="route-state-kicker">APPLICATION ERROR</p>
                 <h1>Something went wrong</h1>
-                <p>The page couldn’t be displayed. Try again or return to Ontix later.</p>
+                <p>We couldn’t display this page. Try again or return to your workspace.</p>
                 <div className="route-state-actions">
                   <button className="button button-primary" onClick={reset}><RefreshCw size={16} /> Try again</button>
                   <Link className="button button-secondary" href="/">Return to dashboard</Link>

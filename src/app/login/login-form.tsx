@@ -4,7 +4,6 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LoaderCircle, ShieldCheck } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { notify } from "@/lib/notifications";
 
 export function LoginForm() {
   const router = useRouter();
@@ -25,7 +24,6 @@ export function LoginForm() {
       if (result.error) {
         const message = "Sign in could not be completed. Check your details or contact your administrator.";
         setError(message);
-        notify.error({ title: "Unable to sign in", description: message });
         return;
       }
       router.replace("/");
@@ -33,7 +31,6 @@ export function LoginForm() {
     } catch {
       const message = "The service could not be reached. Check your connection and try again.";
       setError(message);
-      notify.error({ title: "Connection problem", description: message });
     } finally {
       setPending(false);
     }

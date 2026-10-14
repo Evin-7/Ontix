@@ -82,7 +82,7 @@ export function RecordExplorer({
     {filtered.length === 0 ? <EmptyState title={query || Object.values(filterValues).some(Boolean) ? "No matching records" : emptyTitle} description={query || Object.values(filterValues).some(Boolean) ? "Adjust your search or filters and try again." : emptyDescription} /> : <>
       <div className="foundry-table-viewport">
         <table className="foundry-record-table">
-          <caption className="sr-only">Foundry workspace records. Select a row to view its details.</caption>
+          <caption className="sr-only">Workspace records. Select a row to view its details.</caption>
           <thead><tr>
             <th aria-sort={sort.key === "title" ? sort.direction === "asc" ? "ascending" : "descending" : "none"}><button onClick={() => toggleSort("title")}>Name <SortIcon active={sort.key === "title"} direction={sort.direction} /></button></th>
             <th aria-sort={sort.key === "id" ? sort.direction === "asc" ? "ascending" : "descending" : "none"}><button onClick={() => toggleSort("id")}>ID <SortIcon active={sort.key === "id"} direction={sort.direction} /></button></th>
@@ -113,7 +113,7 @@ export function RecordExplorer({
         <div className="foundry-detail-status"><span>Current status</span><StatusBadge status={selected.status} /></div>
         <div className="foundry-detail-fields">{Object.entries(selected.values).filter(([key, value]) => key !== "status" && value).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{value}</dd></div>)}</div>
         {selected.action?.type === "project" && <div className="foundry-detail-action-block"><h3>Workflow</h3><p>Update this project through its published Foundry action.</p><FoundryProjectStatusDialog projectId={selected.id} projectName={selected.title} initialStatus={selected.action.initialStatus} /></div>}
-        {selected.action?.type === "case" && <div className="foundry-detail-action-block"><h3>Case actions</h3><p>Changes are saved to the Foundry Ontology and remain subject to Foundry permissions.</p><FoundryCaseDetailActions caseId={selected.id} caseTitle={selected.action.caseTitle} assignedEmployeeId={selected.action.assignedEmployeeId} employees={selected.action.employees} canResolve={selected.action.canResolve} /></div>}
+        {selected.action?.type === "case" && <div className="foundry-detail-action-block"><h3>Case actions</h3><p>Changes are subject to your workspace permissions.</p><FoundryCaseDetailActions caseId={selected.id} caseTitle={selected.action.caseTitle} assignedEmployeeId={selected.action.assignedEmployeeId} employees={selected.action.employees} canResolve={selected.action.canResolve} /></div>}
         {selected.kind === "Approval" && <div className="foundry-read-only-note">Read only · Approval decisions are not configured as Ontology actions.</div>}
       </DialogContent>}
     </Dialog>
