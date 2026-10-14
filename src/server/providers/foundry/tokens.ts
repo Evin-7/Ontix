@@ -7,20 +7,37 @@ export class FoundryTokenError extends Error {
   readonly failureCode: FoundryOAuthFailureCode;
   readonly httpStatus?: number;
   readonly responseType?: "json" | "html" | "text" | "other";
+  readonly providerDetail?: FoundryProviderDetail;
 
   constructor(
     message = "The Foundry connection needs to be reconnected.",
     failureCode: FoundryOAuthFailureCode = "other",
     httpStatus?: number,
     responseType?: "json" | "html" | "text" | "other",
+    providerDetail?: FoundryProviderDetail,
   ) {
     super(message);
     this.name = "FoundryTokenError";
     this.failureCode = failureCode;
     this.httpStatus = httpStatus;
     this.responseType = responseType;
+    this.providerDetail = providerDetail;
   }
 }
+
+export type FoundryProviderDetail =
+  | "description-missing"
+  | "redirect-uri"
+  | "pkce"
+  | "authorization-code"
+  | "offline-access"
+  | "scope"
+  | "client"
+  | "organization"
+  | "application-access"
+  | "user-permission"
+  | "network-policy"
+  | "other-description";
 
 export type FoundryOAuthFailureCode =
   | "invalid_grant"
@@ -51,6 +68,7 @@ type TokenEndpointFailure = {
   error: FoundryOAuthFailureCode;
   httpStatus: number;
   responseType: "json" | "html" | "text" | "other";
+  providerDetail: FoundryProviderDetail;
 };
 type TokenEndpointResult = { ok: true; tokens: ParsedTokenResponse } | TokenEndpointFailure;
 
@@ -68,6 +86,22 @@ function safeOAuthFailureCode(value: unknown): FoundryOAuthFailureCode {
   if (OAUTH_FAILURE_CODES.includes(value as FoundryOAuthFailureCode)) return value as FoundryOAuthFailureCode;
   if (/^[a-z][a-z0-9_-]{0,47}$/i.test(value)) return `provider-${value.toLowerCase()}`;
   return "provider-error-other";
+}
+
+function classifyProviderDetail(value: unknown): FoundryProviderDetail {
+  if (typeof value !== "string" || !value.trim()) return "description-missing";
+  const detail = value.slice(0, 1024).toLowerCase();
+  if (/redirect[ _-]?uri|callback[ _-]?url/.test(detail)) return "redirect-uri";
+  if (/code[ _-]?verifier|code[ _-]?challenge|pkce/.test(detail)) return "pkce";
+  if (/authorization[ _-]?code|auth[ _-]?code/.test(detail)) return "authorization-code";
+  if (/offline[ _-]?access|refresh[ _-]?token/.test(detail)) return "offline-access";
+  if (/scope|operation/.test(detail)) return "scope";
+  if (/client[ _-]?id|oauth[ _-]?client|public[ _-]?client/.test(detail)) return "client";
+  if (/organi[sz]ation|enrollment/.test(detail)) return "organization";
+  if (/application|third[ _-]?party[ _-]?app/.test(detail)) return "application-access";
+  if (/user|permission|access[ _-]?denied/.test(detail)) return "user-permission";
+  if (/network|ip[ _-]?address|allowlist|origin/.test(detail)) return "network-policy";
+  return "other-description";
 }
 
 function parseTokenResponse(value: unknown): { tokens: ParsedTokenResponse } | { failureCode: FoundryOAuthFailureCode } {
@@ -128,7 +162,14 @@ async function requestToken(body: URLSearchParams): Promise<TokenEndpointResult>
   if (!response.ok) {
     const record = payload && typeof payload === "object" ? payload as Record<string, unknown> : null;
     const providerCode = record?.error ?? record?.error_code ?? record?.errorCode ?? record?.code;
-    return { ok: false, error: safeOAuthFailureCode(providerCode), httpStatus: response.status, responseType };
+    const providerDescription = record?.error_description ?? record?.description ?? record?.message;
+    return {
+      ok: false,
+      error: safeOAuthFailureCode(providerCode),
+      httpStatus: response.status,
+      responseType,
+      providerDetail: classifyProviderDetail(providerDescription),
+    };
   }
   const parsed = parseTokenResponse(payload);
   if (!("tokens" in parsed)) {
@@ -151,6 +192,7 @@ export async function exchangeFoundryCodeForTokens(input: { code: string; verifi
     result.error,
     result.httpStatus,
     result.responseType,
+    result.providerDetail,
   );
   return result.tokens;
 }

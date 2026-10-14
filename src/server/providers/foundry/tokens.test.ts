@@ -44,6 +44,21 @@ describe("Foundry OAuth token failure diagnostics", () => {
 
     expect(error).toBeInstanceOf(FoundryTokenError);
     expect(error).toMatchObject({ failureCode: "provider-request_denied", httpStatus: 400, responseType: "json" });
+    expect(error).toMatchObject({ providerDetail: "other-description" });
     expect((error as Error).message).not.toContain("sensitive provider detail");
+  });
+
+  it("classifies a provider redirect error without logging its raw description", async () => {
+    const description = "Redirect URI is denied for private-code";
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json(
+      { error: "permission_denied", error_description: description },
+      { status: 403 },
+    )));
+
+    const error = await exchangeFoundryCodeForTokens({ code: "private-code", verifier: "private-verifier" })
+      .catch((value: unknown) => value);
+
+    expect(error).toMatchObject({ failureCode: "provider-permission_denied", providerDetail: "redirect-uri" });
+    expect((error as Error).message).not.toContain(description);
   });
 });

@@ -136,7 +136,7 @@ async function handleStandaloneCallback(input: {
     logStandaloneCallbackFailure(
       "token-exchange",
       error instanceof FoundryTokenError
-        ? `${error.failureCode}${error.httpStatus ? `-${error.httpStatus}` : ""}${error.responseType ? `-${error.responseType}` : ""}`
+        ? `${error.failureCode}${error.httpStatus ? `-${error.httpStatus}` : ""}${error.responseType ? `-${error.responseType}` : ""}${error.providerDetail ? `-${error.providerDetail}` : ""}`
         : "unexpected-error",
     );
     return standaloneRedirect(input.applicationUrl, "failed");
