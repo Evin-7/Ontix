@@ -24,17 +24,20 @@ export type ExplorerRecord = {
 };
 
 export function RecordExplorer({
-  records, columns, filters = [], selectedId, emptyTitle, emptyDescription,
+  records, columns, filters = [], initialFilters, selectedId, emptyTitle, emptyDescription,
 }: {
   records: ExplorerRecord[];
   columns: ExplorerColumn[];
   filters?: ExplorerFilter[];
+  initialFilters?: Record<string, string | undefined>;
   selectedId?: string;
   emptyTitle: string;
   emptyDescription: string;
 }) {
   const [query, setQuery] = useState("");
-  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [filterValues, setFilterValues] = useState<Record<string, string>>(() => Object.fromEntries(
+    Object.entries(initialFilters ?? {}).filter((entry): entry is [string, string] => Boolean(entry[1])),
+  ));
   const [sort, setSort] = useState<{ key: string; direction: "asc" | "desc" }>({ key: "title", direction: "asc" });
   const [page, setPage] = useState(1);
   const [clickedId, setClickedId] = useState<string>();

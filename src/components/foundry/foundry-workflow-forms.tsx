@@ -3,7 +3,7 @@
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, UserRoundPlus } from "lucide-react";
+import { Check, LoaderCircle, UserRoundPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -64,7 +64,7 @@ export function FoundryProjectStatusForm({
       <option value="AT_RISK">At risk</option>
       <option value="COMPLETED">Completed</option>
     </select>
-    <button type="submit" disabled={pending}>{pending ? "Saving…" : "Save"}</button>
+    <button type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Saving…" : "Save"}</button>
   </form>;
 }
 
@@ -100,7 +100,7 @@ export function FoundryCaseAssignmentForm({
     <select aria-label={`Assign ${caseTitle} to`} name="employeeId" value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>
       {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
     </select>
-    <button type="submit" disabled={pending}>{pending ? "Assigning…" : "Assign"}</button>
+    <button type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Assigning…" : "Assign"}</button>
   </form>;
 }
 
@@ -122,7 +122,7 @@ export function FoundryResolveCaseButton({ caseId }: { caseId: string }) {
   }
 
   return <form onSubmit={submit}>
-    <button className="foundry-quiet-button" type="submit" disabled={pending}>{pending ? "Resolving…" : "Resolve"}</button>
+    <button className="foundry-quiet-button" type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Resolving…" : "Resolve"}</button>
   </form>;
 }
 
@@ -217,7 +217,7 @@ export function FoundryCaseDetailActions({ caseId, caseTitle, assignedEmployeeId
       <AlertDialogTrigger asChild><Button variant="destructive" size="sm">Resolve case</Button></AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader><AlertDialogTitle>Resolve this case?</AlertDialogTitle><AlertDialogDescription>“{caseTitle}” will be marked resolved in Foundry. This action can’t be undone from Ontix.</AlertDialogDescription></AlertDialogHeader>
-        <AlertDialogFooter><AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={pending} onClick={(event) => { event.preventDefault(); resolve(); }}>Resolve case</AlertDialogAction></AlertDialogFooter>
+        <AlertDialogFooter><AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={pending} aria-busy={pending || undefined} onClick={(event) => { event.preventDefault(); resolve(); }}>{pending && <LoaderCircle size={15} className="mr-2 animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Resolving…" : "Resolve case"}</AlertDialogAction></AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>}
   </div>;

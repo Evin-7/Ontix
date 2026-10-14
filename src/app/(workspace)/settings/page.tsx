@@ -2,24 +2,22 @@ import { redirect } from "next/navigation";
 import { KeyRound, Palette, Server, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ThemePreferences } from "@/components/foundry/theme-preferences";
-import { getFoundryModuleContext } from "@/server/providers/foundry/dashboard-context";
+import { getFoundryDashboardSession } from "@/server/providers/foundry/dashboard-context";
 import { getFoundryOAuthConfig } from "@/server/providers/foundry/config";
 
 export default async function SettingsPage() {
-  const context = await getFoundryModuleContext("overview");
-  if (!context) redirect("/");
+  const current = await getFoundryDashboardSession();
+  if (!current) redirect("/");
   const config = getFoundryOAuthConfig();
-  const writesProjects = ["ADMINISTRATOR", "MANAGER"].includes(context.session.role);
-  const writesCases = ["ADMINISTRATOR", "MANAGER", "DEVELOPER"].includes(context.session.role);
-  const typeCount = Object.values(context.workspace.totals).filter((count) => count >= 0).length;
-  const checkedAt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(context.workspace.checkedAt));
+  const writesProjects = ["ADMINISTRATOR", "MANAGER"].includes(current.session.role);
+  const writesCases = ["ADMINISTRATOR", "MANAGER", "DEVELOPER"].includes(current.session.role);
 
   return <div className="foundry-module-page">
     <PageHeader eyebrow="WORKSPACE PREFERENCES" title="Settings" description="Review your Ontix access, appearance, and live Foundry connection." />
     <div className="foundry-settings-grid">
       <section className="foundry-settings-card">
         <div className="foundry-settings-card-heading"><span><ShieldCheck size={18} /></span><div><h2>Profile & access</h2><p>Role is mapped from your current Foundry group membership.</p></div></div>
-        <dl className="foundry-settings-details"><div><dt>Identity</dt><dd>Authenticated Foundry user</dd></div><div><dt>Ontix role</dt><dd><span className="foundry-role-chip">{context.session.role.replaceAll("_", " ")}</span></dd></div><div><dt>Session expires</dt><dd>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(context.session.expiresAt))}</dd></div></dl>
+        <dl className="foundry-settings-details"><div><dt>Identity</dt><dd>Authenticated Foundry user</dd></div><div><dt>Ontix role</dt><dd><span className="foundry-role-chip">{current.session.role.replaceAll("_", " ")}</span></dd></div><div><dt>Session expires</dt><dd>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(current.session.expiresAt))}</dd></div></dl>
       </section>
       <section className="foundry-settings-card">
         <div className="foundry-settings-card-heading"><span><Palette size={18} /></span><div><h2>Appearance</h2><p>Choose a theme for this browser. System follows device settings.</p></div></div>
@@ -27,7 +25,7 @@ export default async function SettingsPage() {
       </section>
       <section className="foundry-settings-card">
         <div className="foundry-settings-card-heading"><span><Server size={18} /></span><div><h2>Foundry connection</h2><p>Connection details are checked server-side and do not expose credentials.</p></div><span className="foundry-settings-status"><i /> Connected</span></div>
-        <dl className="foundry-settings-details"><div><dt>Foundry instance</dt><dd>{config.stackUrl.hostname}</dd></div><div><dt>Last successful read</dt><dd>{checkedAt}</dd></div><div><dt>Ontology records read</dt><dd>{typeCount} object types · {Object.values(context.workspace.totals).reduce((sum, count) => sum + count, 0).toLocaleString()} total rows visible</dd></div></dl>
+        <dl className="foundry-settings-details"><div><dt>Foundry instance</dt><dd>{config.stackUrl.hostname}</dd></div><div><dt>Business data source</dt><dd>Foundry Ontology · queried per module</dd></div><div><dt>Configured object types</dt><dd>Customer, Project, Employee, Team, Operational Case, Approval Request</dd></div></dl>
       </section>
       <section className="foundry-settings-card">
         <div className="foundry-settings-card-heading"><span><KeyRound size={18} /></span><div><h2>Capabilities</h2><p>Ontix role gates which actions the interface offers. Foundry remains authoritative for action permissions.</p></div></div>

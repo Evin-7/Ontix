@@ -34,6 +34,13 @@ describe("Foundry record explorer", () => {
     expect(screen.getByRole("dialog").textContent).toContain("Contoso");
   });
 
+  it("applies a breakdown filter supplied by a chart navigation URL", () => {
+    render(<RecordExplorer records={records} columns={[{ key: "customer", label: "Customer" }, { key: "status", label: "Status" }]} filters={[{ key: "status", label: "status", options: ["AT_RISK", "IN_PROGRESS", "PLANNING"] }]} initialFilters={{ status: "AT_RISK" }} emptyTitle="No projects" emptyDescription="No records." />);
+    expect(screen.getByLabelText("Filter by status")).toHaveProperty("value", "AT_RISK");
+    expect(screen.getAllByText("Customer portal").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Dispatch modernization")).toBeNull();
+  });
+
   it("sorts rows and provides bounded pagination controls", () => {
     const many = Array.from({ length: 13 }, (_, index) => ({
       id: `PRJ-${index + 1}`,

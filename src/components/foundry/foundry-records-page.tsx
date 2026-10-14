@@ -5,6 +5,8 @@ import { ArrowRight, BriefcaseBusiness, Building2, CheckCheck, CircleDot, Contac
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { RecordExplorer, type ExplorerColumn, type ExplorerFilter, type ExplorerRecord } from "@/components/foundry/record-explorer";
+import { OverviewCharts } from "@/components/foundry/overview-charts";
+import { buildOverviewCharts } from "@/components/foundry/overview-metrics";
 import { RefreshDataButton } from "@/components/foundry/refresh-data-button";
 import { getFoundryModuleContext } from "@/server/providers/foundry/dashboard-context";
 import type { FoundryWorkspaceModule } from "@/server/providers/foundry/workspace";
@@ -67,22 +69,6 @@ function recordsFor(module: Exclude<FoundryWorkspaceModule, "overview">, workspa
   return { rows, customerNames, projectNames, employeeNames, teamNames };
 }
 
-function ChartDistribution({ title, values, tone = "primary" }: { title: string; values: Array<{ label: string; count: number }>; tone?: "primary" | "warning" }) {
-  const total = values.reduce((sum, item) => sum + item.count, 0);
-  return <section className="foundry-chart-card">
-    <div className="foundry-chart-heading"><div><span className="eyebrow">RECORD BREAKDOWN</span><h2>{title}</h2></div><span>{total.toLocaleString()} visible</span></div>
-    <div className="foundry-chart-bar" aria-label={`${title} distribution`} role="img">{values.map((item) => <span key={item.label} title={`${item.label}: ${item.count}`} className={`tone-${tone}`} style={{ width: `${total ? Math.max(item.count / total * 100, item.count > 0 ? 1.5 : 0) : 0}%` }} />)}</div>
-    <div className="foundry-chart-legend">{values.map((item) => <div key={item.label}><span><i className={`tone-${tone}`} />{item.label.replaceAll("_", " ")}</span><strong>{item.count}</strong></div>)}</div>
-    {values.length === 0 && <p className="foundry-muted">No records in the visible sample.</p>}
-  </section>;
-}
-
-function countBy<T>(rows: T[], key: (row: T) => string) {
-  const counts = new Map<string, number>();
-  for (const row of rows) { const value = key(row) || "UNKNOWN"; counts.set(value, (counts.get(value) ?? 0) + 1); }
-  return [...counts].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-}
-
 function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typeof getFoundryModuleContext>>>["workspace"] }) {
   const openCases = workspace.cases.filter((entry) => ["OPEN", "IN_PROGRESS", "WAITING_APPROVAL", "ESCALATED"].includes(entry.status));
   const pendingApprovals = workspace.approvals.filter((entry) => entry.status === "PENDING");
@@ -96,12 +82,13 @@ function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typ
   ];
   const highPriority = [...workspace.cases].filter((entry) => ["HIGH", "CRITICAL"].includes(entry.priority) && !["RESOLVED", "CLOSED"].includes(entry.status)).sort((a, b) => a.priority === b.priority ? a.title.localeCompare(b.title) : a.priority === "CRITICAL" ? -1 : 1).slice(0, 5);
   const approvals = [...workspace.approvals].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? "")).slice(0, 5);
-  const projectStatuses = countBy(workspace.projects, (entry) => entry.status);
-  const priorities = countBy(workspace.cases, (entry) => entry.priority);
+  const attentionProjects = workspace.projects.filter((project) => project.status === "AT_RISK");
+  const customerNames = new Map(workspace.customers.map((customer) => [customer.id, customer.name]));
+  const charts = buildOverviewCharts(workspace);
   const checkedAt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(workspace.checkedAt));
 
   return <div className="foundry-module-page">
-    <PageHeader eyebrow="OPERATIONS INTELLIGENCE" title="Overview" description="A live view of delivery, customer, and operational work across your Foundry workspace." actions={<><span className="foundry-last-sync"><i /> Read from Foundry · {checkedAt}</span><RefreshDataButton /></>} />
+    <PageHeader eyebrow="OPERATIONS INTELLIGENCE" title="Overview" description="A live view of delivery, customer, and operational work across your Foundry workspace." actions={<><span className="foundry-last-sync"><i /> Last successful Foundry read · {checkedAt}</span><RefreshDataButton /></>} />
     <section className="foundry-metric-grid" aria-label="Workspace metrics">
       {metrics.map(({ label, value, detail, href, Icon, tone }) => <Link href={href as Route} className="foundry-metric-tile" key={label}>
         <span className={`foundry-metric-icon tone-${tone}`}><Icon size={17} strokeWidth={1.9} aria-hidden="true" /></span>
@@ -109,13 +96,18 @@ function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typ
       </Link>)}
     </section>
     {Object.values(workspace.hasMore).some(Boolean) && <p className="foundry-data-limit-note">Breakdowns use the first 500 records per Ontology type; totals are reported by Foundry.</p>}
-    <div className="foundry-overview-grid">
-      <ChartDistribution title="Project workflow" values={projectStatuses} />
-      <ChartDistribution title="Case priority" values={priorities} tone="warning" />
-    </div>
-    <div className="foundry-overview-lists">
+    <OverviewCharts charts={charts} />
+    <div className="foundry-overview-bottom">
+      <section className="foundry-list-card foundry-attention-projects">
+        <div className="foundry-list-card-heading"><div><span className="eyebrow">NEEDS ATTENTION</span><h2>Projects requiring attention</h2><p>Projects marked at risk in Foundry.</p></div><Link href="/projects?status=AT_RISK">All at-risk projects <ArrowRight size={14} /></Link></div>
+        {attentionProjects.length ? <div className="foundry-attention-table-wrap"><table className="foundry-attention-table"><thead><tr><th>Project</th><th>Customer</th><th>Status</th></tr></thead><tbody>{attentionProjects.map((project) => <tr key={project.id}>
+          <td><Link href={`/projects?record=${encodeURIComponent(project.id)}` as Route}><strong>{project.name}</strong><small>{project.id}</small></Link></td>
+          <td>{project.customerId ? customerNames.get(project.customerId) ?? "—" : "—"}</td><td><StatusBadge status={project.status} /></td>
+        </tr>)}</tbody></table></div> : <p className="foundry-muted foundry-list-empty">No projects are currently marked at risk in the visible Foundry records.</p>}
+      </section>
+      <div className="foundry-overview-list-stack">
       <section className="foundry-list-card">
-        <div className="foundry-list-card-heading"><div><span className="eyebrow">NEEDS ATTENTION</span><h2>Priority cases</h2></div><Link href="/cases">All cases <ArrowRight size={14} /></Link></div>
+        <div className="foundry-list-card-heading"><div><span className="eyebrow">OPERATIONS QUEUE</span><h2>High-priority cases</h2></div><Link href="/cases">All cases <ArrowRight size={14} /></Link></div>
         {highPriority.length ? <div className="foundry-attention-list">{highPriority.map((entry) => <Link key={entry.id} href={`/cases?record=${encodeURIComponent(entry.id)}` as Route}>
           <span className={`foundry-priority-marker priority-${entry.priority.toLowerCase()}`} /><span><strong>{entry.title}</strong><small>{entry.id} · {entry.status.replaceAll("_", " ")}</small></span><StatusBadge status={entry.priority} />
         </Link>)}</div> : <p className="foundry-muted foundry-list-empty">No high-priority cases in the visible records.</p>}
@@ -126,12 +118,13 @@ function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typ
           <span className="foundry-approval-mark"><CheckCheck size={15} aria-hidden="true" /></span><span><strong>{entry.id}</strong><small>{entry.caseId ? `Case ${entry.caseId}` : "No linked case"}{entry.requestedBy ? ` · ${entry.requestedBy}` : ""}</small></span><span className="foundry-approval-trailing"><StatusBadge status={entry.status} /><small>{entry.createdAt ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(entry.createdAt)) : "Date unavailable"}</small></span>
         </Link>)}</div> : <p className="foundry-muted foundry-list-empty">No approval requests are visible to this account.</p>}
       </section>
+      </div>
     </div>
     <p className="foundry-read-source"><span className="connection-dot online" /> Metrics reflect records visible to this Foundry account. Foundry permissions remain authoritative.</p>
   </div>;
 }
 
-export async function FoundryRecordsPage({ module, selectedId }: { module: FoundryWorkspaceModule; selectedId?: string }) {
+export async function FoundryRecordsPage({ module, selectedId, initialFilters }: { module: FoundryWorkspaceModule; selectedId?: string; initialFilters?: Record<string, string | undefined> }) {
   const context = await getFoundryModuleContext(module);
   if (!context) redirect("/");
   if (module === "overview") return <Overview workspace={context.workspace} />;
@@ -142,6 +135,6 @@ export async function FoundryRecordsPage({ module, selectedId }: { module: Found
   return <div className="foundry-module-page">
     <PageHeader eyebrow="LIVE FOUNDRY ONTOLOGY" title={config.title} description={config.description} actions={<><span className="foundry-page-record-total">{context.workspace.totals[module].toLocaleString()} records</span><RefreshDataButton /></>} />
     <div className="foundry-module-context"><span className="connection-dot online" /> Live Foundry data <span>·</span> {context.session.role.replaceAll("_", " ").toLowerCase()} access</div>
-    <RecordExplorer records={rows} columns={config.columns} filters={filters} selectedId={selectedId} emptyTitle={`No ${config.title.toLowerCase()} found`} emptyDescription={`No ${config.title.toLowerCase()} are currently visible to this Foundry account.`} />
+  <RecordExplorer key={`${selectedId ?? ""}:${JSON.stringify(initialFilters ?? {})}`} records={rows} columns={config.columns} filters={filters} initialFilters={initialFilters} selectedId={selectedId} emptyTitle={`No ${config.title.toLowerCase()} found`} emptyDescription={`No ${config.title.toLowerCase()} are currently visible to this Foundry account.`} />
   </div>;
 }
