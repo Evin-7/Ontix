@@ -33,9 +33,9 @@ describe("Foundry OAuth token failure diagnostics", () => {
     expect((error as Error).message).not.toContain("private-code");
   });
 
-  it("maps unknown provider errors to a safe category with status", async () => {
+  it("maps provider error identifiers safely with status and response type", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Response.json(
-      { error: "provider-specific-private-error" },
+      { error: "request_denied", error_description: "sensitive provider detail" },
       { status: 400 },
     )));
 
@@ -43,7 +43,7 @@ describe("Foundry OAuth token failure diagnostics", () => {
       .catch((value: unknown) => value);
 
     expect(error).toBeInstanceOf(FoundryTokenError);
-    expect(error).toMatchObject({ failureCode: "provider-error-other", httpStatus: 400 });
-    expect((error as Error).message).not.toContain("provider-specific-private-error");
+    expect(error).toMatchObject({ failureCode: "provider-request_denied", httpStatus: 400, responseType: "json" });
+    expect((error as Error).message).not.toContain("sensitive provider detail");
   });
 });

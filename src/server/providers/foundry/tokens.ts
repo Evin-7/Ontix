@@ -6,16 +6,19 @@ import { decryptFoundryToken, encryptFoundryToken, isLegacyFoundryToken } from "
 export class FoundryTokenError extends Error {
   readonly failureCode: FoundryOAuthFailureCode;
   readonly httpStatus?: number;
+  readonly responseType?: "json" | "html" | "text" | "other";
 
   constructor(
     message = "The Foundry connection needs to be reconnected.",
     failureCode: FoundryOAuthFailureCode = "other",
     httpStatus?: number,
+    responseType?: "json" | "html" | "text" | "other",
   ) {
     super(message);
     this.name = "FoundryTokenError";
     this.failureCode = failureCode;
     this.httpStatus = httpStatus;
+    this.responseType = responseType;
   }
 }
 
@@ -33,6 +36,7 @@ export type FoundryOAuthFailureCode =
   | "refresh-token-missing"
   | "expiration-invalid"
   | "token-type-invalid"
+  | `provider-${string}`
   | "other";
 
 export type ParsedTokenResponse = {
@@ -42,7 +46,12 @@ export type ParsedTokenResponse = {
   scope: string;
 };
 
-type TokenEndpointFailure = { ok: false; error: FoundryOAuthFailureCode; httpStatus: number };
+type TokenEndpointFailure = {
+  ok: false;
+  error: FoundryOAuthFailureCode;
+  httpStatus: number;
+  responseType: "json" | "html" | "text" | "other";
+};
 type TokenEndpointResult = { ok: true; tokens: ParsedTokenResponse } | TokenEndpointFailure;
 
 const OAUTH_FAILURE_CODES: readonly FoundryOAuthFailureCode[] = [
@@ -55,9 +64,10 @@ const OAUTH_FAILURE_CODES: readonly FoundryOAuthFailureCode[] = [
 ];
 
 function safeOAuthFailureCode(value: unknown): FoundryOAuthFailureCode {
-  return typeof value === "string" && OAUTH_FAILURE_CODES.includes(value as FoundryOAuthFailureCode)
-    ? value as FoundryOAuthFailureCode
-    : "provider-error-other";
+  if (typeof value !== "string") return "provider-error-other";
+  if (OAUTH_FAILURE_CODES.includes(value as FoundryOAuthFailureCode)) return value as FoundryOAuthFailureCode;
+  if (/^[a-z][a-z0-9_-]{0,47}$/i.test(value)) return `provider-${value.toLowerCase()}`;
+  return "provider-error-other";
 }
 
 function parseTokenResponse(value: unknown): { tokens: ParsedTokenResponse } | { failureCode: FoundryOAuthFailureCode } {
@@ -106,18 +116,23 @@ async function requestToken(body: URLSearchParams): Promise<TokenEndpointResult>
   } catch {
     throw new FoundryTokenError("Foundry token service is unavailable. Try reconnecting later.", "token-service-unavailable");
   }
+  const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+  const responseType = contentType.includes("json")
+    ? "json"
+    : contentType.includes("html")
+      ? "html"
+      : contentType.startsWith("text/")
+        ? "text"
+        : "other";
   const payload = await response.json().catch(() => null) as unknown;
   if (!response.ok) {
-    const error = payload && typeof payload === "object"
-      ? (typeof (payload as Record<string, unknown>).error === "string"
-        ? safeOAuthFailureCode((payload as Record<string, unknown>).error)
-        : "provider-error-other")
-      : "provider-error-other";
-    return { ok: false, error, httpStatus: response.status };
+    const record = payload && typeof payload === "object" ? payload as Record<string, unknown> : null;
+    const providerCode = record?.error ?? record?.error_code ?? record?.errorCode ?? record?.code;
+    return { ok: false, error: safeOAuthFailureCode(providerCode), httpStatus: response.status, responseType };
   }
   const parsed = parseTokenResponse(payload);
   if (!("tokens" in parsed)) {
-    throw new FoundryTokenError("Foundry returned an invalid OAuth response. Try reconnecting.", parsed.failureCode, response.status);
+    throw new FoundryTokenError("Foundry returned an invalid OAuth response. Try reconnecting.", parsed.failureCode, response.status, responseType);
   }
   return { ok: true, tokens: parsed.tokens };
 }
@@ -135,6 +150,7 @@ export async function exchangeFoundryCodeForTokens(input: { code: string; verifi
     "Foundry authorization was not completed. Reconnect and try again.",
     result.error,
     result.httpStatus,
+    result.responseType,
   );
   return result.tokens;
 }
