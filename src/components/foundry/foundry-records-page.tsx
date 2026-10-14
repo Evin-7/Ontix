@@ -81,7 +81,6 @@ function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typ
     { label: "Pending approvals", value: pendingApprovals.length, detail: "Requests with PENDING status", href: "/approvals", Icon: CheckCheck, tone: "rose" },
   ];
   const highPriority = [...workspace.cases].filter((entry) => ["HIGH", "CRITICAL"].includes(entry.priority) && !["RESOLVED", "CLOSED"].includes(entry.status)).sort((a, b) => a.priority === b.priority ? a.title.localeCompare(b.title) : a.priority === "CRITICAL" ? -1 : 1).slice(0, 5);
-  const approvals = [...workspace.approvals].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? "")).slice(0, 5);
   const attentionProjects = workspace.projects.filter((project) => project.status === "AT_RISK");
   const customerNames = new Map(workspace.customers.map((customer) => [customer.id, customer.name]));
   const charts = buildOverviewCharts(workspace);
@@ -105,20 +104,12 @@ function Overview({ workspace }: { workspace: NonNullable<Awaited<ReturnType<typ
           <td>{project.customerId ? customerNames.get(project.customerId) ?? "—" : "—"}</td><td><StatusBadge status={project.status} /></td>
         </tr>)}</tbody></table></div> : <p className="foundry-muted foundry-list-empty">No projects are currently marked at risk.</p>}
       </section>
-      <div className="foundry-overview-list-stack">
       <section className="foundry-list-card">
         <div className="foundry-list-card-heading"><div><span className="eyebrow">OPERATIONS QUEUE</span><h2>High-priority cases</h2></div><Link href="/cases">All cases <ArrowRight size={14} /></Link></div>
         {highPriority.length ? <div className="foundry-attention-list">{highPriority.map((entry) => <Link key={entry.id} href={`/cases?record=${encodeURIComponent(entry.id)}` as Route}>
           <span className={`foundry-priority-marker priority-${entry.priority.toLowerCase()}`} /><span><strong>{entry.title}</strong><small>{entry.id} · {entry.status.replaceAll("_", " ")}</small></span><StatusBadge status={entry.priority} />
         </Link>)}</div> : <p className="foundry-muted foundry-list-empty">No high-priority cases in the visible records.</p>}
       </section>
-      <section className="foundry-list-card">
-        <div className="foundry-list-card-heading"><div><span className="eyebrow">LATEST REQUESTS</span><h2>Approvals</h2></div><Link href="/approvals">All approvals <ArrowRight size={14} /></Link></div>
-        {approvals.length ? <div className="foundry-approval-list">{approvals.map((entry) => <Link key={entry.id} href={`/approvals?record=${encodeURIComponent(entry.id)}` as Route}>
-          <span className="foundry-approval-mark"><CheckCheck size={15} aria-hidden="true" /></span><span><strong>{entry.id}</strong><small>{entry.caseId ? `Case ${entry.caseId}` : "No linked case"}{entry.requestedBy ? ` · ${entry.requestedBy}` : ""}</small></span><span className="foundry-approval-trailing"><StatusBadge status={entry.status} /><small>{entry.createdAt ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(entry.createdAt)) : "Date unavailable"}</small></span>
-        </Link>)}</div> : <p className="foundry-muted foundry-list-empty">No approval requests are visible to this account.</p>}
-      </section>
-      </div>
     </div>
     <p className="foundry-read-source"><span className="connection-dot online" /> Metrics reflect records available to your account.</p>
   </div>;

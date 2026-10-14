@@ -49,22 +49,17 @@ async function FoundrySignIn({ searchParams }: { searchParams?: Promise<{ foundr
       <section className="foundry-login-visual" aria-label="Ontix operations platform">
         <OntixLogo theme="dark" size="large" />
         <div className="foundry-login-story">
-          <span className="eyebrow">CONNECTED OPERATIONS</span>
-          <h1>Clarity across<br />the work that matters.</h1>
-          <p>Secure access to your operational workspace, powered by live Foundry records and actions.</p>
+          <h1>Operations,<br />simplified.</h1>
+          <p>Your operations. One connected workspace.</p>
         </div>
-        <span className="foundry-login-footnote">ONTIX · ENTERPRISE OPERATIONS</span>
       </section>
       <section className="foundry-login-content">
         <div className="foundry-login-card">
           <div className="foundry-login-mobile-brand"><OntixLogo size="medium" /></div>
-          <span className="eyebrow">FOUNDRY WORKSPACE</span>
           <h2>Sign in to Ontix</h2>
-          <p className="foundry-login-copy">Continue securely with your Palantir Foundry account. Ontix uses your current Foundry group membership to determine workspace access.</p>
+          <p className="foundry-login-copy">Sign in securely to continue.</p>
           {message && <p className="foundry-login-alert" role="status">{message}</p>}
           <a className="button button-primary foundry-login-button" href="/api/foundry/sign-in">Continue with Palantir Foundry</a>
-          <div className="foundry-login-security"><span className="connection-dot online" /> Foundry authorization · encrypted server session</div>
-          <p className="foundry-login-note">Foundry continues to enforce your access to each record and action. Ontix never exposes access tokens to this browser.</p>
         </div>
       </section>
     </main>
