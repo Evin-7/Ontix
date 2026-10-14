@@ -20,6 +20,7 @@ import {
   foundryOAuthStateCookieOptions as standaloneStateCookieOptions,
   foundrySessionCookieOptions,
 } from "@/server/providers/foundry/session-store";
+import { recordLoginEvent } from "@/server/providers/ontix/login-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -144,6 +145,11 @@ async function handleStandaloneCallback(input: {
 
   try {
     const session = await establishFoundrySession(tokens);
+    try {
+      await recordLoginEvent("foundry");
+    } catch {
+      console.error("[Foundry OAuth callback] Login event could not be recorded.");
+    }
     const response = redirectNoStore(new URL("/?foundry=signed-in", input.applicationUrl));
     response.cookies.set(foundrySessionCookieName(), session.sessionId, foundrySessionCookieOptions());
     response.cookies.set(standaloneStateCookieName(), "", { ...standaloneStateCookieOptions(), maxAge: 0, expires: new Date(0) });

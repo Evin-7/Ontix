@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createDemoSession, allowDemoLoginAttempt, DemoSessionStoreError, demoSessionCookieName, demoSessionCookieOptions } from "@/server/providers/demo/session-store";
 import { isDemoAuthenticationConfigured, verifyDemoCredentials } from "@/server/providers/demo/auth";
 import { isSameOriginRequest } from "@/server/http/origin";
+import { recordLoginEvent } from "@/server/providers/ontix/login-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +35,11 @@ export async function POST(request: Request) {
     if (!limit.allowed) return redirectToLogin(request, "rate-limited");
     if (!await verifyDemoCredentials(username, password)) return redirectToLogin(request, "invalid");
     const session = await createDemoSession();
+    try {
+      await recordLoginEvent("demo");
+    } catch {
+      console.error("[Demo sign-in] Login event could not be recorded.");
+    }
     const response = NextResponse.redirect(new URL("/overview", request.url), { status: 303 });
     response.cookies.set(demoSessionCookieName(), session.sessionId, demoSessionCookieOptions());
     response.headers.set("Cache-Control", "no-store");

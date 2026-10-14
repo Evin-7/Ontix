@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import { KeyRound, Palette, Server, ShieldCheck } from "lucide-react";
+import { History, KeyRound, Palette, Server, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ThemePreferences } from "@/components/foundry/theme-preferences";
 import { getOntixDashboardSession } from "@/server/providers/ontix/dashboard-context";
 import { getFoundryOAuthConfig } from "@/server/providers/foundry/config";
+import { getRecentLoginEvents } from "@/server/providers/ontix/login-events";
 
 export default async function SettingsPage() {
   const current = await getOntixDashboardSession();
@@ -12,6 +13,14 @@ export default async function SettingsPage() {
   const config = isDemo ? null : getFoundryOAuthConfig();
   const writesProjects = !isDemo && ["ADMINISTRATOR", "MANAGER"].includes(current.session.role);
   const writesCases = !isDemo && ["ADMINISTRATOR", "MANAGER", "DEVELOPER"].includes(current.session.role);
+  let loginEvents = null;
+  if (!isDemo && current.session.role === "ADMINISTRATOR") {
+    try {
+      loginEvents = await getRecentLoginEvents();
+    } catch {
+      console.error("[Settings] Sign-in history could not be loaded.");
+    }
+  }
 
   return <div className="foundry-module-page">
     <PageHeader eyebrow="WORKSPACE PREFERENCES" title="Settings" />
@@ -36,6 +45,16 @@ export default async function SettingsPage() {
         <div className="foundry-settings-card-heading"><span><ShieldCheck size={18} /></span><div><h2>Security</h2></div></div>
         <form action={isDemo ? "/api/demo/sign-out" : "/api/foundry/sign-out"} method="post"><button className="foundry-security-signout" type="submit">Sign out of Ontix</button></form>
       </section>
+      {loginEvents && <section className="foundry-settings-card foundry-login-activity-card">
+        <div className="foundry-settings-card-heading"><span><History size={18} /></span><div><h2>Recent sign-ins</h2></div><span className="foundry-login-retention">90 days</span></div>
+        {loginEvents.length === 0 ? <p className="foundry-login-empty">No sign-ins recorded yet.</p> : <div className="foundry-login-events" role="table" aria-label="Recent sign-ins">
+          <div className="foundry-login-events-heading" role="row"><span role="columnheader">Sign-in</span><span role="columnheader">Time</span></div>
+          {loginEvents.map((event, index) => <div className="foundry-login-event" role="row" key={`${event.createdAt}-${event.source}-${index}`}>
+            <span className="foundry-login-event-source" role="cell">{event.source === "demo" ? "Demo workspace" : "Palantir"}</span>
+            <time role="cell" dateTime={new Date(event.createdAt).toISOString()}>{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(event.createdAt))} IST</time>
+          </div>)}
+        </div>}
+      </section>}
     </div>
   </div>;
 }

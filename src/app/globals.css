@@ -449,6 +449,15 @@ a { color: inherit; text-decoration: none; }
 .foundry-settings-card-heading > span:first-child { display: grid; width: 34px; height: 34px; flex: 0 0 auto; place-items: center; border-radius: 8px; color: var(--primary); background: var(--primary-subtle); }
 .foundry-settings-card-heading > div { min-width: 0; flex: 1; }
 .foundry-settings-card-heading h2 { margin: 0; font-size: 13px; font-weight: 650; }
+.foundry-login-activity-card { grid-column: 1 / -1; }
+.foundry-login-retention { margin-left: auto; color: var(--muted); font-size: 10px; }
+.foundry-login-events { max-height: 520px; overflow-y: auto; margin-top: 15px; }
+.foundry-login-events-heading, .foundry-login-event { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(190px, auto); align-items: center; gap: 16px; }
+.foundry-login-events-heading { padding: 0 0 9px; color: var(--muted); font-size: 10px; font-weight: 600; }
+.foundry-login-event { padding: 11px 0; border-top: 1px solid var(--border); font-size: 11px; }
+.foundry-login-event-source { color: var(--foreground); font-weight: 550; }
+.foundry-login-event time { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.foundry-login-empty { margin: 18px 0 0; color: var(--muted); font-size: 11px; }
 .foundry-settings-details { display: grid; gap: 0; margin: 17px 0 0; }
 .foundry-settings-details > div { display: flex; min-width: 0; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); }
 .foundry-settings-details dt { color: var(--muted); font-size: 10px; }
