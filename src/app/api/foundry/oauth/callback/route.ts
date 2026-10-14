@@ -6,7 +6,8 @@ import {
   readFoundryOAuthState,
 } from "@/server/providers/foundry/oauth-state";
 import { getFoundryApplicationUrl } from "@/server/providers/foundry/config";
-import { exchangeFoundryCodeForTokens } from "@/server/providers/foundry/tokens";
+import { exchangeFoundryCodeForTokens, FoundryTokenError, type ParsedTokenResponse } from "@/server/providers/foundry/tokens";
+import { FoundryGroupAuthorizationError, FoundryGroupServiceError } from "@/server/providers/foundry/groups";
 import {
   consumeStandaloneFoundryOAuthState,
   establishFoundrySession,
@@ -15,6 +16,7 @@ import {
   foundrySessionCookieName,
 } from "@/server/providers/foundry/standalone-auth";
 import {
+  FoundrySessionStoreError,
   foundryOAuthStateCookieOptions as standaloneStateCookieOptions,
   foundrySessionCookieOptions,
 } from "@/server/providers/foundry/session-store";
@@ -37,6 +39,11 @@ function redirectAndClear(applicationUrl: URL, result: string) {
     { ...foundryOAuthStateCookieOptions(0), expires: new Date(0) },
   );
   return response;
+}
+
+function logStandaloneCallbackFailure(stage: string, category: string) {
+  // Allow-listed labels only; never include request URLs, OAuth parameters, or exception text.
+  console.error("[Foundry OAuth callback] Failed", { stage, category });
 }
 
 export async function GET(request: Request) {
@@ -99,25 +106,54 @@ async function handleStandaloneCallback(input: {
   code: string;
   stateCookie: string;
 }) {
-  const verifiedState = await consumeStandaloneFoundryOAuthState(input.stateCookie, input.stateValue);
+  let verifiedState;
+  try {
+    verifiedState = await consumeStandaloneFoundryOAuthState(input.stateCookie, input.stateValue);
+  } catch (error) {
+    const category = error instanceof FoundrySessionStoreError ? error.failureCode : "unexpected-error";
+    logStandaloneCallbackFailure("state-consume", category);
+    return standaloneRedirect(input.applicationUrl, "failed");
+  }
   if (!verifiedState) {
     // Leave a valid in-progress state intact if the callback contains a forged value.
+    logStandaloneCallbackFailure("state-validation", "state-cookie-or-record-missing");
     return redirectNoStore(new URL("/?foundry=failed", input.applicationUrl));
   }
 
-  if (input.url.searchParams.get("error")) return standaloneRedirect(input.applicationUrl, "denied");
-  if (!input.code || input.code.length > 4096) return standaloneRedirect(input.applicationUrl, "failed");
+  if (input.url.searchParams.get("error")) {
+    logStandaloneCallbackFailure("authorization", "provider-denied");
+    return standaloneRedirect(input.applicationUrl, "denied");
+  }
+  if (!input.code || input.code.length > 4096) {
+    logStandaloneCallbackFailure("callback-parameters", "authorization-code-missing-or-invalid");
+    return standaloneRedirect(input.applicationUrl, "failed");
+  }
+
+  let tokens: ParsedTokenResponse;
+  try {
+    tokens = await exchangeFoundryCodeForTokens({ code: input.code, verifier: verifiedState.verifier });
+  } catch (error) {
+    logStandaloneCallbackFailure("token-exchange", error instanceof FoundryTokenError ? "foundry-rejected" : "unexpected-error");
+    return standaloneRedirect(input.applicationUrl, "failed");
+  }
 
   try {
-    const tokens = await exchangeFoundryCodeForTokens({ code: input.code, verifier: verifiedState.verifier });
     const session = await establishFoundrySession(tokens);
     const response = redirectNoStore(new URL("/?foundry=signed-in", input.applicationUrl));
     response.cookies.set(foundrySessionCookieName(), session.sessionId, foundrySessionCookieOptions());
     response.cookies.set(standaloneStateCookieName(), "", { ...standaloneStateCookieOptions(), maxAge: 0, expires: new Date(0) });
     return response;
   } catch (error) {
-    const result = error instanceof Error && error.name === "FoundryGroupAuthorizationError" ? "access-denied" : "failed";
-    return standaloneRedirect(input.applicationUrl, result);
+    const groupDenied = error instanceof FoundryGroupAuthorizationError;
+    const category = groupDenied
+      ? "role-group-not-matched"
+      : error instanceof FoundryGroupServiceError
+        ? "group-membership-unavailable"
+        : error instanceof FoundrySessionStoreError
+          ? error.failureCode
+          : "session-create-or-encryption-failed";
+    logStandaloneCallbackFailure("session-establishment", category);
+    return standaloneRedirect(input.applicationUrl, groupDenied ? "access-denied" : "failed");
   }
 }
 

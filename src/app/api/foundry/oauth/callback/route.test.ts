@@ -2,9 +2,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
   class AuthenticationRequiredError extends Error {}
+  class FoundryTokenError extends Error {}
+  class FoundryGroupAuthorizationError extends Error {}
+  class FoundryGroupServiceError extends Error {}
+  class FoundrySessionStoreError extends Error {
+    failureCode = "redis-operation-failed" as const;
+  }
 
   return {
     AuthenticationRequiredError,
+    FoundryTokenError,
+    FoundryGroupAuthorizationError,
+    FoundryGroupServiceError,
+    FoundrySessionStoreError,
     actorModuleLoaded: vi.fn(),
     cookieValues: new Map<string, string>(),
     cookies: vi.fn(),
@@ -18,6 +28,7 @@ const mocks = vi.hoisted(() => {
   };
 });
 
+vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ cookies: mocks.cookies }));
 vi.mock("@/server/providers/foundry/config", () => ({
   getFoundryApplicationUrl: () => new URL("http://127.0.0.1:3000"),
@@ -35,12 +46,18 @@ vi.mock("@/server/providers/foundry/standalone-auth", () => ({
   foundrySessionCookieName: () => "ontix-session",
 }));
 vi.mock("@/server/providers/foundry/session-store", () => ({
+  FoundrySessionStoreError: mocks.FoundrySessionStoreError,
   foundryOAuthStateCookieOptions: () => ({ httpOnly: true, path: "/" }),
   foundrySessionCookieOptions: () => ({ httpOnly: true, path: "/" }),
 }));
 vi.mock("@/server/providers/foundry/tokens", () => ({
+  FoundryTokenError: mocks.FoundryTokenError,
   exchangeFoundryAuthorizationCode: mocks.exchangeLegacyCode,
   exchangeFoundryCodeForTokens: mocks.exchangeCodeForTokens,
+}));
+vi.mock("@/server/providers/foundry/groups", () => ({
+  FoundryGroupAuthorizationError: mocks.FoundryGroupAuthorizationError,
+  FoundryGroupServiceError: mocks.FoundryGroupServiceError,
 }));
 vi.mock("@/lib/auth/dal", () => {
   mocks.actorModuleLoaded();
