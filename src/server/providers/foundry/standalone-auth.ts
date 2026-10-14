@@ -3,7 +3,7 @@ import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { getFoundryOAuthConfig } from "./config";
-import { assertFoundryRoleGroupsConfigured, getCurrentFoundryGroupIds, resolveFoundryRole, FoundryGroupAuthorizationError } from "./groups";
+import { configuredFoundryRoleGroups, getCurrentFoundryGroupIds, resolveFoundryRole, FoundryGroupAuthorizationError } from "./groups";
 import {
   consumeFoundryOAuthState,
   createFoundrySession,
@@ -14,32 +14,57 @@ import {
   readFoundrySession,
   revokeFoundrySession,
   storeFoundryOAuthState,
+  verifyFoundrySessionStoreConnection,
   type FoundrySessionSummary,
 } from "./session-store";
 import type { ParsedTokenResponse } from "./tokens";
 
 export class FoundryStandaloneAuthConfigurationError extends Error {
-  constructor(message = "Foundry sign-in is not ready on this server.") {
+  readonly failureCode: "missing-config" | "invalid-config" | "invalid-encryption-key";
+
+  constructor(failureCode: "missing-config" | "invalid-config" | "invalid-encryption-key" = "missing-config") {
+    const message = "Foundry sign-in is not ready on this server.";
     super(message);
     this.name = "FoundryStandaloneAuthConfigurationError";
+    this.failureCode = failureCode;
   }
 }
 
 export function assertFoundryStandaloneAuthConfigured() {
+  const appUrl = process.env.ONTIX_APPLICATION_URL?.trim() || process.env.BETTER_AUTH_URL?.trim();
+  if (!process.env.FOUNDRY_STACK_URL?.trim() || !process.env.FOUNDRY_CLIENT_ID?.trim() ||
+      !process.env.FOUNDRY_REDIRECT_URI?.trim() || (process.env.NODE_ENV === "production" && !appUrl)) {
+    throw new FoundryStandaloneAuthConfigurationError("missing-config");
+  }
   try {
     getFoundryOAuthConfig();
-    const encoded = process.env.FOUNDRY_TOKEN_ENCRYPTION_KEY?.trim() ?? "";
-    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) throw new Error();
-    const key = Buffer.from(encoded, "base64");
-    if (key.length !== 32 || !isFoundrySessionStoreConfigured()) throw new Error();
-    assertFoundryRoleGroupsConfigured();
   } catch {
-    throw new FoundryStandaloneAuthConfigurationError();
+    throw new FoundryStandaloneAuthConfigurationError("invalid-config");
   }
+
+  const encoded = process.env.FOUNDRY_TOKEN_ENCRYPTION_KEY?.trim() ?? "";
+  if (!encoded) throw new FoundryStandaloneAuthConfigurationError("missing-config");
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded) || Buffer.from(encoded, "base64").length !== 32) {
+    throw new FoundryStandaloneAuthConfigurationError("invalid-encryption-key");
+  }
+
+  if (!process.env.UPSTASH_REDIS_REST_URL?.trim() || !process.env.UPSTASH_REDIS_REST_TOKEN?.trim()) {
+    throw new FoundryStandaloneAuthConfigurationError("missing-config");
+  }
+  if (!isFoundrySessionStoreConfigured()) throw new FoundryStandaloneAuthConfigurationError("invalid-config");
+
+  let roleGroups;
+  try {
+    roleGroups = configuredFoundryRoleGroups();
+  } catch {
+    throw new FoundryStandaloneAuthConfigurationError("invalid-config");
+  }
+  if (roleGroups.length === 0) throw new FoundryStandaloneAuthConfigurationError("missing-config");
 }
 
 export async function createStandaloneFoundryOAuthState() {
   assertFoundryStandaloneAuthConfigured();
+  await verifyFoundrySessionStoreConnection();
   const state = randomBytes(32).toString("base64url");
   const verifier = randomBytes(32).toString("base64url");
   const challenge = createHash("sha256").update(verifier, "utf8").digest("base64url");

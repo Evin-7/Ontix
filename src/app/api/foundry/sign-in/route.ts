@@ -3,9 +3,14 @@ import { FOUNDRY_OAUTH_SCOPES, getFoundryApplicationUrl, getFoundryOAuthConfig }
 import {
   assertFoundryStandaloneAuthConfigured,
   createStandaloneFoundryOAuthState,
+  FoundryStandaloneAuthConfigurationError,
   foundryOAuthStateCookieName,
 } from "@/server/providers/foundry/standalone-auth";
-import { foundryOAuthStateCookieOptions } from "@/server/providers/foundry/session-store";
+import {
+  FoundrySessionStoreConfigurationError,
+  FoundrySessionStoreError,
+  foundryOAuthStateCookieOptions,
+} from "@/server/providers/foundry/session-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,14 +40,25 @@ export async function GET() {
       foundryOAuthStateCookieOptions(stateData.maxAge),
     );
     return response;
-  } catch {
+  } catch (error) {
+    const category = error instanceof FoundryStandaloneAuthConfigurationError
+      ? error.failureCode
+      : error instanceof FoundrySessionStoreConfigurationError
+        ? "invalid-config"
+      : error instanceof FoundrySessionStoreError
+        ? error.failureCode
+        : "unexpected";
+    // Categories are an allow-listed diagnostic only. Never log exception text, URLs, tokens, or config values.
+    console.error("[Foundry sign-in] Setup failed", { category });
     let applicationUrl: URL;
     try {
       applicationUrl = getFoundryApplicationUrl();
     } catch {
       return new Response("Foundry sign-in is not configured.", { status: 500, headers: { "cache-control": "no-store" } });
     }
-    const response = NextResponse.redirect(new URL("/?foundry=setup-required", applicationUrl));
+    const redirect = new URL("/?foundry=setup-required", applicationUrl);
+    redirect.searchParams.set("reason", category);
+    const response = NextResponse.redirect(redirect);
     response.headers.set("Cache-Control", "no-store");
     response.headers.set("Referrer-Policy", "no-referrer");
     return response;

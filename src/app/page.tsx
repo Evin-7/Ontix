@@ -5,19 +5,30 @@ import { assignFoundryCaseAction, resolveFoundryCaseAction, updateFoundryProject
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-async function FoundryProviderSetup({ searchParams }: { searchParams?: Promise<{ foundry?: string }> }) {
+async function FoundryProviderSetup({ searchParams }: { searchParams?: Promise<{ foundry?: string; reason?: string }> }) {
   const [{ getCurrentFoundrySession }] = await Promise.all([
     import("@/server/providers/foundry/standalone-auth"),
   ]);
-  const result = (await searchParams)?.foundry;
+  const params = await searchParams;
+  const result = params?.foundry;
+  const reason = params?.reason;
   const messages: Record<string, string> = {
-    "setup-required": "Foundry sign-in needs server-side session storage, an encryption key, and at least one configured access group.",
+    "setup-required": "Foundry sign-in could not start. Check the server setup details below.",
     "access-denied": "Your Foundry account is not assigned to a configured Ontix access group.",
     failed: "Foundry sign-in could not be completed. Check the OAuth configuration and try again.",
     denied: "Foundry sign-in was cancelled.",
     "signed-in": "Your Foundry session is ready.",
     "action-saved": "Foundry saved the workflow change.",
     "action-failed": "Foundry could not complete the change. Check the current record and your permissions, then try again.",
+  };
+  const setupReasons: Record<string, string> = {
+    "missing-config": "A required production setting is missing. Check the Foundry OAuth, session-store, encryption-key, and access-group settings.",
+    "invalid-config": "A production setting is present but has an invalid format. Check the application URL, callback URL, Redis endpoint, and role-group mapping.",
+    "invalid-encryption-key": "The token encryption key is not a valid 32-byte key. Correct it in the deployment environment; changing it invalidates existing sessions.",
+    "redis-connection-failed": "The session store could not be reached. Check the Upstash endpoint and rotated REST token in the production environment.",
+    "redis-state-write-failed": "The session store responded, but could not save temporary OAuth state. Check Upstash write access and the production REST token.",
+    "redis-operation-failed": "The session store operation failed. Check its production connection and permissions.",
+    unexpected: "An unexpected sign-in setup error occurred. Check the server logs for its safe diagnostic category.",
   };
   let current: Awaited<ReturnType<typeof getCurrentFoundrySession>> = null;
   let sessionProblem = false;
@@ -36,7 +47,7 @@ async function FoundryProviderSetup({ searchParams }: { searchParams?: Promise<{
             <span className="eyebrow">FOUNDRY WORKSPACE</span>
             <h1>Sign in with Foundry</h1>
             <p>Ontix checks your current Foundry group memberships and grants a role only when a group is explicitly mapped by the server administrator.</p>
-            {(result && messages[result] || sessionProblem) && <p className="provider-setup-alert" role="status">{sessionProblem ? "Foundry access could not be checked right now. Try again when the service is available." : messages[result!]}</p>}
+            {(result && messages[result] || sessionProblem) && <p className="provider-setup-alert" role="status">{sessionProblem ? "Foundry access could not be checked right now. Try again when the service is available." : result === "setup-required" ? setupReasons[reason ?? ""] ?? messages[result] : messages[result!]}</p>}
             <a className="button button-primary foundry-signin-button" href="/api/foundry/sign-in">Continue with Palantir Foundry</a>
             <p className="provider-setup-note">This flow uses the Foundry preview endpoint for current group membership. It does not request administrative scopes or identify a person by stable user ID.</p>
           </section>

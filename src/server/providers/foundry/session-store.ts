@@ -43,9 +43,15 @@ export class FoundrySessionStoreConfigurationError extends Error {
 }
 
 export class FoundrySessionStoreError extends Error {
-  constructor(message = "Foundry sign-in could not be completed. Try again later.") {
+  readonly failureCode: "redis-connection-failed" | "redis-state-write-failed" | "redis-operation-failed";
+
+  constructor(
+    message = "Foundry sign-in could not be completed. Try again later.",
+    failureCode: "redis-connection-failed" | "redis-state-write-failed" | "redis-operation-failed" = "redis-operation-failed",
+  ) {
     super(message);
     this.name = "FoundrySessionStoreError";
+    this.failureCode = failureCode;
   }
 }
 
@@ -130,8 +136,12 @@ export async function storeFoundryOAuthState(state: string, verifier: string) {
     expiresAt: now + STATE_TTL_SECONDS * 1000,
     encryptedVerifier: encryptFoundryToken(verifier, stateContext(state), "state"),
   };
-  const result = await getRedis().set(stateKey(state), JSON.stringify(value), { ex: STATE_TTL_SECONDS, nx: true });
-  if (result !== "OK") throw new FoundrySessionStoreError();
+  try {
+    const result = await getRedis().set(stateKey(state), JSON.stringify(value), { ex: STATE_TTL_SECONDS, nx: true });
+    if (result !== "OK") throw new Error();
+  } catch {
+    throw new FoundrySessionStoreError("Foundry OAuth state could not be stored.", "redis-state-write-failed");
+  }
 }
 
 export async function consumeFoundryOAuthState(state: string): Promise<{ verifier: string } | null> {
@@ -352,5 +362,14 @@ export function isFoundrySessionStoreConfigured() {
     return url.protocol === "https:" && Boolean(url.hostname) && !url.username && !url.password && !url.search && !url.hash;
   } catch {
     return false;
+  }
+}
+
+export async function verifyFoundrySessionStoreConnection() {
+  try {
+    const result = await getRedis().ping();
+    if (result !== "PONG") throw new Error();
+  } catch {
+    throw new FoundrySessionStoreError("Foundry session storage is unavailable.", "redis-connection-failed");
   }
 }
