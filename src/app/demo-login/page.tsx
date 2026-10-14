@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { OntixLogo } from "@/components/branding/ontix-logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { getCurrentDemoSession, isDemoAuthenticationConfigured } from "@/server/providers/demo/auth";
-import { DemoPasswordField } from "./demo-password-field";
+import { DemoLoginForm } from "./demo-login-form";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -35,19 +35,7 @@ export default async function DemoLoginPage({ searchParams }: { searchParams?: P
       <h1>Explore Ontix</h1>
       <p className="login-intro">Sign in to explore fictional sample records. Editing is unavailable in demo mode.</p>
       {message && <p className="login-error" role="alert">{message}</p>}
-      <form className="login-form" action="/api/demo/sign-in" method="post">
-        <label className="field">
-          <span>Username</span>
-          <input name="username" type="text" autoComplete="username" required minLength={3} maxLength={254} />
-        </label>
-        <div className="field">
-          <label htmlFor="demo-password">Password</label>
-          <DemoPasswordField />
-        </div>
-        <button className="button button-primary login-submit" type="submit" disabled={!isDemoAuthenticationConfigured()}>
-          Explore Demo <span aria-hidden="true">→</span>
-        </button>
-      </form>
+      <DemoLoginForm enabled={isDemoAuthenticationConfigured()} />
       <Link className="demo-login-back" href="/">Back to sign in</Link>
     </section>
   </main>;
