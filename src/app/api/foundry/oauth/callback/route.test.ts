@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
   class AuthenticationRequiredError extends Error {}
-  class FoundryTokenError extends Error {}
+  class FoundryTokenError extends Error {
+    failureCode = "other" as const;
+  }
   class FoundryGroupAuthorizationError extends Error {}
   class FoundryGroupServiceError extends Error {}
   class FoundrySessionStoreError extends Error {

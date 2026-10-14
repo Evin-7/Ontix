@@ -4,11 +4,23 @@ import { getFoundryOAuthConfig } from "./config";
 import { decryptFoundryToken, encryptFoundryToken, isLegacyFoundryToken } from "./crypto";
 
 export class FoundryTokenError extends Error {
-  constructor(message = "The Foundry connection needs to be reconnected.") {
+  readonly failureCode: FoundryOAuthFailureCode;
+
+  constructor(message = "The Foundry connection needs to be reconnected.", failureCode: FoundryOAuthFailureCode = "other") {
     super(message);
     this.name = "FoundryTokenError";
+    this.failureCode = failureCode;
   }
 }
+
+export type FoundryOAuthFailureCode =
+  | "invalid_grant"
+  | "invalid_client"
+  | "invalid_request"
+  | "unauthorized_client"
+  | "unsupported_grant_type"
+  | "invalid_scope"
+  | "other";
 
 export type ParsedTokenResponse = {
   accessToken: string;
@@ -17,8 +29,23 @@ export type ParsedTokenResponse = {
   scope: string;
 };
 
-type TokenEndpointFailure = { ok: false; error: string | null };
+type TokenEndpointFailure = { ok: false; error: FoundryOAuthFailureCode };
 type TokenEndpointResult = { ok: true; tokens: ParsedTokenResponse } | TokenEndpointFailure;
+
+const OAUTH_FAILURE_CODES: readonly FoundryOAuthFailureCode[] = [
+  "invalid_grant",
+  "invalid_client",
+  "invalid_request",
+  "unauthorized_client",
+  "unsupported_grant_type",
+  "invalid_scope",
+];
+
+function safeOAuthFailureCode(value: unknown): FoundryOAuthFailureCode {
+  return typeof value === "string" && OAUTH_FAILURE_CODES.includes(value as FoundryOAuthFailureCode)
+    ? value as FoundryOAuthFailureCode
+    : "other";
+}
 
 function parseTokenResponse(value: unknown): ParsedTokenResponse | null {
   if (!value || typeof value !== "object") return null;
@@ -60,9 +87,9 @@ async function requestToken(body: URLSearchParams): Promise<TokenEndpointResult>
   }
   const payload = await response.json().catch(() => null) as unknown;
   if (!response.ok) {
-    const error = payload && typeof payload === "object" && typeof (payload as Record<string, unknown>).error === "string"
-      ? String((payload as Record<string, unknown>).error)
-      : null;
+    const error = payload && typeof payload === "object"
+      ? safeOAuthFailureCode((payload as Record<string, unknown>).error)
+      : "other";
     return { ok: false, error };
   }
   const tokens = parseTokenResponse(payload);
@@ -79,7 +106,7 @@ export async function exchangeFoundryCodeForTokens(input: { code: string; verifi
     code_verifier: input.verifier,
     redirect_uri: redirectUri,
   }));
-  if (!result.ok) throw new FoundryTokenError("Foundry authorization was not completed. Reconnect and try again.");
+  if (!result.ok) throw new FoundryTokenError("Foundry authorization was not completed. Reconnect and try again.", result.error);
   return result.tokens;
 }
 

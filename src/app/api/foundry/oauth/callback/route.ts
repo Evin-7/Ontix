@@ -133,7 +133,7 @@ async function handleStandaloneCallback(input: {
   try {
     tokens = await exchangeFoundryCodeForTokens({ code: input.code, verifier: verifiedState.verifier });
   } catch (error) {
-    logStandaloneCallbackFailure("token-exchange", error instanceof FoundryTokenError ? "foundry-rejected" : "unexpected-error");
+    logStandaloneCallbackFailure("token-exchange", error instanceof FoundryTokenError ? error.failureCode : "unexpected-error");
     return standaloneRedirect(input.applicationUrl, "failed");
   }
 
