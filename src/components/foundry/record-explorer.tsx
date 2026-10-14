@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Search, SlidersHorizontal } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FoundryCaseDetailActions, FoundryProjectStatusDialog } from "@/components/foundry/foundry-workflow-forms";
@@ -73,9 +74,9 @@ export function RecordExplorer({
     <div className="foundry-record-toolbar">
       <label className="foundry-record-search"><Search size={17} aria-hidden="true" /><span className="sr-only">Search records</span><Input value={query} onChange={(event) => { setPage(1); setQuery(event.target.value); }} placeholder="Filter this list…" /></label>
       {filters.length > 0 && <div className="foundry-record-filters"><SlidersHorizontal size={15} aria-hidden="true" />
-        {filters.map((filter) => <label key={filter.key}><span className="sr-only">Filter by {filter.label}</span><select value={filterValues[filter.key] ?? ""} onChange={(event) => { setPage(1); setFilterValues((current) => ({ ...current, [filter.key]: event.target.value })); }}>
+        {filters.map((filter) => <label key={filter.key}><span className="sr-only">Filter by {filter.label}</span><Select className="foundry-record-filter" value={filterValues[filter.key] ?? ""} onChange={(event) => { setPage(1); setFilterValues((current) => ({ ...current, [filter.key]: event.target.value })); }}>
           <option value="">All {filter.label}</option>{filter.options.map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}
-        </select></label>)}
+        </Select></label>)}
       </div>}
       <span className="foundry-record-count">{filtered.length.toLocaleString()} {filtered.length === 1 ? "record" : "records"}</span>
     </div>

@@ -6,6 +6,7 @@ import { Check, LoaderCircle, UserRoundPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Select } from "@/components/ui/select";
 import { notify } from "@/lib/notifications";
 import { notificationCopy, workflowErrorMessage, type FoundryWorkflowAction } from "@/lib/notification-copy";
 
@@ -66,12 +67,12 @@ export function FoundryProjectStatusForm({
   }
 
   return <form className="foundry-inline-form" onSubmit={submit}>
-    <select aria-label={`New status for ${projectName}`} name="status" value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus)} disabled={pending}>
+    <Select className="foundry-inline-select" aria-label={`New status for ${projectName}`} name="status" value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus)} disabled={pending}>
       <option value="PLANNING">Planning</option>
       <option value="IN_PROGRESS">In progress</option>
       <option value="AT_RISK">At risk</option>
       <option value="COMPLETED">Completed</option>
-    </select>
+    </Select>
     <button type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Saving…" : "Save"}</button>
   </form>;
 }
@@ -105,9 +106,9 @@ export function FoundryCaseAssignmentForm({
   }
 
   return <form className="foundry-inline-form" onSubmit={submit}>
-    <select aria-label={`Assign ${caseTitle} to`} name="employeeId" value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>
+    <Select className="foundry-inline-select" aria-label={`Assign ${caseTitle} to`} name="employeeId" value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>
       {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
-    </select>
+    </Select>
     <button type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Assigning…" : "Assign"}</button>
   </form>;
 }
@@ -161,9 +162,9 @@ export function FoundryProjectStatusDialog({ projectId, projectName, initialStat
         <DialogHeader><DialogTitle>Update project status</DialogTitle><DialogDescription>Change the workflow status for {projectName}. The new status will be checked and saved.</DialogDescription></DialogHeader>
         <form onSubmit={submit} className="foundry-action-form">
           <label htmlFor={`project-status-${projectId}`}>New status</label>
-          <select id={`project-status-${projectId}`} value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus)} disabled={pending}>
+          <Select className="foundry-action-select" id={`project-status-${projectId}`} value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus)} disabled={pending}>
             <option value="PLANNING">Planning</option><option value="IN_PROGRESS">In progress</option><option value="AT_RISK">At risk</option><option value="COMPLETED">Completed</option>
-          </select>
+          </Select>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={pending}>Cancel</Button>
             <Button type="submit" loading={pending} loadingLabel="Saving…"><Check size={15} />Save changes</Button>
@@ -213,9 +214,9 @@ export function FoundryCaseDetailActions({ caseId, caseTitle, assignedEmployeeId
           <DialogHeader><DialogTitle>Assign case</DialogTitle><DialogDescription>Choose an employee to own “{caseTitle}”.</DialogDescription></DialogHeader>
           <form onSubmit={assign} className="foundry-action-form">
             <label htmlFor={`case-employee-${caseId}`}>Assigned employee</label>
-            <select id={`case-employee-${caseId}`} value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>
+            <Select className="foundry-action-select" id={`case-employee-${caseId}`} value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>
               {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
-            </select>
+            </Select>
             <DialogFooter><Button variant="outline" onClick={() => setOpen(false)} disabled={pending}>Cancel</Button><Button type="submit" loading={pending} loadingLabel="Assigning…">Save assignment</Button></DialogFooter>
           </form>
         </DialogContent>
