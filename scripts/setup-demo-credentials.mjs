@@ -1,4 +1,4 @@
-import { randomBytes, scryptSync } from "node:crypto";
+import { randomBytes, randomInt, scryptSync } from "node:crypto";
 import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -6,7 +6,23 @@ import { join } from "node:path";
 const username = process.env.ONTIX_DEMO_USERNAME?.trim() || "ontix-recruiter";
 if (!/^[A-Za-z0-9._@+-]{3,254}$/.test(username)) throw new Error("ONTIX_DEMO_USERNAME must be 3–254 safe characters.");
 
-const password = randomBytes(24).toString("base64url");
+async function generateEasyToTypePassword() {
+  const candidates = new Set();
+  for (const path of ["/usr/share/dict/words", "/usr/share/dict/web2"]) {
+    try {
+      const contents = await readFile(path, "utf8");
+      for (const word of contents.split(/\s+/)) {
+        const normalized = word.toLowerCase();
+        if (/^[a-z]{4,8}$/.test(normalized)) candidates.add(normalized);
+      }
+    } catch {}
+  }
+  const words = [...candidates];
+  if (words.length < 10_000) throw new Error("A system word list is required to generate a memorable temporary password.");
+  return Array.from({ length: 5 }, () => words[randomInt(words.length)]).join("-");
+}
+
+const password = await generateEasyToTypePassword();
 const salt = randomBytes(16);
 const key = scryptSync(password, salt, 64, { N: 16_384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
 const passwordHash = `scrypt-v1:16384:8:1:${salt.toString("base64url")}:${key.toString("base64url")}`;
