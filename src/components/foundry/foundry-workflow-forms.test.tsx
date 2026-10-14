@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 const { refreshMock, successMock, errorMock } = vi.hoisted(() => ({
   refreshMock: vi.fn(),
@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) 
 vi.mock("sonner", () => ({ toast: { success: successMock, error: errorMock } }));
 
 import { toast } from "sonner";
-import { FoundryProjectStatusDialog, FoundryProjectStatusForm } from "./foundry-workflow-forms";
+import { FoundryCaseDetailActions, FoundryProjectStatusDialog, FoundryProjectStatusForm } from "./foundry-workflow-forms";
 
 afterEach(() => {
   cleanup();
@@ -99,5 +99,37 @@ describe("Foundry workflow form recovery", () => {
     expect(screen.getByRole("dialog")).toBeTruthy();
     expect(select.value).toBe("IN_PROGRESS");
     expect(refreshMock).not.toHaveBeenCalled();
+  });
+
+  it("shows a pending Save spinner and prevents a duplicate workflow submission", async () => {
+    let complete!: (response: { ok: boolean; json: () => Promise<{ ok: boolean }> }) => void;
+    vi.stubGlobal("fetch", vi.fn(() => new Promise((resolve) => { complete = resolve; })));
+    render(<FoundryProjectStatusDialog projectId="PRJ-1" projectName="Dispatch modernization" initialStatus="PLANNING" />);
+    fireEvent.click(screen.getByRole("button", { name: "Update status" }));
+    const form = screen.getByRole("combobox", { name: "New status" }).closest("form")!;
+    await act(async () => { fireEvent.submit(form); await Promise.resolve(); });
+    const saveButton = screen.getByRole("button", { name: "Saving…" });
+    expect((saveButton as HTMLButtonElement).disabled).toBe(true);
+    await act(async () => { complete({ ok: true, json: async () => ({ ok: true }) }); });
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Project workflow updated in Foundry."));
+  });
+
+  it("shows pending states for case assignment and resolution without duplicate actions", async () => {
+    let complete!: (response: { ok: boolean; json: () => Promise<{ ok: boolean }> }) => void;
+    vi.stubGlobal("fetch", vi.fn(() => new Promise((resolve) => { complete = resolve; })));
+    render(<FoundryCaseDetailActions caseId="CASE-1" caseTitle="Test case" assignedEmployeeId="EMP-1" employees={[{ id: "EMP-1", name: "Jordan Lee" }]} canResolve />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Assign case" }));
+    const assignmentForm = screen.getByRole("combobox", { name: "Assigned employee" }).closest("form")!;
+    await act(async () => { fireEvent.submit(assignmentForm); await Promise.resolve(); });
+    expect((screen.getByRole("button", { name: "Assigning…" }) as HTMLButtonElement).disabled).toBe(true);
+    await act(async () => { complete({ ok: true, json: async () => ({ ok: true }) }); });
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Case assignment saved in Foundry."));
+
+    fireEvent.click(screen.getByRole("button", { name: "Resolve case" }));
+    await act(async () => { fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Resolve case" })); await Promise.resolve(); });
+    expect((screen.getByRole("button", { name: "Resolving…" }) as HTMLButtonElement).disabled).toBe(true);
+    await act(async () => { complete({ ok: true, json: async () => ({ ok: true }) }); });
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Case resolved in Foundry."));
   });
 });
