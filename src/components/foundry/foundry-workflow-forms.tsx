@@ -4,7 +4,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Check, LoaderCircle, UserRoundPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select } from "@/components/ui/select";
 import { notify } from "@/lib/notifications";
@@ -211,7 +211,7 @@ export function FoundryCaseDetailActions({ caseId, caseTitle, assignedEmployeeId
       <Button variant="outline" size="sm" onClick={() => { setEmployeeId(assignedEmployeeId ?? employees[0]?.id ?? ""); setOpen(true); }}><UserRoundPlus size={15} />Assign case</Button>
       <Dialog open={open} onOpenChange={(next) => { if (!pending) setOpen(next); }}>
         <DialogContent size="sm">
-          <DialogHeader><DialogTitle>Assign case</DialogTitle><DialogDescription>Choose an employee to own “{caseTitle}”.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>Assign case</DialogTitle></DialogHeader>
           <form onSubmit={assign} className="foundry-action-form">
             <label htmlFor={`case-employee-${caseId}`}>Assigned employee</label>
             <Select className="foundry-action-select" id={`case-employee-${caseId}`} value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>

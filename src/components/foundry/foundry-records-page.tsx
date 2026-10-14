@@ -11,13 +11,13 @@ import { RefreshDataButton } from "@/components/foundry/refresh-data-button";
 import { getOntixModuleContext } from "@/server/providers/ontix/dashboard-context";
 import type { FoundryWorkspaceModule } from "@/server/providers/foundry/workspace";
 
-const copy: Record<Exclude<FoundryWorkspaceModule, "overview">, { title: string; description: string; kind: ExplorerRecord["kind"]; columns: ExplorerColumn[]; filters: Array<{ key: string; label: string }> }> = {
-  projects: { title: "Projects", description: "Explore project delivery and update workflow status.", kind: "Project", columns: [{ key: "customer", label: "Customer" }, { key: "status", label: "Status" }, { key: "budget", label: "Budget · source value" }, { key: "startDate", label: "Start date" }], filters: [{ key: "status", label: "status" }, { key: "customer", label: "customer" }] },
-  cases: { title: "Cases", description: "Review operational work, ownership, and priority across your workspace.", kind: "Case", columns: [{ key: "project", label: "Project" }, { key: "priority", label: "Priority" }, { key: "status", label: "Status" }, { key: "assignee", label: "Assigned to" }], filters: [{ key: "status", label: "status" }, { key: "priority", label: "priority" }, { key: "assignee", label: "assignee" }, { key: "project", label: "project" }] },
-  customers: { title: "Customers", description: "A live directory of customer records and their linked projects.", kind: "Customer", columns: [{ key: "industry", label: "Industry" }, { key: "status", label: "Status" }, { key: "projects", label: "Projects" }], filters: [{ key: "status", label: "status" }, { key: "industry", label: "industry" }] },
-  employees: { title: "Employees", description: "Find people and understand their role and team assignments.", kind: "Employee", columns: [{ key: "role", label: "Role" }, { key: "team", label: "Team" }, { key: "email", label: "Email" }], filters: [{ key: "role", label: "role" }, { key: "team", label: "team" }] },
-  teams: { title: "Teams", description: "Team structure and membership across the organization.", kind: "Team", columns: [{ key: "department", label: "Department" }, { key: "members", label: "Members" }], filters: [{ key: "department", label: "department" }] },
-  approvals: { title: "Approvals", description: "Track approval requests and their related operational cases.", kind: "Approval", columns: [{ key: "case", label: "Related case" }, { key: "requestedBy", label: "Requested by" }, { key: "status", label: "Status" }, { key: "createdAt", label: "Created" }], filters: [{ key: "status", label: "status" }] },
+const copy: Record<Exclude<FoundryWorkspaceModule, "overview">, { title: string; kind: ExplorerRecord["kind"]; columns: ExplorerColumn[]; filters: Array<{ key: string; label: string }> }> = {
+  projects: { title: "Projects", kind: "Project", columns: [{ key: "customer", label: "Customer" }, { key: "status", label: "Status" }, { key: "budget", label: "Budget · source value" }, { key: "startDate", label: "Start date" }], filters: [{ key: "status", label: "status" }, { key: "customer", label: "customer" }] },
+  cases: { title: "Cases", kind: "Case", columns: [{ key: "project", label: "Project" }, { key: "priority", label: "Priority" }, { key: "status", label: "Status" }, { key: "assignee", label: "Assigned to" }], filters: [{ key: "status", label: "status" }, { key: "priority", label: "priority" }, { key: "assignee", label: "assignee" }, { key: "project", label: "project" }] },
+  customers: { title: "Customers", kind: "Customer", columns: [{ key: "industry", label: "Industry" }, { key: "status", label: "Status" }, { key: "projects", label: "Projects" }], filters: [{ key: "status", label: "status" }, { key: "industry", label: "industry" }] },
+  employees: { title: "Employees", kind: "Employee", columns: [{ key: "role", label: "Role" }, { key: "team", label: "Team" }, { key: "email", label: "Email" }], filters: [{ key: "role", label: "role" }, { key: "team", label: "team" }] },
+  teams: { title: "Teams", kind: "Team", columns: [{ key: "department", label: "Department" }, { key: "members", label: "Members" }], filters: [{ key: "department", label: "department" }] },
+  approvals: { title: "Approvals", kind: "Approval", columns: [{ key: "case", label: "Related case" }, { key: "requestedBy", label: "Requested by" }, { key: "status", label: "Status" }, { key: "createdAt", label: "Created" }], filters: [{ key: "status", label: "status" }] },
 };
 
 function displayDate(value: string | null) {
@@ -87,7 +87,7 @@ function Overview({ workspace, isDemo }: { workspace: NonNullable<Awaited<Return
   const checkedAt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(workspace.checkedAt));
 
   return <div className="foundry-module-page">
-    <PageHeader eyebrow="OPERATIONS INTELLIGENCE" title="Overview" description={isDemo ? "Explore a fictional sample of delivery and operations data." : "A live view of delivery, customer, and operational work across your workspace."} actions={isDemo ? <span className="foundry-demo-data-label">Sample data · fictional records</span> : <><span className="foundry-last-sync"><i /> Last successful data refresh · {checkedAt}</span><RefreshDataButton /></>} />
+    <PageHeader eyebrow="OPERATIONS INTELLIGENCE" title="Overview" actions={isDemo ? <span className="foundry-demo-data-label">Sample data · fictional records</span> : <><span className="foundry-last-sync"><i /> Last successful data refresh · {checkedAt}</span><RefreshDataButton /></>} />
     <section className="foundry-metric-grid" aria-label="Workspace metrics">
       {metrics.map(({ label, value, detail, href, Icon, tone }) => <Link href={href as Route} className="foundry-metric-tile" key={label}>
         <span className={`foundry-metric-icon tone-${tone}`}><Icon size={17} strokeWidth={1.9} aria-hidden="true" /></span>
@@ -98,7 +98,7 @@ function Overview({ workspace, isDemo }: { workspace: NonNullable<Awaited<Return
     <OverviewCharts charts={charts} isDemo={isDemo} />
     <div className="foundry-overview-bottom">
       <section className="foundry-list-card foundry-attention-projects">
-        <div className="foundry-list-card-heading"><div><span className="eyebrow">NEEDS ATTENTION</span><h2>Projects requiring attention</h2><p>Projects marked at risk.</p></div><Link href="/projects?status=AT_RISK">All at-risk projects <ArrowRight size={14} /></Link></div>
+        <div className="foundry-list-card-heading"><div><span className="eyebrow">NEEDS ATTENTION</span><h2>Projects requiring attention</h2></div><Link href="/projects?status=AT_RISK">All at-risk projects <ArrowRight size={14} /></Link></div>
         {attentionProjects.length ? <div className="foundry-attention-table-wrap"><table className="foundry-attention-table"><thead><tr><th>Project</th><th>Customer</th><th>Status</th></tr></thead><tbody>{attentionProjects.map((project) => <tr key={project.id}>
           <td><Link href={`/projects?record=${encodeURIComponent(project.id)}` as Route}><strong>{project.name}</strong><small>{project.id}</small></Link></td>
           <td>{project.customerId ? customerNames.get(project.customerId) ?? "—" : "—"}</td><td><StatusBadge status={project.status} /></td>
@@ -111,7 +111,6 @@ function Overview({ workspace, isDemo }: { workspace: NonNullable<Awaited<Return
         </Link>)}</div> : <p className="foundry-muted foundry-list-empty">No high-priority cases in the visible records.</p>}
       </section>
     </div>
-    <p className="foundry-read-source"><span className="connection-dot online" /> {isDemo ? "Metrics reflect fictional sample records." : "Metrics reflect records available to your account."}</p>
   </div>;
 }
 
@@ -124,7 +123,7 @@ export async function FoundryRecordsPage({ module, selectedId, initialFilters }:
   const { rows } = recordsFor(module, context.workspace, context.session.role);
   const filters: ExplorerFilter[] = config.filters.map((filter) => ({ ...filter, options: uniqueOptions(rows, filter.key) }));
   return <div className="foundry-module-page">
-    <PageHeader eyebrow="WORKSPACE DATA" title={config.title} description={config.description} actions={<><span className="foundry-page-record-total">{context.workspace.totals[module].toLocaleString()} records</span><RefreshDataButton /></>} />
+    <PageHeader eyebrow="WORKSPACE DATA" title={config.title} actions={<><span className="foundry-page-record-total">{context.workspace.totals[module].toLocaleString()} records</span><RefreshDataButton /></>} />
     <div className="foundry-module-context"><span className="connection-dot online" /> {context.mode === "demo" ? "Sample data · read only" : `Live data · ${context.session.role.replaceAll("_", " ").toLowerCase()} access`}</div>
     <RecordExplorer key={`${selectedId ?? ""}:${JSON.stringify(initialFilters ?? {})}`} records={rows} columns={config.columns} filters={filters} initialFilters={initialFilters} selectedId={selectedId} isDemo={context.mode === "demo"} emptyTitle={`No ${config.title.toLowerCase()} found`} emptyDescription={`No ${config.title.toLowerCase()} are currently visible to your account.`} />
   </div>;

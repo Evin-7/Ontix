@@ -98,7 +98,6 @@ export function OntologyModelExplorer({
       <PageHeader
         eyebrow="DATA MODEL · LOCAL SIMULATION"
         title="Connected operations model"
-        description="Explore how customer, delivery, operations, and governance records connect. The object graph is a server-side projection of Neon records, not a Palantir Foundry Ontology."
       />
 
       <div className="ontology-simulation-note" role="note">
@@ -110,7 +109,6 @@ export function OntologyModelExplorer({
       <div className="ontology-explorer-layout">
         <section className="panel ontology-types-panel" aria-labelledby="ontology-types-title">
           <div className="ontology-section-heading"><div><span className="eyebrow">MODEL CATALOG</span><h2 id="ontology-types-title">Object types</h2></div><Boxes size={18} aria-hidden="true" /></div>
-          <p className="ontology-section-description">Local business entities and their current record counts.</p>
           <div className="ontology-type-list">
             {(Object.keys(objectTypeLabels) as OntologyObjectType[]).map((type) => (
               <button key={type} type="button" className={`ontology-type-option ${objectType === type ? "selected" : ""}`} aria-pressed={objectType === type} onClick={() => { setObjectType(type); setObjectId(getPickerObjects(data, type)[0]?.id ?? ""); }}>
@@ -125,7 +123,6 @@ export function OntologyModelExplorer({
 
         <section className="panel ontology-query-panel" aria-labelledby="ontology-query-title">
           <div className="ontology-section-heading"><div><span className="eyebrow">OBJECT EXPLORER</span><h2 id="ontology-query-title">Query relationships</h2></div><span className="ontology-query-label">Server query</span></div>
-          <p className="ontology-section-description">Choose an object to inspect its connected records, then follow a relationship to continue exploring.</p>
           <div className="ontology-query-controls">
             <label><span>Object type</span><Select aria-label="Object type" value={objectType} onChange={(event) => { const next = event.target.value as OntologyObjectType; setObjectType(next); setObjectId(getPickerObjects(data, next)[0]?.id ?? ""); }}>
               {(Object.keys(objectTypeLabels) as OntologyObjectType[]).map((type) => <option key={type} value={type}>{objectTypeLabels[type]}</option>)}

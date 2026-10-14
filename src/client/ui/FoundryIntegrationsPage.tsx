@@ -21,7 +21,6 @@ export function FoundryIntegrationsPage({ status }: { status: FoundryIntegration
       <PageHeader
         eyebrow="PLATFORM INTEGRATIONS"
         title="Integrations"
-        description="Manage the boundary between Ontix Local Demo data and a genuine Foundry connection."
       />
 
       <section className="integration-hero panel" aria-labelledby="foundry-integration-title">
@@ -58,7 +57,6 @@ export function FoundryIntegrationsPage({ status }: { status: FoundryIntegration
 
       <section className="panel integration-setup-panel">
         <div className="integration-panel-heading"><KeyRound size={17} aria-hidden="true" /><h2>{accountLinked ? "Foundry authorization" : "Connect your Foundry user"}</h2></div>
-        <p>Ontix uses the public OAuth client with Authorization Code + PKCE. The Foundry account is linked to your signed-in Ontix user, tokens stay encrypted on the server, and Foundry applies your own permissions. Ontix keeps its local sign-in and Neon demo data until the Foundry replacement is verified.</p>
         <div className="integration-actions">
           {status.oauthReady ? (
             <a className="button button-primary" href="/api/foundry/oauth/login">{accountLinked ? "Reconnect Foundry" : "Connect Foundry"}</a>

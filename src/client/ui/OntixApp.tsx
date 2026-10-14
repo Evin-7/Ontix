@@ -243,8 +243,8 @@ export function OntixApp({ initialData, viewer, integrationStatus }: { initialDa
   );
 }
 
-function PageHeading({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) {
-  return <PageHeader eyebrow={eyebrow} title={title} description={description} actions={action} />;
+function PageHeading({ eyebrow, title, action }: { eyebrow: string; title: string; action?: ReactNode }) {
+  return <PageHeader eyebrow={eyebrow} title={title} actions={action} />;
 }
 
 function Overview({ data, cases, approvals, activity, search, onClearSearch, onOpen, onAction, onCreate, onReview, busy, canManage, canWorkCases, canDecideApprovals, employeeId }: {
@@ -274,7 +274,7 @@ function Overview({ data, cases, approvals, activity, search, onClearSearch, onO
     { label: "Pending approvals", value: metrics.pendingApprovals, change: "Waiting for review", icon: CheckCheck, accent: "warning" },
   ];
   return <>
-    <PageHeading eyebrow="OPERATIONS WORKSPACE" title="Operations overview" description="A clear view of what needs attention across your business." action={<>{canManage && <Button variant="outline" onClick={() => onCreate({ kind: "customer" })}><Plus size={16} /> Add customer</Button>}{canWorkCases && <Button onClick={() => onCreate({ kind: "case" })}><FilePlus2 size={16} /> New case</Button>}</>} />
+    <PageHeading eyebrow="OPERATIONS WORKSPACE" title="Operations overview" action={<>{canManage && <Button variant="outline" onClick={() => onCreate({ kind: "customer" })}><Plus size={16} /> Add customer</Button>}{canWorkCases && <Button onClick={() => onCreate({ kind: "case" })}><FilePlus2 size={16} /> New case</Button>}</>} />
     <div className="metrics-grid">{cards.map(({ label, value, change, icon: Icon, accent }) => <article className="metric-card" key={label}><div className="metric-top"><span>{label}</span><span className={`metric-icon ${accent}`}><Icon size={18} aria-hidden="true" /></span></div><div className="metric-value">{value.toLocaleString()}</div><div className="metric-foot"><span className={`metric-trend ${accent}`} aria-hidden="true">{label === "Pending approvals" ? <CircleAlert size={14} /> : <ArrowUpRight size={14} />}</span><span>{change}</span></div></article>)}</div>
     <div className="overview-grid">
       <section className="panel attention-panel"><div className="panel-heading"><div><span className="eyebrow">PRIORITY QUEUE</span><h2>Cases to watch</h2></div><button className="text-link" onClick={() => onOpen("Cases")}>View all <ArrowRight size={16} aria-hidden="true" /></button></div>
@@ -310,7 +310,7 @@ function CasesPage({ cases, employees, onAction, onResolve, onCreate, onRequestA
     { id: "sla", label: "SLA", header: "SLA", sortValue: (row) => new Date(row.slaDeadline), cell: (row) => <span className={isOverdue(row.slaDeadline) ? "overdue" : "date-cell"}>{formatDate(row.slaDeadline)}</span> },
     { id: "actions", label: "Actions", header: "Actions", cell: (row) => <div className="row-actions"><Button variant="ghost" size="icon" className="icon-button compact" title="Escalate case" aria-label={`Escalate ${row.caseKey}`} disabled={busy || !canWorkCases || row.priority === "CRITICAL" || ["CLOSED", "RESOLVED"].includes(row.status)} onClick={() => onAction({ type: "case.escalate", caseId: row.id })}><ArrowUpRight size={16} aria-hidden="true" /></Button>{canRequestApprovals && ["OPEN", "IN_PROGRESS"].includes(row.status) && <Button variant="outline" size="sm" disabled={busy} onClick={() => onRequestApproval(row)}>Request approval</Button>}{canWorkCases && ["OPEN", "IN_PROGRESS"].includes(row.status) && <Button variant="outline" size="sm" disabled={busy} onClick={() => void onResolve(row.id)}>Resolve</Button>}</div> },
   ];
-  return <><PageHeading eyebrow="SERVICE OPERATIONS" title="Operational cases" description="Triage requests, coordinate owners, and keep service commitments on track." action={canWorkCases ? <Button onClick={onCreate}><Plus size={16} /> New case</Button> : undefined} />
+  return <><PageHeading eyebrow="SERVICE OPERATIONS" title="Operational cases" action={canWorkCases ? <Button onClick={onCreate}><Plus size={16} /> New case</Button> : undefined} />
     <div className="list-summary"><span><strong>{cases.length}</strong> {cases.length === 1 ? "record" : "records"}</span><span className="summary-spacer" /><span className="legend-dot high" /> High priority<span className="legend-dot medium" /> Medium priority</div>
     <DataTable caption="Operational cases" columns={columns} rows={cases} getRowId={(row) => row.id} pageSize={10} emptyTitle={search ? "No matching cases" : "No cases yet"} emptyDescription={search ? "Try a different search or clear the current search." : "Create a case to start tracking operational work."} emptyAction={search ? <Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button> : undefined} />
   </>;
@@ -327,7 +327,7 @@ function ProjectsPage({ projects, onAction, onCreate, onEdit, onArchive, busy, c
   search: string;
   onClearSearch: () => void;
 }) {
-  return <><PageHeading eyebrow="DELIVERY PORTFOLIO" title="Projects" description="Track ownership, delivery health, and work in flight across your portfolio." action={canManage ? <Button onClick={onCreate}><Plus size={16} /> New project</Button> : undefined} />
+  return <><PageHeading eyebrow="DELIVERY PORTFOLIO" title="Projects" action={canManage ? <Button onClick={onCreate}><Plus size={16} /> New project</Button> : undefined} />
     <div className="project-grid">{projects.map((project) => <article className="project-card" key={project.id}><div className="project-card-top"><StatusBadge status={project.status} /><div className="row-actions"><Button variant="outline" size="sm" disabled={!canManage || busy} onClick={() => onEdit(project)}>Edit</Button><Button variant="ghost" size="icon" className="icon-button compact" aria-label={`Archive ${project.name}`} title="Archive project" disabled={busy || !canManage} onClick={() => onArchive(project)}><X size={17} aria-hidden="true" /></Button></div></div><div className="project-key">{project.projectKey}</div><h3>{project.name}</h3><p>{project.customer?.name ?? "Customer not linked"} <span>·</span> {project.team?.name ?? "Unassigned team"}</p><div className="project-progress-head"><span>Delivery progress</span><strong>{project.progress}%</strong></div><div className="progress-track" role="progressbar" aria-label={`${project.name} delivery progress`} aria-valuenow={project.progress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${project.progress}%` }} /></div><div className="project-footer"><span><Clock3 size={14} aria-hidden="true" /> Due {formatDate(project.dueDate)}</span><span>{project._count?.cases ?? 0} cases</span><Button variant="link" size="sm" disabled={busy || !canManage || project.progress >= 100} onClick={() => onAction({ type: "project.update", projectId: project.id, input: { revision: project.revision, progress: Math.min(project.progress + 10, 100) } })}>Advance 10% <ArrowRight size={14} aria-hidden="true" /></Button></div></article>)}</div>
     {!projects.length && <EmptyState icon={search ? Search : FolderKanban} title={search ? "No matching projects" : "Your portfolio starts here"} description={search ? "Try another search or clear the current search." : "Create a project to bring delivery work into view."} action={search ? <Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button> : canManage ? <Button onClick={onCreate}><Plus size={16} /> Create project</Button> : undefined} />}
   </>;
@@ -351,7 +351,7 @@ function CustomersPage({ customers, onCreate, onEdit, onArchive, canManage, sear
     { id: "contact", label: "Contact", header: "Contact", cell: (row) => <a className="email-link" href={`mailto:${row.email}`}>{row.email}</a> },
     { id: "actions", label: "Actions", header: "Actions", cell: (row) => canManage ? <div className="row-actions"><Button variant="outline" size="sm" onClick={() => onEdit(row)}>Edit</Button><Button variant="ghost" size="sm" className="danger-quiet" onClick={() => onArchive(row)}>Archive</Button></div> : <span>—</span> },
   ];
-  return <><PageHeading eyebrow="CUSTOMER DIRECTORY" title="Customers" description="Keep account context connected to the work your teams deliver." action={canManage ? <Button onClick={onCreate}><Plus size={16} /> Add customer</Button> : undefined} />
+  return <><PageHeading eyebrow="CUSTOMER DIRECTORY" title="Customers" action={canManage ? <Button onClick={onCreate}><Plus size={16} /> Add customer</Button> : undefined} />
     <DataTable caption="Customers" columns={columns} rows={customers} getRowId={(row) => row.id} pageSize={10} emptyTitle={search ? "No matching customers" : "No customers yet"} emptyDescription={search ? "Try another search or clear the current search." : "Add a customer to connect account context to your work."} emptyAction={search ? <Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button> : canManage ? <Button onClick={onCreate}><Plus size={16} /> Add customer</Button> : undefined} />
   </>;
 }
@@ -365,14 +365,14 @@ function ApprovalsPage({ approvals, onReview, busy, canDecide, employeeId, searc
   search: string;
   onClearSearch: () => void;
 }) {
-  return <><PageHeading eyebrow="GOVERNANCE" title="Approvals" description="Review requests with their business context and recorded decision history." />
+  return <><PageHeading eyebrow="GOVERNANCE" title="Approvals" />
     <div className="approval-board">{approvals.map((item) => <article className="approval-card" key={item.id}><div className="approval-card-head"><span className="approval-key">{item.approvalKey}</span><StatusBadge status={item.status} /></div><h3>{item.title}</h3><p>{item.justification}</p><div className="approval-context"><span>{titleCase(item.type)}</span>{item.case && <span>{item.case.caseKey} · {item.case.title}</span>}</div><div className="approval-card-footer"><div><small>REQUESTED BY</small><strong>{item.requestedBy.name}</strong></div><div><small>AMOUNT</small><strong>{item.amount ? formatMoney(item.amount) : "—"}</strong></div>{item.status === "PENDING" && canDecide && item.requestedBy.id !== employeeId ? <div className="approval-actions"><Button variant="outline" size="sm" disabled={busy} onClick={() => onReview({ approval: item, decision: "REJECTED" })}>Reject</Button><Button size="sm" disabled={busy} onClick={() => onReview({ approval: item, decision: "APPROVED" })}><Check size={15} aria-hidden="true" /> Approve</Button></div> : item.status === "PENDING" && item.requestedBy.id === employeeId ? <div className="decision-label">You requested this</div> : item.status === "PENDING" ? <div className="decision-label">Awaiting a manager</div> : <div className="decision-label"><Check size={15} aria-hidden="true" /> {titleCase(item.status)}</div>}</div></article>)}</div>
     {!approvals.length && <EmptyState icon={search ? Search : CheckCheck} title={search ? "No matching approvals" : "No approval requests"} description={search ? "Try another search or clear the current search." : "Requests attached to operational cases will appear here."} action={search ? <Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button> : undefined} />}
   </>;
 }
 
 function ActivityPage({ activity, search, onClearSearch }: { activity: Activity[]; search: string; onClearSearch: () => void }) {
-  return <><PageHeading eyebrow="AUDIT TRAIL" title="Activity" description="A chronological record of changes made in this workspace." /><section className="panel full-activity"><ActivityList items={activity} emptyLabel={search ? "No matching activity records." : "No recorded changes yet."} />{search && activity.length === 0 && <div className="activity-empty-action"><Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button></div>}</section></>;
+  return <><PageHeading eyebrow="AUDIT TRAIL" title="Activity" /><section className="panel full-activity"><ActivityList items={activity} emptyLabel={search ? "No matching activity records." : "No recorded changes yet."} />{search && activity.length === 0 && <div className="activity-empty-action"><Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button></div>}</section></>;
 }
 
 function ActivityList({ items, emptyLabel = "No recent events." }: { items: Activity[]; emptyLabel?: string }) {
@@ -440,7 +440,7 @@ function RecordDialog({ state, customers, teams, onClose, onSubmit }: {
 
   return <Dialog open onOpenChange={(open) => { if (!open && !busy) onClose(); }}>
     <DialogContent size="md" showCloseButton={!busy}>
-      <DialogHeader><span className="eyebrow">WORKSPACE RECORD</span><DialogTitle>{title}</DialogTitle><DialogDescription>{editing ? "Update this record. Your changes will be saved to the workspace audit trail." : "Enter the details for this workspace record."}</DialogDescription></DialogHeader>
+      <DialogHeader><span className="eyebrow">WORKSPACE RECORD</span><DialogTitle>{title}</DialogTitle></DialogHeader>
       <form onSubmit={(event) => void submit(event)} className="dialog-form" noValidate>
         {kind === "customer" && <>
           <FormField label="Company name" required error={errors.name}><Input name="name" placeholder="e.g. Northstar Logistics" defaultValue={current && "name" in current ? current.name : ""} required maxLength={140} /></FormField>
@@ -533,7 +533,7 @@ function ApprovalRequestDialog({ caseRecord, onClose, onSubmit }: {
   };
   return <Dialog open onOpenChange={(open) => { if (!open && !busy) onClose(); }}>
     <DialogContent size="md" showCloseButton={!busy}>
-      <DialogHeader><span className="eyebrow">{caseRecord.caseKey} · {caseRecord.title}</span><DialogTitle>Request approval</DialogTitle><DialogDescription>Provide the decision context for this operational case. The request will be attributed to your account.</DialogDescription></DialogHeader>
+      <DialogHeader><span className="eyebrow">{caseRecord.caseKey} · {caseRecord.title}</span><DialogTitle>Request approval</DialogTitle></DialogHeader>
       <form className="dialog-form" onSubmit={(event) => void submit(event)} noValidate>
         <FormField label="Request type" required error={errors.type}><Input name="type" placeholder="e.g. Expense or exception" required maxLength={80} /></FormField>
         <FormField label="Title" required error={errors.title}><Input name="title" placeholder="A concise decision request" required maxLength={180} /></FormField>

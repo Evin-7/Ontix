@@ -26,7 +26,6 @@ export default function LoginPage() {
       <section className="login-card">
         <div className="login-kicker">OPERATIONS WORKSPACE</div>
         <h1>Welcome back</h1>
-        <p className="login-intro">Sign in to continue to your customer, delivery, and service operations.</p>
         <LoginForm />
       </section>
       <p className="login-footnote">Connected Data. Smarter Operations.</p>

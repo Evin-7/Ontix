@@ -5,7 +5,7 @@ import { Building2, Plus, UsersRound } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/form-field";
 import { Input, Textarea } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -68,7 +68,6 @@ export function PeoplePage({ employees, teams, viewerEmployeeId, search, onClear
     <PageHeader
       eyebrow="PEOPLE & DELIVERY"
       title="People and teams"
-      description="Keep employee records and delivery teams connected to the work they support."
       actions={canCreate ? <Button onClick={() => setDialog({ kind: tab === "employees" ? "employee" : "team" })}><Plus size={16} /> Add {entity}</Button> : undefined}
     />
     <section className="panel people-panel">
@@ -178,9 +177,6 @@ function RecordDialog({ state, teams, onClose, onAction, setBusy }: {
     <DialogContent>
       <DialogHeader>
         <DialogTitle>{editing ? `Edit ${label}` : `Add ${label}`}</DialogTitle>
-        <DialogDescription>{state.kind === "employee"
-          ? "Keep the directory record current. Login access is provisioned separately."
-          : "Set the name and department used to group related delivery work."}</DialogDescription>
       </DialogHeader>
       <form onSubmit={(event) => void submit(event)} noValidate>
         {state.kind === "employee" ? <>

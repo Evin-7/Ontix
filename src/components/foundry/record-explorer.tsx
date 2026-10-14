@@ -115,8 +115,8 @@ export function RecordExplorer({
         <div className="foundry-detail-status"><span>Current status</span><StatusBadge status={selected.status} /></div>
         <div className="foundry-detail-fields">{Object.entries(selected.values).filter(([key, value]) => key !== "status" && value).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{value}</dd></div>)}</div>
         {isDemo && (selected.kind === "Project" || selected.kind === "Case") && <div className="foundry-read-only-note">Editing is unavailable in demo mode.</div>}
-        {!isDemo && selected.action?.type === "project" && <div className="foundry-detail-action-block"><h3>Workflow</h3><p>Update this project through its published Foundry action.</p><FoundryProjectStatusDialog projectId={selected.id} projectName={selected.title} initialStatus={selected.action.initialStatus} /></div>}
-        {!isDemo && selected.action?.type === "case" && <div className="foundry-detail-action-block"><h3>Case actions</h3><p>Changes are subject to your workspace permissions.</p><FoundryCaseDetailActions caseId={selected.id} caseTitle={selected.action.caseTitle} assignedEmployeeId={selected.action.assignedEmployeeId} employees={selected.action.employees} canResolve={selected.action.canResolve} /></div>}
+        {!isDemo && selected.action?.type === "project" && <div className="foundry-detail-action-block"><h3>Workflow</h3><FoundryProjectStatusDialog projectId={selected.id} projectName={selected.title} initialStatus={selected.action.initialStatus} /></div>}
+        {!isDemo && selected.action?.type === "case" && <div className="foundry-detail-action-block"><h3>Case actions</h3><FoundryCaseDetailActions caseId={selected.id} caseTitle={selected.action.caseTitle} assignedEmployeeId={selected.action.assignedEmployeeId} employees={selected.action.employees} canResolve={selected.action.canResolve} /></div>}
         {selected.kind === "Approval" && <div className="foundry-read-only-note">Read only · Approval decisions are not configured as Ontology actions.</div>}
       </DialogContent>}
     </Dialog>

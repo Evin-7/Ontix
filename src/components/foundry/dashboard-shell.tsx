@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { OntixLogo } from "@/components/branding/ontix-logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 type FoundryRole = "ADMINISTRATOR" | "MANAGER" | "DEVELOPER" | "ANALYST";
 
 const sections = [
@@ -81,10 +81,9 @@ function GlobalSearch({ open, onOpenChange, isDemo }: { open: boolean; onOpenCha
 
   return (
     <Dialog open={open} onOpenChange={(next) => { onOpenChange(next); if (!next) setQuery(""); }}>
-      <DialogContent size="lg" className="foundry-search-dialog" aria-describedby="foundry-search-description">
+      <DialogContent size="lg" className="foundry-search-dialog">
         <DialogHeader>
           <DialogTitle>Search the workspace</DialogTitle>
-          <DialogDescription id="foundry-search-description">Search records available to your account.</DialogDescription>
         </DialogHeader>
         <label className="foundry-search-input-wrap">
           <Search size={18} aria-hidden="true" />
