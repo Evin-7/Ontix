@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => {
     cookies: vi.fn(),
     consumeStandaloneState: vi.fn(),
     establishSession: vi.fn(),
+    isStandaloneState: vi.fn((state: string) => state.startsWith("ontix1_")),
     exchangeCodeForTokens: vi.fn(),
     exchangeLegacyCode: vi.fn(),
     readLegacyState: vi.fn(),
@@ -29,6 +30,7 @@ vi.mock("@/server/providers/foundry/oauth-state", () => ({
 vi.mock("@/server/providers/foundry/standalone-auth", () => ({
   consumeStandaloneFoundryOAuthState: mocks.consumeStandaloneState,
   establishFoundrySession: mocks.establishSession,
+  isStandaloneFoundryOAuthState: mocks.isStandaloneState,
   foundryOAuthStateCookieName: () => "ontix-foundry-auth-state",
   foundrySessionCookieName: () => "ontix-session",
 }));
@@ -62,7 +64,7 @@ describe("Foundry OAuth callback provider isolation", () => {
   });
 
   it("handles standalone sign-in without loading the legacy actor module", async () => {
-    mocks.cookieValues.set("ontix-foundry-auth-state", "standalone-state");
+    mocks.cookieValues.set("ontix-foundry-auth-state", "ontix1_standalone-state");
     mocks.consumeStandaloneState.mockResolvedValue({ verifier: "pkce-verifier" });
     mocks.exchangeCodeForTokens.mockResolvedValue({ accessToken: "access-token", refreshToken: "refresh-token" });
     mocks.establishSession.mockResolvedValue({ sessionId: "opaque-session-id" });
@@ -71,13 +73,27 @@ describe("Foundry OAuth callback provider isolation", () => {
     expect(mocks.actorModuleLoaded).not.toHaveBeenCalled();
 
     const response = await GET(new Request(
-      "http://127.0.0.1:3000/api/foundry/oauth/callback?code=auth-code&state=standalone-state",
+      "http://127.0.0.1:3000/api/foundry/oauth/callback?code=auth-code&state=ontix1_standalone-state",
     ));
 
     expect(response.headers.get("location")).toBe("http://127.0.0.1:3000/?foundry=signed-in");
     expect(mocks.actorModuleLoaded).not.toHaveBeenCalled();
     expect(mocks.requireActor).not.toHaveBeenCalled();
     expect(mocks.exchangeCodeForTokens).toHaveBeenCalledWith({ code: "auth-code", verifier: "pkce-verifier" });
+  });
+
+  it("keeps a standalone callback out of Prisma when an older legacy state cookie remains", async () => {
+    mocks.cookieValues.set("ontix-foundry-oauth", "stale-legacy-cookie");
+    mocks.consumeStandaloneState.mockResolvedValue(null);
+
+    const { GET } = await import("./route");
+    const response = await GET(new Request(
+      "http://127.0.0.1:3000/api/foundry/oauth/callback?code=auth-code&state=ontix1_missing-cookie-state",
+    ));
+
+    expect(response.headers.get("location")).toBe("http://127.0.0.1:3000/?foundry=failed");
+    expect(mocks.actorModuleLoaded).not.toHaveBeenCalled();
+    expect(mocks.requireActor).not.toHaveBeenCalled();
   });
 
   it("retains the legacy linked-account callback path", async () => {

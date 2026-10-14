@@ -30,6 +30,12 @@ export class FoundryStandaloneAuthConfigurationError extends Error {
   }
 }
 
+const STANDALONE_OAUTH_STATE_PREFIX = "ontix1_";
+
+export function isStandaloneFoundryOAuthState(state: string) {
+  return state.startsWith(STANDALONE_OAUTH_STATE_PREFIX);
+}
+
 export function assertFoundryStandaloneAuthConfigured() {
   const appUrl = process.env.ONTIX_APPLICATION_URL?.trim() || process.env.BETTER_AUTH_URL?.trim();
   if (!process.env.FOUNDRY_STACK_URL?.trim() || !process.env.FOUNDRY_CLIENT_ID?.trim() ||
@@ -65,7 +71,9 @@ export function assertFoundryStandaloneAuthConfigured() {
 export async function createStandaloneFoundryOAuthState() {
   assertFoundryStandaloneAuthConfigured();
   await verifyFoundrySessionStoreConnection();
-  const state = randomBytes(32).toString("base64url");
+  // Mark this flow so the callback never mistakes it for the legacy,
+  // Prisma-backed account-link flow if the browser omits an OAuth cookie.
+  const state = `${STANDALONE_OAUTH_STATE_PREFIX}${randomBytes(32).toString("base64url")}`;
   const verifier = randomBytes(32).toString("base64url");
   const challenge = createHash("sha256").update(verifier, "utf8").digest("base64url");
   await storeFoundryOAuthState(state, verifier);

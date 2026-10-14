@@ -10,6 +10,7 @@ import { exchangeFoundryCodeForTokens } from "@/server/providers/foundry/tokens"
 import {
   consumeStandaloneFoundryOAuthState,
   establishFoundrySession,
+  isStandaloneFoundryOAuthState,
   foundryOAuthStateCookieName as standaloneStateCookieName,
   foundrySessionCookieName,
 } from "@/server/providers/foundry/standalone-auth";
@@ -53,8 +54,11 @@ export async function GET(request: Request) {
 
   const standaloneState = cookiesStore.get(standaloneStateCookieName())?.value;
   const cookieValue = cookiesStore.get(foundryOAuthStateCookieName())?.value;
-  if (standaloneState && (standaloneState === stateValue || !cookieValue)) {
-    return handleStandaloneCallback({ url, applicationUrl, stateValue, code, stateCookie: standaloneState });
+  if (
+    isStandaloneFoundryOAuthState(stateValue) ||
+    (standaloneState && (standaloneState === stateValue || !cookieValue))
+  ) {
+    return handleStandaloneCallback({ url, applicationUrl, stateValue, code, stateCookie: standaloneState ?? "" });
   }
 
   // Keep the legacy Prisma-backed identity graph out of the standalone Foundry
