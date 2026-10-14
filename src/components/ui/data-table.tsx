@@ -121,10 +121,10 @@ export function DataTable<T>({
   };
 
   return (
-    <section className={["ui-data-table overflow-hidden rounded-xl border border-border bg-surface", className].filter(Boolean).join(" ")} aria-label={caption}>
-      <div className="ui-data-table__scroll overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary" role="region" aria-label={`${caption} table`} tabIndex={0}>
-        <table className="ui-data-table__table w-full border-collapse text-left text-sm" aria-busy={isLoading}>
-          <caption className="ui-data-table__caption sr-only">{caption}</caption>
+    <section className={["overflow-hidden rounded-xl border border-border bg-surface", className].filter(Boolean).join(" ")} aria-label={caption}>
+      <div className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary" role="region" aria-label={`${caption} table`} tabIndex={0}>
+        <table className="w-full border-collapse text-left text-sm" aria-busy={isLoading}>
+          <caption className="sr-only">{caption}</caption>
           <thead className="bg-surface-muted text-muted">
             <tr className="border-b border-border">
               {columns.map((column) => {
@@ -136,7 +136,7 @@ export function DataTable<T>({
                     {column.sortValue ? (
                       <button
                         type="button"
-                        className="ui-data-table__sort inline-flex min-h-8 items-center gap-2 rounded-md text-left text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="inline-flex min-h-8 items-center gap-2 rounded-md text-left text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         aria-label={`Sort by ${column.label} ${active && sort.direction === "ascending" ? "descending" : "ascending"}`}
                         onClick={() => toggleSort(column)}
                       >
@@ -157,7 +157,7 @@ export function DataTable<T>({
             {isLoading ? Array.from({ length: loadingRowCount }, (_, rowIndex) => (
               <tr key={`skeleton-${rowIndex}`} className="border-b border-border last:border-b-0">
                 {columns.map((column) => (
-                  <td key={column.id} className={["px-4 py-3", column.className].filter(Boolean).join(" ")}><Skeleton className="ui-data-table__skeleton h-4 max-w-48" /></td>
+                  <td key={column.id} className={["px-4 py-3", column.className].filter(Boolean).join(" ")}><Skeleton className="h-4 max-w-48" /></td>
                 ))}
               </tr>
             )) : visibleRows.map((row) => (
@@ -177,16 +177,16 @@ export function DataTable<T>({
             title={emptyTitle}
             description={emptyDescription}
             action={emptyAction}
-            className="ui-data-table__empty m-4"
+            className="m-4"
           />
         )
       )}
 
-      <footer className="ui-data-table__footer flex flex-col gap-3 border-t border-border bg-surface px-4 py-3 sm:flex-row sm:items-center">
-        <p className="ui-data-table__summary mr-auto text-xs text-muted" aria-live="polite">
+      <footer className="flex flex-col gap-3 border-t border-border bg-surface px-4 py-3 sm:flex-row sm:items-center">
+        <p className="mr-auto text-xs text-muted" aria-live="polite">
           {sortedRows.length === 0 ? "No records" : `Showing ${firstRow}–${lastRow} of ${sortedRows.length}`}
         </p>
-        <label className="ui-data-table__page-size-label flex items-center gap-2 text-xs text-muted">
+        <label className="flex items-center gap-2 text-xs text-muted">
           <span>Rows per page</span>
           <Select
             aria-label="Rows per page"
@@ -199,7 +199,7 @@ export function DataTable<T>({
             {normalizedPageSizes.map((size) => <option key={size} value={size}>{size}</option>)}
           </Select>
         </label>
-        <nav className="ui-data-table__pagination flex items-center justify-between gap-2 sm:justify-end" aria-label={`${caption} pages`}>
+        <nav className="flex items-center justify-between gap-2 sm:justify-end" aria-label={`${caption} pages`}>
           <Button
             variant="outline"
             size="sm"
@@ -209,7 +209,7 @@ export function DataTable<T>({
           >
             <ChevronLeft size={16} aria-hidden="true" /> Previous
           </Button>
-          <span className="ui-data-table__page-count min-w-24 text-center text-xs text-muted" aria-live="polite">Page {currentPage + 1} of {pageCount}</span>
+          <span className="min-w-24 text-center text-xs text-muted" aria-live="polite">Page {currentPage + 1} of {pageCount}</span>
           <Button
             variant="outline"
             size="sm"

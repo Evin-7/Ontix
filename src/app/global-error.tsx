@@ -14,17 +14,17 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
       <body>
         <ThemeProvider>
           <ToastProvider>
-            <main className="route-state">
-              <div className="route-state-top"><ThemeToggle /></div>
-              <section className="route-state-card" role="alert">
-                <div className="route-state-brand"><OntixLogo size="small" /></div>
-                <span className="route-state-icon error-icon"><TriangleAlert size={24} /></span>
-                <p className="route-state-kicker">APPLICATION ERROR</p>
-                <h1>Something went wrong</h1>
-                <p>We couldn’t display this page. Try again or return to your workspace.</p>
-                <div className="route-state-actions">
-                  <button className="button button-primary" onClick={reset}><RefreshCw size={16} /> Try again</button>
-                  <Link className="button button-secondary" href="/">Return to dashboard</Link>
+            <main className="relative grid min-h-screen place-items-center bg-background p-6">
+              <div className="absolute top-5 right-6"><ThemeToggle /></div>
+              <section className="flex w-full max-w-[500px] flex-col items-start rounded-2xl border border-border bg-surface p-[clamp(24px,5vw,38px)] shadow-[var(--shadow-md)]" role="alert">
+                <div className="mb-7 flex items-center"><OntixLogo size="small" /></div>
+                <span className="mb-4 grid size-12 place-items-center rounded-[13px] text-error bg-[color-mix(in_srgb,var(--error)_12%,var(--surface))]"><TriangleAlert size={24} /></span>
+                <p className="mb-[7px] text-[11px] font-bold tracking-[.12em] text-muted">APPLICATION ERROR</p>
+                <h1 className="m-0 text-[25px] font-bold tracking-[-.03em] text-foreground">Something went wrong</h1>
+                <p className="mt-[9px] text-sm leading-[1.6] text-muted">We couldn’t display this page. Try again or return to your workspace.</p>
+                <div className="mt-6 flex flex-wrap gap-[9px] max-[520px]:w-full max-[520px]:[&>*]:flex-1">
+                  <button className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-primary bg-primary px-3.5 text-[13px] font-semibold text-white shadow-sm transition active:translate-y-px hover:not-disabled:border-primary-hover hover:not-disabled:bg-primary-hover dark:text-[#0b1220]" onClick={reset}><RefreshCw size={16} /> Try again</button>
+                  <Link className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-border bg-surface px-3.5 text-[13px] font-semibold text-foreground transition hover:bg-surface-muted" href="/">Return to dashboard</Link>
                 </div>
               </section>
             </main>

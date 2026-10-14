@@ -14,11 +14,11 @@ const sizes = {
 
 function ConnectedO() {
   return (
-    <g fill="none" stroke="var(--ontix-mark-color, var(--primary))" strokeLinecap="round" strokeLinejoin="round">
+    <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
       <path d="M34.6 13.4a15 15 0 1 0 0 21.2" strokeWidth="4" />
       <path d="M24 24h15" strokeWidth="3.5" />
-      <circle cx="24" cy="24" r="3.7" fill="var(--ontix-mark-color, var(--primary))" stroke="none" />
-      <circle cx="39" cy="24" r="3.7" fill="var(--ontix-mark-color, var(--primary))" stroke="none" />
+      <circle cx="24" cy="24" r="3.7" fill="currentColor" stroke="none" />
+      <circle cx="39" cy="24" r="3.7" fill="currentColor" stroke="none" />
     </g>
   );
 }
@@ -36,7 +36,7 @@ export function OntixLogo({
 
   return (
     <svg
-      className={["ontix-logo", `ontix-logo--${variant}`, `ontix-logo--${size}`, `ontix-logo--${theme}`, className]
+      className={["block h-auto max-w-full shrink-0", className]
         .filter(Boolean)
         .join(" ")}
       width={width}
@@ -49,12 +49,15 @@ export function OntixLogo({
       aria-hidden={decorative ? true : undefined}
       focusable="false"
     >
-      <ConnectedO />
+      <g className={theme === "light" ? "text-[#4f46e5]" : theme === "dark" ? "text-[#818cf8]" : "text-primary"}>
+        <ConnectedO />
+      </g>
       {variant === "full" && (
         <text
           x="58"
           y="34"
-          fill="var(--ontix-word-color, var(--foreground))"
+          className={theme === "light" ? "text-[#0f172a]" : theme === "dark" ? "text-[#f8fafc]" : "text-foreground"}
+          fill="currentColor"
           fontFamily="var(--font-inter), sans-serif"
           fontSize="31"
           fontWeight="700"

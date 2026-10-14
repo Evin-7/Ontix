@@ -15,7 +15,7 @@ export function DialogOverlay(props: ComponentProps<typeof DialogPrimitive.Overl
     <DialogPrimitive.Overlay
       {...rest}
       className={[
-        "ui-dialog__overlay fixed inset-0 z-40 bg-foreground/40 backdrop-blur-[2px]",
+        "fixed inset-0 z-40 bg-foreground/40 backdrop-blur-[2px] data-[state=open]:animate-ui-fade-in",
         className,
       ].filter(Boolean).join(" ")}
     />
@@ -49,7 +49,7 @@ export function DialogContent({
       <DialogPrimitive.Content
         {...props}
         className={[
-          "ui-dialog__content fixed z-50 max-h-[min(90dvh,48rem)] w-[calc(100vw-2rem)] overflow-y-auto rounded-[14px] border border-border bg-surface p-6 text-foreground shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-primary sm:p-7",
+          "fixed z-50 max-h-[min(90dvh,48rem)] w-[calc(100vw-2rem)] overflow-y-auto rounded-[14px] border border-border bg-surface p-6 text-foreground shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-primary data-[state=open]:animate-ui-dialog-in sm:p-7",
           centered ? "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" : "",
           sizeClass,
           className,
@@ -58,7 +58,7 @@ export function DialogContent({
       >
         {children}
         {showCloseButton && (
-          <DialogPrimitive.Close className="ui-dialog__close absolute right-4 top-4 inline-flex size-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Close dialog">
+          <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex size-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Close dialog">
             <X size={18} aria-hidden="true" />
           </DialogPrimitive.Close>
         )}
@@ -68,7 +68,7 @@ export function DialogContent({
 }
 
 export function DialogHeader({ className, ...props }: ComponentProps<"div">) {
-  return <div {...props} className={["ui-dialog__header mb-5 flex flex-col gap-1.5 pr-10", className].filter(Boolean).join(" ")} />;
+  return <div {...props} className={["mb-5 flex flex-col gap-1.5 pr-10", className].filter(Boolean).join(" ")} />;
 }
 
 export function DialogTitle(props: ComponentProps<typeof DialogPrimitive.Title>) {
@@ -76,7 +76,7 @@ export function DialogTitle(props: ComponentProps<typeof DialogPrimitive.Title>)
   return (
     <DialogPrimitive.Title
       {...rest}
-      className={["ui-dialog__title text-lg font-semibold tracking-tight text-foreground", className].filter(Boolean).join(" ")}
+      className={["text-lg font-semibold tracking-tight text-foreground", className].filter(Boolean).join(" ")}
     />
   );
 }
@@ -86,15 +86,15 @@ export function DialogDescription(props: ComponentProps<typeof DialogPrimitive.D
   return (
     <DialogPrimitive.Description
       {...rest}
-      className={["ui-dialog__description text-sm leading-6 text-muted", className].filter(Boolean).join(" ")}
+      className={["text-sm leading-6 text-muted", className].filter(Boolean).join(" ")}
     />
   );
 }
 
 export function DialogBody({ className, ...props }: ComponentProps<"div">) {
-  return <div {...props} className={["ui-dialog__body", className].filter(Boolean).join(" ")} />;
+  return <div {...props} className={className} />;
 }
 
 export function DialogFooter({ className, ...props }: ComponentProps<"div">) {
-  return <div {...props} className={["ui-dialog__footer mt-6 flex flex-col justify-end gap-2 border-t border-border pt-4 sm:flex-row", className].filter(Boolean).join(" ")} />;
+  return <div {...props} className={["mt-6 flex flex-col justify-end gap-2 border-t border-border pt-4 sm:flex-row", className].filter(Boolean).join(" ")} />;
 }

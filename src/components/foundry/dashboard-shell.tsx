@@ -79,32 +79,32 @@ function GlobalSearch({ open, onOpenChange, isDemo }: { open: boolean; onOpenCha
 
   return (
     <Dialog open={open} onOpenChange={(next) => { onOpenChange(next); if (!next) setQuery(""); }}>
-      <DialogContent size="lg" className="foundry-search-dialog">
-        <DialogHeader>
+      <DialogContent size="lg" className="!overflow-hidden !p-0 max-[760px]:!w-[calc(100vw-20px)]">
+        <DialogHeader className="!m-0 !px-6 !pt-[22px] !pb-4 max-[760px]:!px-[17px] max-[760px]:!pt-[18px] max-[760px]:!pb-3">
           <DialogTitle>Search the workspace</DialogTitle>
         </DialogHeader>
-        <label className="foundry-search-input-wrap">
+        <label className="group mx-5 flex min-h-[46px] items-center gap-2.5 rounded-[9px] border border-border bg-surface-muted px-3 text-muted focus-within:border-primary focus-within:shadow-[0_0_0_3px_var(--primary-subtle)] max-[760px]:mx-[13px]">
           <Search size={18} aria-hidden="true" />
           <span className="sr-only">Search records</span>
-          <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search projects, cases, people…" />
-          <kbd>ESC</kbd>
+          <input autoFocus className="w-full border-0 bg-transparent text-xs text-foreground outline-none placeholder:text-muted" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search projects, cases, people…" />
+          <kbd className="shrink-0 rounded border border-border bg-surface px-[5px] py-0.5 text-[9px] text-muted">ESC</kbd>
         </label>
-        <div className="foundry-search-results" aria-live="polite">
-          {query.trim().length < 2 && <p className="foundry-search-hint">Type at least 2 characters to search.</p>}
-          {isCurrentPending && <p className="foundry-search-hint">Searching…</p>}
-          {!isCurrentPending && query.trim().length >= 2 && resultQuery === normalizedQuery && results.length === 0 && <p className="foundry-search-hint">No matching records are visible to this account.</p>}
+        <div className="max-h-[min(58vh,490px)] overflow-y-auto px-5 pt-[11px] pb-4 max-[760px]:px-[13px]" aria-live="polite">
+          {query.trim().length < 2 && <p className="m-0 px-[5px] py-[22px] text-center text-[11px] text-muted">Type at least 2 characters to search.</p>}
+          {isCurrentPending && <p className="m-0 px-[5px] py-[22px] text-center text-[11px] text-muted">Searching…</p>}
+          {!isCurrentPending && query.trim().length >= 2 && resultQuery === normalizedQuery && results.length === 0 && <p className="m-0 px-[5px] py-[22px] text-center text-[11px] text-muted">No matching records are visible to this account.</p>}
           {!isCurrentPending && Object.entries(currentGroups).map(([type, matches]) => (
-            <section className="foundry-search-group" key={type}>
-              <h3>{type}</h3>
-              {matches.map((result) => <Link key={`${type}:${result.id}`} href={result.href as Route} onClick={() => onOpenChange(false)}>
-                <span className="foundry-search-result-icon"><Search size={14} aria-hidden="true" /></span>
-                <span><strong>{result.title}</strong><small>{result.subtitle}</small></span>
-                <span className="foundry-search-result-id">{result.id}</span>
+            <section className="pt-2" key={type}>
+              <h3 className="m-0 px-0.5 py-1 text-[9px] font-bold tracking-[.12em] text-muted uppercase">{type}</h3>
+              {matches.map((result) => <Link className="flex min-w-0 items-center gap-[9px] rounded-[7px] px-1.5 py-2 hover:bg-surface-muted" key={`${type}:${result.id}`} href={result.href as Route} onClick={() => onOpenChange(false)}>
+                <span className="grid size-[27px] shrink-0 place-items-center rounded-[7px] bg-primary-subtle text-primary"><Search size={14} aria-hidden="true" /></span>
+                <span className="grid min-w-0 flex-1 gap-[3px]"><strong className="overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-semibold">{result.title}</strong><small className="overflow-hidden text-ellipsis whitespace-nowrap text-[9px] text-muted">{result.subtitle}</small></span>
+                <span className="max-w-[140px] overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[9px] text-muted">{result.id}</span>
               </Link>)}
             </section>
           ))}
         </div>
-        <div className="foundry-search-footer"><span><kbd>⌘</kbd> <kbd>K</kbd> to search</span><span>Results follow your access</span></div>
+        <div className="flex items-center justify-between border-t border-border px-[21px] py-[11px] text-[9px] text-muted max-[760px]:px-[14px]"><span className="flex items-center gap-1"><kbd className="rounded border border-border bg-surface px-[5px] py-0.5 text-[9px]">⌘</kbd> <kbd className="rounded border border-border bg-surface px-[5px] py-0.5 text-[9px]">K</kbd> to search</span><span>Results follow your access</span></div>
       </DialogContent>
     </Dialog>
   );
@@ -128,58 +128,58 @@ export function DashboardShell({ children, role, mode }: { children: React.React
   }, []);
 
   const sidebar = (mobile = false) => (
-    <aside className={`foundry-sidebar ${collapsed && !mobile ? "is-collapsed" : ""} ${mobile ? "is-mobile" : ""}`} aria-label="Main navigation">
-      <div className="foundry-sidebar-brand">
-        <Link href="/overview" aria-label="Ontix overview" onClick={() => setMobileOpen(false)}>
-          <OntixLogo variant={collapsed && !mobile ? "icon" : "full"} size="medium" />
+    <aside className={`fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-width)] flex-col border-r border-border bg-surface px-[15px] pt-[22px] pb-[15px] transition-[width] duration-[180ms] ${mobile ? "!static !inset-auto !h-full !w-full !rounded-none !border-0 !px-[15px] !pt-5 !pb-[14px]" : "max-[760px]:hidden"} ${collapsed && !mobile ? "w-[76px] px-[10px]" : ""}`} aria-label="Main navigation">
+      <div className={`flex min-h-[42px] items-center justify-between px-[5px] pl-[7px] ${collapsed && !mobile ? "justify-center !p-0" : ""}`}>
+        <Link className="flex min-w-0 items-center" href="/overview" aria-label="Ontix overview" onClick={() => setMobileOpen(false)}>
+          {collapsed && !mobile ? <OntixLogo className="w-8" variant="icon" size="medium" /> : mobile ? <OntixLogo className="w-[129px]" variant="full" size="medium" /> : <><OntixLogo className="w-[129px] max-[1100px]:hidden" variant="full" size="medium" /><OntixLogo className="hidden w-8 max-[1100px]:block" variant="icon" size="medium" /></>}
         </Link>
-        {mobile ? <button className="foundry-icon-button mobile-close" onClick={() => setMobileOpen(false)} aria-label="Close navigation"><X size={19} /></button> : <button className="foundry-collapse-button" onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}><ChevronLeft size={16} className={collapsed ? "rotate-180" : ""} /></button>}
+        {mobile ? <button className="inline-grid size-9 shrink-0 place-items-center rounded-lg border border-transparent bg-transparent text-muted hover:border-border hover:bg-surface-muted hover:text-foreground" onClick={() => setMobileOpen(false)} aria-label="Close navigation"><X size={19} /></button> : <button className={`inline-grid size-9 shrink-0 place-items-center rounded-lg border border-transparent bg-transparent text-muted hover:border-border hover:bg-surface-muted hover:text-foreground ${collapsed ? "absolute top-[25px] -right-[13px] size-[26px] border-border bg-surface shadow-[var(--shadow-sm)] max-[1100px]:hidden" : "max-[1100px]:hidden"}`} onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}><ChevronLeft size={16} className={`transition-transform duration-[180ms] ${collapsed ? "rotate-180" : ""}`} /></button>}
       </div>
-      <div className="foundry-workspace-label"><span className="foundry-workspace-mark"><OntixLogo variant="icon" size="small" decorative /></span><span><strong>Ontix Operations</strong><small>Enterprise workspace</small></span></div>
-      <nav className="foundry-nav">
-        {sections.map((section) => <div className="foundry-nav-section" key={section.title}>
-          <p>{section.title}</p>
+      <div className={`my-[25px] mx-px mb-5 flex min-w-0 items-center gap-2.5 rounded-[10px] border border-border bg-surface-muted px-2.5 py-[11px] ${collapsed && !mobile ? "justify-center px-[3px] py-[9px]" : ""}`}><span className="grid size-8 shrink-0 place-items-center rounded-[9px] bg-primary text-white"><OntixLogo className="size-[23px] [&_g]:!text-white" variant="icon" size="small" decorative /></span><span className={`grid min-w-0 gap-[3px] ${collapsed && !mobile ? "hidden" : !mobile ? "max-[1100px]:hidden" : ""}`}><strong className="overflow-hidden text-ellipsis whitespace-nowrap text-xs font-semibold">Ontix Operations</strong><small className="overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-muted capitalize">Enterprise workspace</small></span></div>
+      <nav className="grid gap-[17px] overflow-y-auto px-[3px]">
+        {sections.map((section) => <div className="grid gap-[3px]" key={section.title}>
+          <p className={`m-0 mb-[5px] px-2.5 text-[9px] font-bold tracking-[.13em] text-muted ${collapsed && !mobile ? "hidden" : !mobile ? "max-[1100px]:hidden" : ""}`}>{section.title}</p>
           {section.links.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href !== "/overview" && pathname.startsWith(`${href}/`));
-            return <Link key={href} href={href} onClick={() => setMobileOpen(false)} aria-current={active ? "page" : undefined} title={collapsed && !mobile ? label : undefined} className={`foundry-nav-link ${active ? "is-active" : ""}`}>
-              <Icon size={18} strokeWidth={1.8} aria-hidden="true" /><span>{label}</span>
+            return <Link key={href} href={href} onClick={() => setMobileOpen(false)} aria-current={active ? "page" : undefined} title={collapsed && !mobile ? label : undefined} className={`flex min-h-[39px] min-w-0 items-center gap-[11px] rounded-lg border border-transparent px-2.5 text-xs font-medium text-muted transition-colors hover:bg-surface-muted hover:text-foreground ${active ? "bg-primary-subtle font-semibold text-primary" : ""} ${collapsed && !mobile ? "justify-center px-0" : !mobile ? "max-[1100px]:justify-center max-[1100px]:px-0" : ""}`}>
+              <Icon size={18} strokeWidth={1.8} aria-hidden="true" /><span className={`overflow-hidden text-ellipsis whitespace-nowrap ${collapsed && !mobile ? "hidden" : !mobile ? "max-[1100px]:hidden" : ""}`}>{label}</span>
             </Link>;
           })}
         </div>)}
       </nav>
-      <div className="foundry-sidebar-bottom">
-        <div className="foundry-connection-card"><span className="connection-dot online" /><span><strong>{mode === "demo" ? "Demo Workspace" : "Foundry connected"}</strong><small>{mode === "demo" ? "Fictional sample records" : "Live Ontology access"}</small></span>{mode === "foundry" && <ShieldCheck size={16} aria-label="Connected" />}</div>
-        <div className="foundry-profile"><span className="foundry-avatar">{mode === "demo" ? "D" : "F"}</span><span><strong>{mode === "demo" ? "Demo visitor" : "Foundry user"}</strong><small>{mode === "demo" ? "Read only" : role.replaceAll("_", " ").toLowerCase()}</small></span></div>
-        <form action={mode === "demo" ? "/api/demo/sign-out" : "/api/foundry/sign-out"} method="post"><button className="foundry-signout" type="submit">Sign out</button></form>
+      <div className="mt-auto grid gap-[11px] pt-[15px]">
+        <div className={`flex min-w-0 items-center gap-2 rounded-[9px] border border-border bg-surface-muted px-[9px] py-[11px] ${collapsed && !mobile ? "justify-center px-0" : !mobile ? "max-[1100px]:justify-center max-[1100px]:px-0" : ""}`}><span className="size-[7px] shrink-0 rounded-full bg-success" /><span className={`grid min-w-0 gap-[3px] ${collapsed && !mobile ? "hidden" : !mobile ? "max-[1100px]:hidden" : ""}`}><strong className="overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-semibold">{mode === "demo" ? "Demo Workspace" : "Foundry connected"}</strong><small className="overflow-hidden text-ellipsis whitespace-nowrap text-[9px] text-muted capitalize">{mode === "demo" ? "Fictional sample records" : "Live Ontology access"}</small></span>{mode === "foundry" && <ShieldCheck className={`${collapsed && !mobile ? "hidden" : !mobile ? "ml-auto shrink-0 text-success max-[1100px]:hidden" : "ml-auto shrink-0 text-success"}`} size={16} aria-label="Connected" />}</div>
+        <div className={`flex min-w-0 items-center gap-[9px] px-1.5 pt-[7px] pb-px ${collapsed && !mobile ? "justify-center px-0" : !mobile ? "max-[1100px]:justify-center max-[1100px]:px-0" : ""}`}><span className="grid size-[31px] shrink-0 place-items-center rounded-full border border-primary/20 bg-primary-subtle text-xs font-bold text-primary uppercase">{mode === "demo" ? "D" : "F"}</span><span className={`grid min-w-0 gap-[3px] ${collapsed && !mobile ? "hidden" : !mobile ? "max-[1100px]:hidden" : ""}`}><strong className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-semibold">{mode === "demo" ? "Demo visitor" : "Foundry user"}</strong><small className="overflow-hidden text-ellipsis whitespace-nowrap text-[9px] text-muted capitalize">{mode === "demo" ? "Read only" : role.replaceAll("_", " ").toLowerCase()}</small></span></div>
+        <form className={collapsed && !mobile ? "hidden" : !mobile ? "max-[1100px]:hidden" : ""} action={mode === "demo" ? "/api/demo/sign-out" : "/api/foundry/sign-out"} method="post"><button className="min-h-8 w-full rounded-[7px] border border-border bg-transparent px-[9px] text-left text-[10px] text-muted hover:bg-surface-muted hover:text-foreground" type="submit">Sign out</button></form>
       </div>
     </aside>
   );
 
   return (
-    <div className={`foundry-app ${collapsed ? "sidebar-collapsed" : ""}`}>
+    <div className={`min-h-dvh [--sidebar-width:258px] max-[1100px]:[--sidebar-width:76px] max-[760px]:[--sidebar-width:0px] ${collapsed ? "[--sidebar-width:76px]" : ""}`}>
       {sidebar()}
       <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
-        <DialogContent size="sm" centered={false} showCloseButton={false} className="foundry-mobile-drawer" aria-label="Main navigation">
+        <DialogContent size="sm" centered={false} showCloseButton={false} className="!top-0 !left-0 !h-dvh !max-h-dvh !w-[min(300px,86vw)] !max-w-none !translate-x-0 !translate-y-0 !overflow-hidden !rounded-r-[14px] !rounded-l-none !border-0 !p-0" aria-label="Main navigation">
           <DialogTitle className="sr-only">Main navigation</DialogTitle>
           {sidebar(true)}
         </DialogContent>
       </Dialog>
-      <div className="foundry-main-column">
-        <header className="foundry-topbar">
-          <div className="foundry-topbar-left">
-            <button className="foundry-icon-button mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu size={20} /></button>
-            <div className="foundry-breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong>{title}</strong></div>
+      <div className="min-h-dvh ml-[var(--sidebar-width)] transition-[margin-left] duration-[180ms] max-[760px]:ml-0">
+        <header className="sticky top-0 z-[15] flex min-h-[66px] items-center justify-between gap-4 border-b border-border bg-background/95 px-[clamp(22px,3vw,42px)] backdrop-blur-[14px] max-[760px]:min-h-[60px] max-[760px]:px-[15px] max-[390px]:gap-2">
+          <div className="flex min-w-0 items-center gap-3">
+            <button className="hidden size-[34px] shrink-0 place-items-center rounded-lg border border-transparent bg-transparent text-muted hover:border-border hover:bg-surface-muted hover:text-foreground max-[760px]:inline-grid" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu size={20} /></button>
+            <div className="flex min-w-0 items-center gap-2.5 text-xs text-muted max-[390px]:gap-[7px] max-[390px]:text-[10px]"><span>Workspace</span><span className="text-border" aria-hidden="true">/</span><strong className="overflow-hidden text-ellipsis whitespace-nowrap font-semibold text-foreground">{title}</strong></div>
           </div>
-          <div className="foundry-topbar-actions">
-            <button className="foundry-search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search workspace">
-              <Search size={16} aria-hidden="true" /><span>Search records</span><kbd><Command size={11} aria-hidden="true" /> K</kbd>
+          <div className="flex min-w-0 items-center gap-2.5 max-[760px]:gap-1.5 max-[390px]:gap-1">
+            <button className="flex min-h-9 min-w-[194px] items-center gap-2 rounded-lg border border-border bg-surface px-[9px] text-left text-[11px] text-muted hover:text-foreground max-[760px]:size-[37px] max-[760px]:min-w-[37px] max-[760px]:justify-center max-[760px]:p-0 [&>span]:max-[760px]:hidden [&>kbd]:max-[760px]:hidden" onClick={() => setSearchOpen(true)} aria-label="Search workspace">
+              <Search size={16} aria-hidden="true" /><span>Search records</span><kbd className="ml-auto inline-flex items-center gap-0.5 rounded border border-border bg-surface-muted px-[5px] py-0.5 text-[9px]"><Command size={11} aria-hidden="true" /> K</kbd>
             </button>
-            <span className={`foundry-topbar-connection ${mode === "demo" ? "is-demo" : ""}`}><i /> <span>{mode === "demo" ? "Demo workspace" : "Foundry"}</span></span>
-            <ThemeToggle />
-            <Link className="foundry-topbar-avatar" href="/settings" aria-label="Account and settings">{role.slice(0, 1)}</Link>
+            <span className={`inline-flex items-center gap-1.5 text-[10px] text-muted max-[760px]:[&>span]:hidden ${mode === "demo" ? "font-semibold text-primary" : ""}`}><i className="size-[7px] rounded-full bg-success shadow-[0_0_0_3px_color-mix(in_srgb,var(--success)_13%,transparent)]" /> <span>{mode === "demo" ? "Demo workspace" : "Foundry"}</span></span>
+            <ThemeToggle className="!h-9 !min-h-9 !gap-2 !rounded-lg !border-border !bg-surface !px-[9px] !text-[11px] !font-medium !text-muted !shadow-none max-[760px]:!min-w-0 max-[760px]:!justify-center" />
+            <Link className="grid size-[30px] shrink-0 place-items-center rounded-full border border-primary/20 bg-primary-subtle text-xs font-bold text-primary uppercase max-[390px]:size-[27px]" href="/settings" aria-label="Account and settings">{role.slice(0, 1)}</Link>
           </div>
         </header>
-        <main className="foundry-page-content">{children}</main>
+        <main className="mx-auto w-full max-w-[1500px] px-[clamp(20px,3vw,42px)] pt-[31px] pb-[54px] max-[760px]:px-[15px] max-[760px]:pt-[23px] max-[760px]:pb-10">{children}</main>
       </div>
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} isDemo={mode === "demo"} />
     </div>

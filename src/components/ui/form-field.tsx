@@ -41,13 +41,13 @@ export function FormField({
 
   return (
     <FormFieldContext.Provider value={{ controlId, invalid: Boolean(error), required, describedBy }}>
-      <div className={["ui-field grid gap-1.5", error && "ui-field--error", className].filter(Boolean).join(" ")}>
-        <label className="ui-field__label text-sm font-medium text-foreground" htmlFor={controlId}>
+      <div className={["grid gap-1.5", className].filter(Boolean).join(" ")}>
+        <label className="text-sm font-medium text-foreground" htmlFor={controlId}>
           {label}
-          {required && <span className="ui-field__required ml-1 text-error" aria-hidden="true">*</span>}
+          {required && <span className="ml-1 text-error" aria-hidden="true">*</span>}
         </label>
         {children}
-        {hint && <p className="ui-field__hint text-xs leading-5 text-muted" id={hintId}>{hint}</p>}
+        {hint && <p className="text-xs leading-5 text-muted" id={hintId}>{hint}</p>}
       </div>
     </FormFieldContext.Provider>
   );

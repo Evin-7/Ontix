@@ -57,19 +57,19 @@ export function LoginForm() {
   }
 
   return (
-    <form className="login-form" onSubmit={submit} noValidate>
-      <label className="field">
-        <span>Work email</span>
-        <input name="email" type="email" autoComplete="username" placeholder="you@company.com" required maxLength={254} />
+    <form className="grid gap-4" onSubmit={submit} noValidate>
+      <label className="grid gap-[7px] text-[13px] font-medium text-foreground">
+        <span className="text-[13px] font-semibold text-foreground">Work email</span>
+        <input className="min-h-11 w-full rounded-[var(--radius-control)] border border-border bg-surface px-[11px] text-sm text-foreground outline-none placeholder:text-muted focus:border-primary focus:ring-[3px] focus:ring-primary/15" name="email" type="email" autoComplete="username" placeholder="you@company.com" required maxLength={254} />
       </label>
-      <label className="field">
-        <span>Password</span>
-        <input name="password" type="password" autoComplete="current-password" placeholder="Enter your password" required minLength={12} maxLength={128} />
+      <label className="grid gap-[7px] text-[13px] font-medium text-foreground">
+        <span className="text-[13px] font-semibold text-foreground">Password</span>
+        <input className="min-h-11 w-full rounded-[var(--radius-control)] border border-border bg-surface px-[11px] text-sm text-foreground outline-none placeholder:text-muted focus:border-primary focus:ring-[3px] focus:ring-primary/15" name="password" type="password" autoComplete="current-password" placeholder="Enter your password" required minLength={12} maxLength={128} />
       </label>
-      <button className="button button-primary login-submit" type="submit" disabled={pending}>
-        {pending ? <><LoaderCircle size={17} className="spin" /> Signing in…</> : <>Sign in to Ontix <ArrowRight size={17} /></>}
+      <button className="mt-[2px] flex min-h-11 w-full items-center justify-center gap-[9px] rounded-[var(--radius-control)] border border-primary bg-primary px-3.5 text-sm font-semibold text-white shadow-sm transition active:translate-y-px hover:not-disabled:border-primary-hover hover:not-disabled:bg-primary-hover disabled:cursor-not-allowed dark:text-[#0b1220]" type="submit" disabled={pending}>
+        {pending ? <><LoaderCircle size={17} className="animate-spin" /> Signing in…</> : <>Sign in to Ontix <ArrowRight size={17} /></>}
       </button>
-      <div className="login-security"><ShieldCheck size={16} /><span>Secure workspace access · Accounts are provisioned by an administrator</span></div>
+      <div className="flex items-start gap-2 pt-[3px] text-xs leading-[1.5] text-muted"><ShieldCheck size={16} className="shrink-0 text-success" /><span>Secure workspace access · Accounts are provisioned by an administrator</span></div>
     </form>
   );
 }

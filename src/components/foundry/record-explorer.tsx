@@ -70,54 +70,54 @@ export function RecordExplorer({
       : { key, direction: "asc" });
   }
 
-  return <section className="foundry-record-section" aria-label={isDemo ? "Demo workspace records" : "Foundry records"}>
-    <div className="foundry-record-toolbar">
-      <label className="foundry-record-search"><Search size={17} aria-hidden="true" /><span className="sr-only">Search records</span><Input value={query} onChange={(event) => { setPage(1); setQuery(event.target.value); }} placeholder="Filter this list…" /></label>
-      {filters.length > 0 && <div className="foundry-record-filters"><SlidersHorizontal size={15} aria-hidden="true" />
-        {filters.map((filter) => <label key={filter.key}><span className="sr-only">Filter by {filter.label}</span><Select className="foundry-record-filter" value={filterValues[filter.key] ?? ""} onChange={(event) => { setPage(1); setFilterValues((current) => ({ ...current, [filter.key]: event.target.value })); }}>
+  return <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-sm)]" aria-label={isDemo ? "Demo workspace records" : "Foundry records"}>
+    <div className="flex min-h-[62px] items-center gap-2.5 border-b border-border px-[15px] py-3 max-[760px]:flex-wrap max-[760px]:p-2.5">
+      <label className="flex w-[min(100%,310px)] items-center gap-2 text-muted max-[760px]:w-full max-[760px]:basis-full"><Search size={17} aria-hidden="true" /><span className="sr-only">Search records</span><Input className="!min-h-9 !border-transparent !bg-surface-muted !text-[11px]" value={query} onChange={(event) => { setPage(1); setQuery(event.target.value); }} placeholder="Filter this list…" /></label>
+      {filters.length > 0 && <div className="flex items-center gap-[7px] text-muted max-[760px]:min-w-0 max-[760px]:flex-1 max-[760px]:flex-wrap max-[390px]:max-w-[calc(100vw-90px)] max-[390px]:overflow-x-auto"><SlidersHorizontal className="max-[390px]:hidden" size={15} aria-hidden="true" />
+        {filters.map((filter) => <label key={filter.key}><span className="sr-only">Filter by {filter.label}</span><Select className="!min-h-[35px] max-w-[164px] !rounded-[7px] !px-3 !pl-[9px] !text-[10px] capitalize max-[760px]:max-w-[min(45vw,155px)]" value={filterValues[filter.key] ?? ""} onChange={(event) => { setPage(1); setFilterValues((current) => ({ ...current, [filter.key]: event.target.value })); }}>
           <option value="">All {filter.label}</option>{filter.options.map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}
         </Select></label>)}
       </div>}
-      <span className="foundry-record-count">{filtered.length.toLocaleString()} {filtered.length === 1 ? "record" : "records"}</span>
+      <span className="ml-auto whitespace-nowrap text-[10px] text-muted">{filtered.length.toLocaleString()} {filtered.length === 1 ? "record" : "records"}</span>
     </div>
 
     {filtered.length === 0 ? <EmptyState title={query || Object.values(filterValues).some(Boolean) ? "No matching records" : emptyTitle} description={query || Object.values(filterValues).some(Boolean) ? "Adjust your search or filters and try again." : emptyDescription} /> : <>
-      <div className="foundry-table-viewport">
-        <table className="foundry-record-table">
+      <div className="overflow-x-auto max-[760px]:hidden">
+        <table className="w-full border-collapse text-left [&_tbody_tr:last-child_td]:border-b-0">
           <caption className="sr-only">Workspace records. Select a row to view its details.</caption>
           <thead><tr>
-            <th aria-sort={sort.key === "title" ? sort.direction === "asc" ? "ascending" : "descending" : "none"}><button onClick={() => toggleSort("title")}>Name <SortIcon active={sort.key === "title"} direction={sort.direction} /></button></th>
-            <th aria-sort={sort.key === "id" ? sort.direction === "asc" ? "ascending" : "descending" : "none"}><button onClick={() => toggleSort("id")}>ID <SortIcon active={sort.key === "id"} direction={sort.direction} /></button></th>
-            {columns.map((column) => <th key={column.key} aria-sort={sort.key === column.key ? sort.direction === "asc" ? "ascending" : "descending" : "none"}><button onClick={() => toggleSort(column.key)}>{column.label}<SortIcon active={sort.key === column.key} direction={sort.direction} /></button></th>)}
-            <th><span className="sr-only">Open record</span></th>
+            <th className="h-10 border-b border-border bg-surface-muted px-[14px] first:pl-[18px] last:pr-[18px]" aria-sort={sort.key === "title" ? sort.direction === "asc" ? "ascending" : "descending" : "none"}><button className="inline-flex items-center gap-[5px] whitespace-nowrap border-0 bg-transparent text-[9px] font-semibold tracking-[.05em] text-muted uppercase" onClick={() => toggleSort("title")}>Name <SortIcon active={sort.key === "title"} direction={sort.direction} /></button></th>
+            <th className="h-10 border-b border-border bg-surface-muted px-[14px] first:pl-[18px] last:pr-[18px]" aria-sort={sort.key === "id" ? sort.direction === "asc" ? "ascending" : "descending" : "none"}><button className="inline-flex items-center gap-[5px] whitespace-nowrap border-0 bg-transparent text-[9px] font-semibold tracking-[.05em] text-muted uppercase" onClick={() => toggleSort("id")}>ID <SortIcon active={sort.key === "id"} direction={sort.direction} /></button></th>
+            {columns.map((column) => <th className="h-10 border-b border-border bg-surface-muted px-[14px] first:pl-[18px] last:pr-[18px]" key={column.key} aria-sort={sort.key === column.key ? sort.direction === "asc" ? "ascending" : "descending" : "none"}><button className="inline-flex items-center gap-[5px] whitespace-nowrap border-0 bg-transparent text-[9px] font-semibold tracking-[.05em] text-muted uppercase" onClick={() => toggleSort(column.key)}>{column.label}<SortIcon active={sort.key === column.key} direction={sort.direction} /></button></th>)}
+            <th className="h-10 border-b border-border bg-surface-muted px-[14px] first:pl-[18px] last:pr-[18px]"><span className="sr-only">Open record</span></th>
           </tr></thead>
-          <tbody>{visible.map((record) => <tr key={record.id}>
-            <td><button className="foundry-record-title" onClick={() => setClickedId(record.id)}><strong>{record.title}</strong><small>{record.subtitle}</small></button></td>
-            <td><code className="foundry-record-id">{record.id}</code></td>
-            {columns.map((column) => <td key={column.key}>{column.key === "status" || column.key === "priority" ? <StatusBadge status={record.values[column.key] || record.status} /> : <span>{record.values[column.key] || "—"}</span>}</td>)}
-            <td><button className="foundry-view-record" onClick={() => setClickedId(record.id)}>View</button></td>
+          <tbody>{visible.map((record) => <tr className="hover:bg-[color-mix(in_srgb,var(--primary)_3%,var(--surface))]" key={record.id}>
+            <td className="h-[61px] border-b border-border px-[14px] py-[9px] text-[10px] text-foreground align-middle whitespace-nowrap first:pl-[18px] last:pr-[18px]"><button className="grid max-w-[290px] gap-1 border-0 bg-transparent px-0 py-0.5 text-left text-foreground" onClick={() => setClickedId(record.id)}><strong className="overflow-hidden text-ellipsis text-[11px] font-semibold">{record.title}</strong><small className="overflow-hidden text-ellipsis text-[9px] text-muted">{record.subtitle}</small></button></td>
+            <td className="h-[61px] border-b border-border px-[14px] py-[9px] text-[10px] text-foreground align-middle whitespace-nowrap first:pl-[18px] last:pr-[18px]"><code className="font-mono text-[9px] text-muted">{record.id}</code></td>
+            {columns.map((column) => <td className="h-[61px] border-b border-border px-[14px] py-[9px] text-[10px] text-foreground align-middle whitespace-nowrap first:pl-[18px] last:pr-[18px]" key={column.key}>{column.key === "status" || column.key === "priority" ? <StatusBadge className="!px-[7px] !py-1 !text-[9px] capitalize" status={record.values[column.key] || record.status} /> : <span>{record.values[column.key] || "—"}</span>}</td>)}
+            <td className="h-[61px] border-b border-border px-[14px] py-[9px] text-[10px] text-foreground align-middle whitespace-nowrap first:pl-[18px] last:pr-[18px]"><button className="rounded-[5px] border-0 bg-transparent px-[7px] py-[5px] text-[10px] font-semibold text-primary hover:bg-primary-subtle" onClick={() => setClickedId(record.id)}>View</button></td>
           </tr>)}</tbody>
         </table>
       </div>
-      <div className="foundry-record-mobile-list">{visible.map((record) => <button className="foundry-mobile-record" key={record.id} onClick={() => setClickedId(record.id)}>
-        <span className="foundry-mobile-record-heading"><span><strong>{record.title}</strong><small>{record.id}</small></span><StatusBadge status={record.status} /></span>
-        <span className="foundry-mobile-record-subtitle">{record.subtitle}</span>
-        {columns.slice(0, 2).map((column) => <span className="foundry-mobile-record-value" key={column.key}><small>{column.label}</small><strong>{record.values[column.key] || "—"}</strong></span>)}
+      <div className="hidden max-[760px]:grid">{visible.map((record) => <button className="grid gap-2.5 border-0 border-b border-border bg-surface p-3.5 text-left text-foreground last:border-b-0" key={record.id} onClick={() => setClickedId(record.id)}>
+        <span className="flex min-w-0 items-center justify-between gap-2"><span className="grid min-w-0 gap-1"><strong className="overflow-hidden text-ellipsis whitespace-nowrap text-[11px]">{record.title}</strong><small className="text-[9px] text-muted">{record.id}</small></span><StatusBadge className="!text-[9px]" status={record.status} /></span>
+        <span className="text-[9px] text-muted">{record.subtitle}</span>
+        {columns.slice(0, 2).map((column) => <span className="flex items-baseline justify-between gap-3" key={column.key}><small className="text-[9px] text-muted">{column.label}</small><strong className="max-w-[70%] overflow-hidden text-ellipsis whitespace-nowrap text-[9px] font-medium">{record.values[column.key] || "—"}</strong></span>)}
       </button>)}</div>
-      <div className="foundry-record-pagination"><span>Showing {Math.min(filtered.length, (page - 1) * pageSize + 1)}–{Math.min(filtered.length, page * pageSize)} of {filtered.length.toLocaleString()}</span><div>
-        <button onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1} aria-label="Previous page"><ChevronLeft size={17} /></button><span>Page {page} of {pageCount}</span><button onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page >= pageCount} aria-label="Next page"><ChevronRight size={17} /></button>
+      <div className="flex min-h-12 items-center justify-between gap-3 border-t border-border px-4 py-[7px] text-[9px] text-muted max-[760px]:px-2.5"><span className="max-[760px]:max-w-[100px]">Showing {Math.min(filtered.length, (page - 1) * pageSize + 1)}–{Math.min(filtered.length, page * pageSize)} of {filtered.length.toLocaleString()}</span><div className="flex items-center gap-2.5">
+        <button className="grid size-7 place-items-center rounded-md border border-border bg-surface text-foreground disabled:cursor-not-allowed disabled:opacity-45" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1} aria-label="Previous page"><ChevronLeft size={17} /></button><span>Page {page} of {pageCount}</span><button className="grid size-7 place-items-center rounded-md border border-border bg-surface text-foreground disabled:cursor-not-allowed disabled:opacity-45" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page >= pageCount} aria-label="Next page"><ChevronRight size={17} /></button>
       </div></div>
     </>}
 
     <Dialog open={Boolean(selected)} onOpenChange={(open) => { if (!open) { if (selectedId) setDismissedId(selectedId); setClickedId(undefined); } }}>
-      {selected && <DialogContent size="md" centered={false} className="foundry-record-drawer">
-        <DialogHeader><span className="eyebrow">{selected.kind.toUpperCase()} RECORD</span><DialogTitle>{selected.title}</DialogTitle><DialogDescription>{selected.subtitle} · {selected.id}</DialogDescription></DialogHeader>
-        <div className="foundry-detail-status"><span>Current status</span><StatusBadge status={selected.status} /></div>
-        <div className="foundry-detail-fields">{Object.entries(selected.values).filter(([key, value]) => key !== "status" && value).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{value}</dd></div>)}</div>
-        {isDemo && (selected.kind === "Project" || selected.kind === "Case") && <div className="foundry-read-only-note">Editing is unavailable in demo mode.</div>}
-        {!isDemo && selected.action?.type === "project" && <div className="foundry-detail-action-block"><h3>Workflow</h3><FoundryProjectStatusDialog projectId={selected.id} projectName={selected.title} initialStatus={selected.action.initialStatus} /></div>}
-        {!isDemo && selected.action?.type === "case" && <div className="foundry-detail-action-block"><h3>Case actions</h3><FoundryCaseDetailActions caseId={selected.id} caseTitle={selected.action.caseTitle} assignedEmployeeId={selected.action.assignedEmployeeId} employees={selected.action.employees} canResolve={selected.action.canResolve} /></div>}
-        {selected.kind === "Approval" && <div className="foundry-read-only-note">Read only · Approval decisions are not configured as Ontology actions.</div>}
+      {selected && <DialogContent size="md" centered={false} className="!top-0 !right-0 !left-auto !h-dvh !max-h-dvh !w-[min(540px,100vw)] !translate-x-0 !translate-y-0 !rounded-l-2xl !rounded-r-none !p-7 !animate-foundry-drawer-in max-[760px]:!top-auto max-[760px]:!right-0 max-[760px]:!bottom-0 max-[760px]:!left-0 max-[760px]:!h-[min(88dvh,760px)] max-[760px]:!max-h-[88dvh] max-[760px]:!w-screen max-[760px]:!rounded-t-2xl max-[760px]:!rounded-b-none max-[760px]:!px-[19px] max-[760px]:!py-[23px] max-[760px]:!animate-foundry-sheet-in">
+        <DialogHeader className="!gap-[7px]"><span className="text-[9px] font-bold tracking-[.12em] text-primary">{selected.kind.toUpperCase()} RECORD</span><DialogTitle className="!text-[25px] !tracking-[-.04em] max-[760px]:!text-[21px]">{selected.title}</DialogTitle><DialogDescription>{selected.subtitle} · {selected.id}</DialogDescription></DialogHeader>
+        <div className="flex items-center justify-between border-y border-border py-[14px]"><span className="text-[10px] text-muted">Current status</span><StatusBadge className="!px-[7px] !py-1 !text-[9px] capitalize" status={selected.status} /></div>
+        <div className="grid grid-cols-2 gap-x-[18px] max-[760px]:gap-x-3">{Object.entries(selected.values).filter(([key, value]) => key !== "status" && value).map(([key, value]) => <div className="min-w-0 border-b border-border py-[13px]" key={key}><dt className="mb-[5px] text-[10px] text-muted capitalize max-[760px]:text-[9px]">{key.replaceAll("_", " ")}</dt><dd className="m-0 text-[11px] leading-[1.5] text-foreground [overflow-wrap:anywhere] max-[760px]:text-[9px]">{value}</dd></div>)}</div>
+        {isDemo && (selected.kind === "Project" || selected.kind === "Case") && <div className="mt-5 rounded-lg border border-border bg-surface-muted px-3 py-[11px] text-[10px] text-muted">Editing is unavailable in demo mode.</div>}
+        {!isDemo && selected.action?.type === "project" && <div className="mt-[22px] rounded-[10px] border border-border bg-surface-muted p-4"><h3 className="m-0 text-xs font-semibold">Workflow</h3><FoundryProjectStatusDialog projectId={selected.id} projectName={selected.title} initialStatus={selected.action.initialStatus} /></div>}
+        {!isDemo && selected.action?.type === "case" && <div className="mt-[22px] rounded-[10px] border border-border bg-surface-muted p-4"><h3 className="m-0 text-xs font-semibold">Case actions</h3><FoundryCaseDetailActions caseId={selected.id} caseTitle={selected.action.caseTitle} assignedEmployeeId={selected.action.assignedEmployeeId} employees={selected.action.employees} canResolve={selected.action.canResolve} /></div>}
+        {selected.kind === "Approval" && <div className="mt-5 rounded-lg border border-border bg-surface-muted px-3 py-[11px] text-[10px] text-muted">Read only · Approval decisions are not configured as Ontology actions.</div>}
       </DialogContent>}
     </Dialog>
   </section>;

@@ -119,16 +119,15 @@ export function Select({
           aria-invalid={invalid ?? (field?.invalid || undefined)}
           aria-required={required ?? (field?.required || undefined)}
           className={[
-            "ui-select min-h-10 w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-error aria-invalid:focus-visible:ring-error",
-            field?.invalid && "ui-select--error",
+            "flex min-h-10 w-full min-w-0 items-center justify-between gap-[9px] rounded-lg border border-[#dbe3ee] bg-white px-3 py-2 pr-3 text-left text-sm text-[#0f172a] shadow-[0_1px_2px_rgb(15_23_42_/_0.04)] transition-[border-color,box-shadow] duration-150 enabled:hover:border-[#c4cfe0] focus-visible:border-[#818cf8] focus-visible:shadow-[0_0_0_3px_rgb(99_102_241_/_0.13)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-error aria-invalid:focus-visible:ring-error",
             className,
           ]
             .filter(Boolean)
             .join(" ")}
         >
-          <SelectPrimitive.Value />
+          <SelectPrimitive.Value className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap" />
           <SelectPrimitive.Icon
-            className="ui-select__trigger-icon"
+            className="ml-auto flex shrink-0 text-slate-500"
             aria-hidden="true"
           >
             <ChevronDown size={15} />
@@ -136,22 +135,22 @@ export function Select({
         </SelectPrimitive.Trigger>
         <SelectPrimitive.Portal>
           <SelectPrimitive.Content
-            className="ui-select__content"
+            className="z-[60] max-h-[min(320px,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[10px] border border-slate-200 bg-white p-1 text-[#0f172a] shadow-[0_12px_28px_rgb(15_23_42_/_0.16),0_2px_6px_rgb(15_23_42_/_0.07)] animate-ui-select-enter"
             position="popper"
             sideOffset={5}
           >
-            <SelectPrimitive.Viewport className="ui-select__viewport">
+            <SelectPrimitive.Viewport className="max-h-[inherit] p-[2px]">
               {options.map((option) => (
                 <SelectPrimitive.Item
                   key={option.key}
                   value={option.value || EMPTY_OPTION_VALUE}
                   disabled={option.disabled}
-                  className="ui-select__item"
+                  className="relative flex min-h-[34px] cursor-pointer select-none items-center gap-[10px] rounded-[6px] px-[9px] py-[7px] text-xs leading-[1.45] text-slate-700 outline-none data-[highlighted]:bg-indigo-50 data-[highlighted]:text-indigo-700 data-[state=checked]:font-semibold data-[state=checked]:text-indigo-800 data-[disabled]:cursor-not-allowed data-[disabled]:text-slate-400 data-[disabled]:opacity-[.62]"
                 >
                   <SelectPrimitive.ItemText>
                     {option.label}
                   </SelectPrimitive.ItemText>
-                  <SelectPrimitive.ItemIndicator className="ui-select__item-indicator">
+                  <SelectPrimitive.ItemIndicator className="ml-auto flex shrink-0 text-indigo-600">
                     <Check size={14} aria-hidden="true" />
                   </SelectPrimitive.ItemIndicator>
                 </SelectPrimitive.Item>

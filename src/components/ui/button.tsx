@@ -40,7 +40,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = [
-    "ui-button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent font-medium transition-colors active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none",
+    "inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent font-medium transition-colors active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none",
     variantClasses[variant],
     sizeClasses[size],
     className,
@@ -57,7 +57,7 @@ export function Button({
       aria-busy={loading || undefined}
       data-loading={loading ? "true" : undefined}
     >
-      {loading && <LoaderCircle className="ui-button__spinner animate-spin motion-reduce:animate-none" size={16} aria-hidden="true" />}
+      {loading && <LoaderCircle className="animate-spin motion-reduce:animate-none" size={16} aria-hidden="true" />}
       {loading && loadingLabel ? loadingLabel : children}
     </button>
   );

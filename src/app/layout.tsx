@@ -39,8 +39,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans`}>
+    <html lang="en" suppressHydrationWarning className="min-w-80 min-h-full bg-background scheme-light dark:scheme-dark">
+      <body className={`${inter.variable} ${jetbrainsMono.variable} min-w-80 min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary-subtle selection:text-foreground [font-feature-settings:'cv02','cv03','cv04','cv11'] [text-rendering:optimizeLegibility]`}>
         <ThemeProvider>
           <ToastProvider>{children}</ToastProvider>
         </ThemeProvider>

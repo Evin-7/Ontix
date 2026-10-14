@@ -54,8 +54,7 @@ export function StatusBadge({ status, label, tone, className, ...props }: Status
     <span
       {...props}
       className={[
-        "ui-status-badge inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium leading-none",
-        `ui-status-badge--${resolvedTone}`,
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium leading-none",
         toneClasses[resolvedTone],
         className,
       ]

@@ -66,14 +66,14 @@ export function FoundryProjectStatusForm({
     });
   }
 
-  return <form className="foundry-inline-form" onSubmit={submit}>
-    <Select className="foundry-inline-select" aria-label={`New status for ${projectName}`} name="status" value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus)} disabled={pending}>
+  return <form className="flex flex-wrap items-center gap-[6px]" onSubmit={submit}>
+    <Select className="!min-h-[34px] !max-w-[155px] !rounded-lg !px-2 !py-[.42rem] !pr-3 !text-xs disabled:cursor-wait disabled:opacity-[.65]" aria-label={`New status for ${projectName}`} name="status" value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus)} disabled={pending}>
       <option value="PLANNING">Planning</option>
       <option value="IN_PROGRESS">In progress</option>
       <option value="AT_RISK">At risk</option>
       <option value="COMPLETED">Completed</option>
     </Select>
-    <button type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Saving…" : "Save"}</button>
+    <button className="inline-flex items-center gap-1.5 rounded-lg border-0 bg-primary px-[10px] py-[7px] text-[.74rem] font-semibold text-white disabled:cursor-wait disabled:opacity-65" type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Saving…" : "Save"}</button>
   </form>;
 }
 
@@ -105,11 +105,11 @@ export function FoundryCaseAssignmentForm({
     });
   }
 
-  return <form className="foundry-inline-form" onSubmit={submit}>
-    <Select className="foundry-inline-select" aria-label={`Assign ${caseTitle} to`} name="employeeId" value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>
+  return <form className="flex flex-wrap items-center gap-[6px]" onSubmit={submit}>
+    <Select className="!min-h-[34px] !max-w-[155px] !rounded-lg !px-2 !py-[.42rem] !pr-3 !text-xs disabled:cursor-wait disabled:opacity-[.65]" aria-label={`Assign ${caseTitle} to`} name="employeeId" value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>
       {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
     </Select>
-    <button type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Assigning…" : "Assign"}</button>
+    <button className="inline-flex items-center gap-1.5 rounded-lg border-0 bg-primary px-[10px] py-[7px] text-[.74rem] font-semibold text-white disabled:cursor-wait disabled:opacity-65" type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Assigning…" : "Assign"}</button>
   </form>;
 }
 
@@ -131,7 +131,7 @@ export function FoundryResolveCaseButton({ caseId }: { caseId: string }) {
   }
 
   return <form onSubmit={submit}>
-    <button className="foundry-quiet-button" type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Resolving…" : "Resolve"}</button>
+    <button className="inline-flex items-center gap-1.5 rounded-lg border-0 bg-transparent px-[10px] py-[7px] text-[.74rem] font-semibold text-primary disabled:cursor-wait disabled:opacity-65" type="submit" disabled={pending} aria-busy={pending || undefined}>{pending && <LoaderCircle size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? "Resolving…" : "Resolve"}</button>
   </form>;
 }
 
@@ -160,9 +160,9 @@ export function FoundryProjectStatusDialog({ projectId, initialStatus }: {
     <Dialog open={open} onOpenChange={(next) => { if (!pending) setOpen(next); }}>
       <DialogContent size="sm">
         <DialogHeader><DialogTitle>Update project status</DialogTitle></DialogHeader>
-        <form onSubmit={submit} className="foundry-action-form">
-          <label htmlFor={`project-status-${projectId}`}>New status</label>
-          <Select className="foundry-action-select" id={`project-status-${projectId}`} value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus)} disabled={pending}>
+        <form onSubmit={submit} className="grid gap-[9px]">
+          <label className="text-[11px] font-medium text-muted" htmlFor={`project-status-${projectId}`}>New status</label>
+          <Select className="!min-h-[42px] !rounded-lg !px-3 !py-0 !pl-[11px] !text-xs" id={`project-status-${projectId}`} value={status} onChange={(event) => setStatus(event.target.value as ProjectStatus)} disabled={pending}>
             <option value="PLANNING">Planning</option><option value="IN_PROGRESS">In progress</option><option value="AT_RISK">At risk</option><option value="COMPLETED">Completed</option>
           </Select>
           <DialogFooter>
@@ -206,15 +206,15 @@ export function FoundryCaseDetailActions({ caseId, caseTitle, assignedEmployeeId
       }
     });
   }
-  return <div className="foundry-detail-actions">
+  return <div className="flex flex-wrap gap-2">
     {employees.length > 0 && <>
       <Button variant="outline" size="sm" onClick={() => { setEmployeeId(assignedEmployeeId ?? employees[0]?.id ?? ""); setOpen(true); }}><UserRoundPlus size={15} />Assign case</Button>
       <Dialog open={open} onOpenChange={(next) => { if (!pending) setOpen(next); }}>
         <DialogContent size="sm">
           <DialogHeader><DialogTitle>Assign case</DialogTitle></DialogHeader>
-          <form onSubmit={assign} className="foundry-action-form">
-            <label htmlFor={`case-employee-${caseId}`}>Assigned employee</label>
-            <Select className="foundry-action-select" id={`case-employee-${caseId}`} value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>
+          <form onSubmit={assign} className="grid gap-[9px]">
+            <label className="text-[11px] font-medium text-muted" htmlFor={`case-employee-${caseId}`}>Assigned employee</label>
+            <Select className="!min-h-[42px] !rounded-lg !px-3 !py-0 !pl-[11px] !text-xs" id={`case-employee-${caseId}`} value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} disabled={pending}>
               {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
             </Select>
             <DialogFooter><Button variant="outline" onClick={() => setOpen(false)} disabled={pending}>Cancel</Button><Button type="submit" loading={pending} loadingLabel="Assigning…">Save assignment</Button></DialogFooter>

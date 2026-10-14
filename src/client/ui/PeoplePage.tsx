@@ -40,19 +40,19 @@ export function PeoplePage({ employees, teams, viewerEmployeeId, search, onClear
   const visibleTeams = useMemo(() => teams.filter((item) => includesSearch(`${item.name} ${item.department} ${item.description} ${item.isActive ? "active" : "inactive"}`, search)), [teams, search]);
 
   const employeeColumns: DataTableColumn<Employee>[] = [
-    { id: "name", label: "Employee", header: "Employee", sortValue: (row) => row.name, cell: (row) => <div className="primary-cell"><strong>{row.name}</strong><span>{row.employeeNumber ?? row.title}{row.email ? ` · ${row.email}` : ` · ${row.title}`}</span></div> },
+    { id: "name", label: "Employee", header: "Employee", sortValue: (row) => row.name, cell: (row) => <div className="flex min-w-40 flex-col gap-1"><strong className="text-[13px] font-semibold text-foreground">{row.name}</strong><span className="text-[11px] text-muted">{row.employeeNumber ?? row.title}{row.email ? ` · ${row.email}` : ` · ${row.title}`}</span></div> },
     { id: "team", label: "Team", header: "Team", sortValue: (row) => row.team?.name ?? "", cell: (row) => row.team?.name ?? "Unassigned" },
     { id: "role", label: "Role", header: "Role", sortValue: (row) => row.role, cell: (row) => titleCase(row.role) },
     { id: "status", label: "Status", header: "Status", sortValue: (row) => row.isActive !== false, cell: (row) => <StatusBadge status={row.isActive === false ? "INACTIVE" : "ACTIVE"} /> },
-    { id: "actions", label: "Actions", header: "Actions", cell: (row) => canManageEmployees ? <div className="row-actions">{row.isActive !== false && <Button variant="outline" size="sm" disabled={busy} onClick={() => setDialog({ kind: "employee", record: row })}>Edit</Button>}{row.isActive !== false ? <Button variant="ghost" size="sm" disabled={busy || row.id === viewerEmployeeId} title={row.id === viewerEmployeeId ? "You cannot deactivate your own account" : undefined} onClick={() => setDeactivation({ kind: "employee", record: row })}>Deactivate</Button> : <Button variant="outline" size="sm" disabled={busy} onClick={() => void onAction({ type: "employee.activate", employeeId: row.id })}>Reactivate</Button>}</div> : <span className="muted-icon">—</span> },
+    { id: "actions", label: "Actions", header: "Actions", cell: (row) => canManageEmployees ? <div className="flex flex-wrap items-center gap-1.5">{row.isActive !== false && <Button variant="outline" size="sm" disabled={busy} onClick={() => setDialog({ kind: "employee", record: row })}>Edit</Button>}{row.isActive !== false ? <Button variant="ghost" size="sm" disabled={busy || row.id === viewerEmployeeId} title={row.id === viewerEmployeeId ? "You cannot deactivate your own account" : undefined} onClick={() => setDeactivation({ kind: "employee", record: row })}>Deactivate</Button> : <Button variant="outline" size="sm" disabled={busy} onClick={() => void onAction({ type: "employee.activate", employeeId: row.id })}>Reactivate</Button>}</div> : <span className="shrink-0 text-muted">—</span> },
   ];
   const teamColumns: DataTableColumn<Team>[] = [
-    { id: "name", label: "Team", header: "Team", sortValue: (row) => row.name, cell: (row) => <div className="primary-cell"><strong>{row.name}</strong><span>{row.description || row.department}</span></div> },
+    { id: "name", label: "Team", header: "Team", sortValue: (row) => row.name, cell: (row) => <div className="flex min-w-40 flex-col gap-1"><strong className="text-[13px] font-semibold text-foreground">{row.name}</strong><span className="text-[11px] text-muted">{row.description || row.department}</span></div> },
     { id: "department", label: "Department", header: "Department", sortValue: (row) => row.department, cell: (row) => row.department },
     { id: "members", label: "Members", header: "Members", sortValue: (row) => row._count?.employees ?? 0, cell: (row) => (row._count?.employees ?? 0).toLocaleString() },
     { id: "projects", label: "Projects", header: "Projects", sortValue: (row) => row._count?.projects ?? 0, cell: (row) => (row._count?.projects ?? 0).toLocaleString() },
     { id: "status", label: "Status", header: "Status", sortValue: (row) => row.isActive, cell: (row) => <StatusBadge status={row.isActive ? "ACTIVE" : "INACTIVE"} /> },
-    { id: "actions", label: "Actions", header: "Actions", cell: (row) => canManageTeams ? <div className="row-actions">{row.isActive && <Button variant="outline" size="sm" disabled={busy} onClick={() => setDialog({ kind: "team", record: row })}>Edit</Button>}{row.isActive ? <Button variant="ghost" size="sm" disabled={busy} onClick={() => setDeactivation({ kind: "team", record: row })}>Deactivate</Button> : <Button variant="outline" size="sm" disabled={busy} onClick={() => void onAction({ type: "team.activate", teamId: row.id })}>Reactivate</Button>}</div> : <span className="muted-icon">—</span> },
+    { id: "actions", label: "Actions", header: "Actions", cell: (row) => canManageTeams ? <div className="flex flex-wrap items-center gap-1.5">{row.isActive && <Button variant="outline" size="sm" disabled={busy} onClick={() => setDialog({ kind: "team", record: row })}>Edit</Button>}{row.isActive ? <Button variant="ghost" size="sm" disabled={busy} onClick={() => setDeactivation({ kind: "team", record: row })}>Deactivate</Button> : <Button variant="outline" size="sm" disabled={busy} onClick={() => void onAction({ type: "team.activate", teamId: row.id })}>Reactivate</Button>}</div> : <span className="shrink-0 text-muted">—</span> },
   ];
 
   const recordCount = tab === "employees" ? visibleEmployees.length : visibleTeams.length;
@@ -70,13 +70,13 @@ export function PeoplePage({ employees, teams, viewerEmployeeId, search, onClear
       title="People and teams"
       actions={canCreate ? <Button onClick={() => setDialog({ kind: tab === "employees" ? "employee" : "team" })}><Plus size={16} /> Add {entity}</Button> : undefined}
     />
-    <section className="panel people-panel">
-      <div className="people-panel-heading">
-        <div className="people-tabs" role="tablist" aria-label="People records">
-          <button type="button" role="tab" aria-selected={tab === "employees"} className={`people-tab ${tab === "employees" ? "active" : ""}`} onClick={() => setTab("employees")}><UsersRound size={16} /> Employees <span>{employees.filter((item) => item.isActive !== false).length}</span></button>
-          <button type="button" role="tab" aria-selected={tab === "teams"} className={`people-tab ${tab === "teams" ? "active" : ""}`} onClick={() => setTab("teams")}><Building2 size={16} /> Teams <span>{teams.filter((item) => item.isActive).length}</span></button>
+    <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-sm)]">
+      <div className="flex min-h-16 items-center justify-between gap-3.5 border-b border-border px-[18px] py-3 max-[520px]:items-start max-[520px]:flex-col">
+        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="People records">
+          <button type="button" role="tab" aria-selected={tab === "employees"} className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-[11px] text-xs font-semibold transition-colors ${tab === "employees" ? "border-[color-mix(in_srgb,var(--primary)_20%,var(--border))] bg-primary-subtle text-primary" : "border-transparent bg-transparent text-muted hover:bg-surface-muted hover:text-foreground"}`} onClick={() => setTab("employees")}><UsersRound size={16} /> Employees <span className="min-w-5 rounded-full bg-surface px-[5px] py-0.5 text-center text-[10px] text-muted">{employees.filter((item) => item.isActive !== false).length}</span></button>
+          <button type="button" role="tab" aria-selected={tab === "teams"} className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-[11px] text-xs font-semibold transition-colors ${tab === "teams" ? "border-[color-mix(in_srgb,var(--primary)_20%,var(--border))] bg-primary-subtle text-primary" : "border-transparent bg-transparent text-muted hover:bg-surface-muted hover:text-foreground"}`} onClick={() => setTab("teams")}><Building2 size={16} /> Teams <span className="min-w-5 rounded-full bg-surface px-[5px] py-0.5 text-center text-[10px] text-muted">{teams.filter((item) => item.isActive).length}</span></button>
         </div>
-        <span className="people-record-count">{recordCount} {recordCount === 1 ? "record" : "records"}</span>
+        <span className="whitespace-nowrap text-xs text-muted">{recordCount} {recordCount === 1 ? "record" : "records"}</span>
       </div>
       <div role="tabpanel" aria-label={tab === "employees" ? "Employees" : "Teams"}>
         {tab === "employees" ? <DataTable<Employee>
@@ -99,7 +99,7 @@ export function PeoplePage({ employees, teams, viewerEmployeeId, search, onClear
           emptyAction={search ? <Button variant="outline" size="sm" onClick={onClearSearch}>Clear search</Button> : canManageTeams ? <Button size="sm" onClick={() => setDialog({ kind: "team" })}><Plus size={15} /> Add team</Button> : undefined}
         />}
       </div>
-      {tab === "employees" && canManageEmployees && <p className="people-note">Employee records do not create sign-in credentials. An administrator must provision login access separately.</p>}
+      {tab === "employees" && canManageEmployees && <p className="m-0 border-t border-border px-[18px] py-3 text-[11px] leading-[1.5] text-muted">Employee records do not create sign-in credentials. An administrator must provision login access separately.</p>}
     </section>
 
     {dialog && <RecordDialog state={dialog} teams={teams} onClose={() => { if (!busy) setDialog(null); }} onAction={onAction} setBusy={setBusy} />}
@@ -184,10 +184,10 @@ function RecordDialog({ state, teams, onClose, onAction, setBusy }: {
       </DialogHeader>
       <form onSubmit={(event) => void submit(event)} noValidate>
         {state.kind === "employee" ? <>
-          <div className="form-row"><FormField label="Employee number" required><Input name="employeeNumber" defaultValue={employee?.employeeNumber ?? ""} placeholder="OX-2048" required maxLength={32} /></FormField><FormField label="Full name" required><Input name="name" defaultValue={employee?.name ?? ""} placeholder="Jordan Lee" required maxLength={140} /></FormField></div>
+          <div className="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1"><FormField label="Employee number" required><Input name="employeeNumber" defaultValue={employee?.employeeNumber ?? ""} placeholder="OX-2048" required maxLength={32} /></FormField><FormField label="Full name" required><Input name="name" defaultValue={employee?.name ?? ""} placeholder="Jordan Lee" required maxLength={140} /></FormField></div>
           <FormField label="Work email" required><Input name="email" type="email" defaultValue={employee?.email ?? ""} placeholder="jordan@example.com" required maxLength={254} /></FormField>
-          <div className="form-row"><FormField label="Job title" required><Input name="title" defaultValue={employee?.title ?? ""} placeholder="Operations analyst" required maxLength={120} /></FormField><FormField label="Department" required><Input name="department" defaultValue={employee?.department ?? ""} placeholder="Operations" required maxLength={100} /></FormField></div>
-          <div className="form-row"><FormField label="Role" required><Select name="role" defaultValue={employee?.role ?? "ANALYST"}>{["ADMINISTRATOR", "MANAGER", "DEVELOPER", "ANALYST"].map((role) => <option key={role} value={role}>{titleCase(role)}</option>)}</Select></FormField><FormField label="Team"><Select name="teamId" defaultValue={employee?.teamId ?? ""}><option value="">Unassigned</option>{teams.filter((item) => item.isActive || item.id === employee?.teamId).map((item) => <option key={item.id} value={item.id}>{item.name}{item.isActive ? "" : " · inactive"}</option>)}</Select></FormField></div>
+          <div className="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1"><FormField label="Job title" required><Input name="title" defaultValue={employee?.title ?? ""} placeholder="Operations analyst" required maxLength={120} /></FormField><FormField label="Department" required><Input name="department" defaultValue={employee?.department ?? ""} placeholder="Operations" required maxLength={100} /></FormField></div>
+          <div className="grid grid-cols-2 gap-3 max-[520px]:grid-cols-1"><FormField label="Role" required><Select name="role" defaultValue={employee?.role ?? "ANALYST"}>{["ADMINISTRATOR", "MANAGER", "DEVELOPER", "ANALYST"].map((role) => <option key={role} value={role}>{titleCase(role)}</option>)}</Select></FormField><FormField label="Team"><Select name="teamId" defaultValue={employee?.teamId ?? ""}><option value="">Unassigned</option>{teams.filter((item) => item.isActive || item.id === employee?.teamId).map((item) => <option key={item.id} value={item.id}>{item.name}{item.isActive ? "" : " · inactive"}</option>)}</Select></FormField></div>
         </> : <>
           <FormField label="Team name" required><Input name="name" defaultValue={team?.name ?? ""} placeholder="Customer Operations" required maxLength={100} /></FormField>
           <FormField label="Department" required><Input name="department" defaultValue={team?.department ?? ""} placeholder="Operations" required maxLength={100} /></FormField>

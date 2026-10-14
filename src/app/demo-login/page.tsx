@@ -25,18 +25,18 @@ export default async function DemoLoginPage({ searchParams }: { searchParams?: P
     ? "Demo sign-in is not configured on this deployment."
     : params?.error ? errors[params.error] : undefined;
 
-  return <main className="login-page demo-login-page">
-    <div className="login-header">
+  return <main className="grid min-h-screen grid-rows-[auto_1fr_auto] items-center justify-items-center bg-background px-5 py-6 pt-[clamp(24px,6vw,72px)] text-center">
+    <div className="grid w-full max-w-[900px] grid-cols-[1fr_auto_1fr] items-center">
       <span aria-hidden="true" />
-      <Link className="login-brand" href="/" aria-label="Ontix sign-in"><OntixLogo size="medium" /></Link>
-      <ThemeToggle />
+      <Link className="flex items-center justify-self-center" href="/" aria-label="Ontix sign-in"><OntixLogo size="medium" /></Link>
+      <div className="justify-self-end"><ThemeToggle /></div>
     </div>
-    <section className="login-card demo-login-card">
-      <div className="login-kicker">DEMO WORKSPACE</div>
-      <h1>Explore Ontix</h1>
+    <section className="my-[30px] w-full max-w-[440px] self-center rounded-2xl border border-border bg-surface p-[clamp(26px,5vw,40px)] text-center shadow-[var(--shadow-md)]">
+      <div className="text-[11px] font-[750] tracking-[.13em] text-primary">DEMO WORKSPACE</div>
+      <h1 className="mt-[10px] mb-[7px] text-[29px] font-bold tracking-[-.04em] text-foreground">Explore Ontix</h1>
       <ErrorToast message={message} clearQueryParams={["error"]} />
       <DemoLoginForm enabled={isDemoAuthenticationConfigured()} />
-      <Link className="demo-login-back" href="/">Back to sign in</Link>
+      <Link className="mt-[22px] block text-center text-xs text-muted no-underline hover:text-primary" href="/">Back to sign in</Link>
     </section>
   </main>;
 }

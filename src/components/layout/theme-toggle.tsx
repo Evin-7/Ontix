@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 
 const subscribe = () => () => undefined;
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string } = {}) {
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
 
@@ -21,13 +21,13 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="ui-theme-toggle inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+      className={["inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2", className].filter(Boolean).join(" ")}
       aria-label={label}
       title={label}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
       <Icon size={18} aria-hidden="true" />
-      <span className="ui-theme-toggle__label">Theme</span>
+      <span className="max-[560px]:hidden">Theme</span>
     </button>
   );
 }
