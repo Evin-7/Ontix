@@ -229,8 +229,9 @@ a { color: inherit; text-decoration: none; }
 .foundry-login-mobile-brand { display: none; margin-bottom: 44px; }
 .foundry-login-card h2 { margin: 0 0 8px; font-size: 30px; font-weight: 650; letter-spacing: -.04em; }
 .foundry-login-copy { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+.foundry-login-card h2, .foundry-login-copy { text-align: center; }
 .foundry-login-button { display: flex; min-height: 48px; align-items: center; justify-content: center; margin-top: 28px; border-radius: 9px; font-size: 14px; font-weight: 600; }
-.foundry-demo-button { display: flex; min-height: 44px; align-items: center; justify-content: center; margin-top: 12px; border-radius: 9px; font-size: 13px; font-weight: 600; }
+.foundry-demo-button { display: flex; min-height: 44px; align-items: center; justify-content: center; margin-top: 18px; border-radius: 9px; font-size: 13px; font-weight: 600; }
 .demo-login-back { display: block; margin-top: 22px; color: var(--muted); text-align: center; font-size: 12px; text-decoration: none; }
 .demo-login-back:hover { color: var(--primary); }
 .foundry-demo-data-label { color: var(--muted); font-size: 10px; }
@@ -829,6 +830,13 @@ tr:last-child td { border-bottom: 0; }
 .login-kicker { color: var(--primary); font-size: 11px; font-weight: 750; letter-spacing: .13em; }
 .login-card h1 { margin: 10px 0 7px; color: var(--foreground); font-size: 29px; font-weight: 700; letter-spacing: -.04em; }
 .login-intro { margin: 0 0 26px; color: var(--muted); font-size: 14px; line-height: 1.65; }
+.demo-login-card { text-align: center; }
+.demo-login-card .login-form { text-align: left; }
+.demo-password-field { position: relative; }
+.demo-password-field input { padding-right: 46px; }
+.demo-password-toggle { position: absolute; top: 50%; right: 7px; display: grid; width: 34px; height: 34px; place-items: center; transform: translateY(-50%); border: 0; border-radius: 7px; color: var(--muted); background: transparent; }
+.demo-password-toggle:hover { color: var(--foreground); background: var(--surface-muted); }
+.demo-password-toggle:focus-visible { outline-offset: 1px; }
 .login-form { display: grid; gap: 16px; }
 .login-form .field { gap: 7px; }
 .login-form .field > span { color: var(--foreground); font-size: 13px; font-weight: 600; }
