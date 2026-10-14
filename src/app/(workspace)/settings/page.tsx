@@ -14,7 +14,7 @@ export default async function SettingsPage() {
   const writesProjects = !isDemo && ["ADMINISTRATOR", "MANAGER"].includes(current.session.role);
   const writesCases = !isDemo && ["ADMINISTRATOR", "MANAGER", "DEVELOPER"].includes(current.session.role);
   let loginEvents = null;
-  if (!isDemo && current.session.role === "ADMINISTRATOR") {
+  if (!isDemo && ["ADMINISTRATOR", "MANAGER"].includes(current.session.role)) {
     try {
       loginEvents = await getRecentLoginEvents();
     } catch {
