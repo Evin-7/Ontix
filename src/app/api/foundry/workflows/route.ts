@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { hasDemoSessionCookie } from "@/server/providers/demo/auth";
+import { isSameOriginRequest } from "@/server/http/origin";
 import { assignFoundryCase, resolveFoundryCase, updateFoundryProjectStatus, type FoundryWorkflowResult } from "@/server/providers/foundry/workflows";
 
 export const runtime = "nodejs";
@@ -31,8 +32,7 @@ function responseStatus(code: string) {
 }
 
 export async function POST(request: Request) {
-  const requestOrigin = new URL(request.url).origin;
-  if (request.headers.get("origin") !== requestOrigin) {
+  if (!isSameOriginRequest(request)) {
     return NextResponse.json({ ok: false, code: "forbidden", error: "This request could not be verified." }, { status: 403 });
   }
 

@@ -9,7 +9,7 @@ if (!/^[A-Za-z0-9._@+-]{3,254}$/.test(username)) throw new Error("ONTIX_DEMO_USE
 const password = randomBytes(24).toString("base64url");
 const salt = randomBytes(16);
 const key = scryptSync(password, salt, 64, { N: 16_384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
-const passwordHash = `scrypt-v1$16384$8$1$${salt.toString("base64url")}$${key.toString("base64url")}`;
+const passwordHash = `scrypt-v1:16384:8:1:${salt.toString("base64url")}:${key.toString("base64url")}`;
 
 const envPath = join(process.cwd(), ".env.local");
 let envText = "";

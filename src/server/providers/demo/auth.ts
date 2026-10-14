@@ -22,7 +22,8 @@ type PasswordHash = { salt: Buffer; key: Buffer };
 
 function parsePasswordHash(value: string | undefined): PasswordHash | null {
   if (!value) return null;
-  const [version, cost, blockSize, parallelization, saltText, keyText, extra] = value.split("$");
+  // Use a dotenv-safe delimiter: Next.js expands `$` references in env files.
+  const [version, cost, blockSize, parallelization, saltText, keyText, extra] = value.split(":");
   if (version !== "scrypt-v1" || cost !== String(SCRYPT_COST) || blockSize !== String(SCRYPT_BLOCK_SIZE) || parallelization !== String(SCRYPT_PARALLELIZATION) || !saltText || !keyText || extra !== undefined) return null;
   const salt = Buffer.from(saltText, "base64url");
   const key = Buffer.from(keyText, "base64url");

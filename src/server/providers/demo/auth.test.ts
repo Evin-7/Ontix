@@ -9,7 +9,7 @@ import { isDemoAuthenticationConfigured, verifyDemoCredentials } from "./auth";
 const salt = Buffer.from("0123456789abcdef");
 const password = "A9s!qR4vZ7nP2xK8tC5mY3bD";
 const key = scryptSync(password, salt, 64, { N: 16_384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
-const passwordHash = `scrypt-v1$16384$8$1$${salt.toString("base64url")}$${key.toString("base64url")}`;
+const passwordHash = `scrypt-v1:16384:8:1:${salt.toString("base64url")}:${key.toString("base64url")}`;
 
 describe("demo authentication", () => {
   beforeEach(() => {

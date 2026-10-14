@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createDemoSession, allowDemoLoginAttempt, DemoSessionStoreError, demoSessionCookieName, demoSessionCookieOptions } from "@/server/providers/demo/session-store";
 import { isDemoAuthenticationConfigured, verifyDemoCredentials } from "@/server/providers/demo/auth";
+import { isSameOriginRequest } from "@/server/http/origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ function redirectToLogin(request: Request, error: string) {
 }
 
 export async function POST(request: Request) {
-  if (request.headers.get("origin") !== new URL(request.url).origin || request.headers.get("sec-fetch-site") === "cross-site") {
+  if (!isSameOriginRequest(request)) {
     return NextResponse.json({ error: "This request could not be verified." }, { status: 403, headers: { "Cache-Control": "no-store" } });
   }
   const contentType = request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();

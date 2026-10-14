@@ -46,7 +46,7 @@ try {
   assert(/httponly/i.test(sessionCookie) && /samesite=lax/i.test(sessionCookie), "Demo cookie security attributes were missing.");
 
   const pages = [
-    ["/overview", "Fleet Reliability Program"],
+    ["/overview", "Demo Workspace"],
     ["/projects", "Fleet Reliability Program"],
     ["/cases", "Vehicle telemetry variance"],
     ["/customers", "Northstar Logistics"],

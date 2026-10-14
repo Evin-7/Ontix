@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { demoSessionCookieName, demoSessionCookieOptions, revokeDemoSession } from "@/server/providers/demo/session-store";
+import { isSameOriginRequest } from "@/server/http/origin";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  if (request.headers.get("origin") !== new URL(request.url).origin || request.headers.get("sec-fetch-site") === "cross-site") {
+  if (!isSameOriginRequest(request)) {
     return new Response("This request could not be verified.", { status: 403, headers: { "Cache-Control": "no-store" } });
   }
   const cookieStore = await cookies();
