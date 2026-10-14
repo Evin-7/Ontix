@@ -20,7 +20,7 @@ import {
   foundryOAuthStateCookieOptions as standaloneStateCookieOptions,
   foundrySessionCookieOptions,
 } from "@/server/providers/foundry/session-store";
-import { recordLoginEvent } from "@/server/providers/ontix/login-events";
+import { readLoginEventLocation, recordLoginEvent } from "@/server/providers/ontix/login-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     isStandaloneFoundryOAuthState(stateValue) ||
     (standaloneState && (standaloneState === stateValue || !cookieValue))
   ) {
-    return handleStandaloneCallback({ url, applicationUrl, stateValue, code, stateCookie: standaloneState ?? "" });
+    return handleStandaloneCallback({ url, applicationUrl, stateValue, code, stateCookie: standaloneState ?? "", location: readLoginEventLocation(request.headers) });
   }
 
   // Keep the legacy Prisma-backed identity graph out of the standalone Foundry
@@ -106,6 +106,7 @@ async function handleStandaloneCallback(input: {
   stateValue: string;
   code: string;
   stateCookie: string;
+  location: ReturnType<typeof readLoginEventLocation>;
 }) {
   let verifiedState;
   try {
@@ -146,7 +147,7 @@ async function handleStandaloneCallback(input: {
   try {
     const session = await establishFoundrySession(tokens);
     try {
-      await recordLoginEvent("foundry");
+      await recordLoginEvent("foundry", input.location);
     } catch {
       console.error("[Foundry OAuth callback] Login event could not be recorded.");
     }

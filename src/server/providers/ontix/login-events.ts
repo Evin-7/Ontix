@@ -7,10 +7,12 @@ const LOGIN_EVENTS_TTL_SECONDS = 90 * 24 * 60 * 60;
 const MAX_LOGIN_EVENTS = 500;
 
 export type LoginEventSource = "demo" | "foundry";
+export type LoginEventLocation = { country: string; region: string | null } | null;
 
 export type LoginEvent = {
   source: LoginEventSource;
   createdAt: number;
+  location: LoginEventLocation;
 };
 
 const APPEND_LOGIN_EVENT_SCRIPT = `
@@ -62,11 +64,29 @@ function parseLoginEvent(value: unknown): LoginEvent | null {
   if ((record.source !== "demo" && record.source !== "foundry") || typeof record.createdAt !== "number" || !Number.isSafeInteger(record.createdAt) || record.createdAt <= 0 || record.createdAt > Date.now() + 5 * 60_000) {
     return null;
   }
-  return { source: record.source, createdAt: record.createdAt };
+  return { source: record.source, createdAt: record.createdAt, location: parseLoginEventLocation(record.location) };
 }
 
-export async function recordLoginEvent(source: LoginEventSource) {
-  const event: LoginEvent = { source, createdAt: Date.now() };
+function parseLoginEventLocation(value: unknown): LoginEventLocation {
+  if (!value || typeof value !== "object") return null;
+  const location = value as { country?: unknown; region?: unknown };
+  const country = typeof location.country === "string" ? location.country.toUpperCase() : "";
+  if (!/^[A-Z]{2}$/.test(country)) return null;
+  const rawRegion = typeof location.region === "string" ? location.region.toUpperCase() : "";
+  const region = /^[A-Z0-9]{1,3}$/.test(rawRegion) ? rawRegion : null;
+  return { country, region };
+}
+
+export function readLoginEventLocation(headers: Headers): LoginEventLocation {
+  const country = headers.get("x-vercel-ip-country")?.trim().toUpperCase() ?? "";
+  if (!/^[A-Z]{2}$/.test(country)) return null;
+  const rawRegion = headers.get("x-vercel-ip-country-region")?.trim().toUpperCase() ?? "";
+  const region = /^[A-Z0-9]{1,3}$/.test(rawRegion) ? rawRegion : null;
+  return { country, region };
+}
+
+export async function recordLoginEvent(source: LoginEventSource, location: LoginEventLocation) {
+  const event: LoginEvent = { source, createdAt: Date.now(), location: parseLoginEventLocation(location) };
   await getRedis().eval(APPEND_LOGIN_EVENT_SCRIPT, [LOGIN_EVENTS_KEY], [
     JSON.stringify(event),
     String(MAX_LOGIN_EVENTS),

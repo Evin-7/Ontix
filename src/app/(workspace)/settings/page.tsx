@@ -4,7 +4,13 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ThemePreferences } from "@/components/foundry/theme-preferences";
 import { getOntixDashboardSession } from "@/server/providers/ontix/dashboard-context";
 import { getFoundryOAuthConfig } from "@/server/providers/foundry/config";
-import { getRecentLoginEvents } from "@/server/providers/ontix/login-events";
+import { getRecentLoginEvents, type LoginEventLocation } from "@/server/providers/ontix/login-events";
+
+function formatLoginLocation(location: LoginEventLocation) {
+  if (!location) return "Unavailable";
+  const country = new Intl.DisplayNames(["en"], { type: "region" }).of(location.country) ?? location.country;
+  return location.region ? `${country} · ${location.region}` : country;
+}
 
 export default async function SettingsPage() {
   const current = await getOntixDashboardSession();
@@ -48,10 +54,11 @@ export default async function SettingsPage() {
       {loginEvents && <section className="col-span-full min-w-0 rounded-xl border border-border bg-surface p-5 shadow-[var(--shadow-sm)] max-[760px]:col-span-1">
         <div className="flex min-w-0 items-center gap-[11px] max-[760px]:flex-wrap"><span className="grid size-[34px] shrink-0 place-items-center rounded-lg bg-primary-subtle text-primary"><History size={18} /></span><div className="min-w-0 flex-1"><h2 className="m-0 text-[13px] font-semibold">Recent sign-ins</h2></div><span className="ml-auto text-[10px] text-muted">90 days</span></div>
         {loginEvents.length === 0 ? <p className="mt-[18px] mb-0 text-[11px] text-muted">No sign-ins recorded yet.</p> : <div className="mt-[15px] max-h-[520px] overflow-y-auto" role="table" aria-label="Recent sign-ins">
-          <div className="grid grid-cols-[minmax(140px,1fr)_minmax(190px,auto)] items-center gap-4 pb-[9px] text-[10px] font-semibold text-muted"><span role="columnheader">Sign-in</span><span role="columnheader">Time</span></div>
-          {loginEvents.map((event, index) => <div className="grid grid-cols-[minmax(140px,1fr)_minmax(190px,auto)] items-center gap-4 border-t border-border py-[11px] text-[11px] max-[500px]:grid-cols-[1fr_auto] max-[500px]:gap-2" role="row" key={`${event.createdAt}-${event.source}-${index}`}>
-            <span className="font-medium text-foreground" role="cell">{event.source === "demo" ? "Demo workspace" : "Palantir"}</span>
-            <time className="text-right tabular-nums text-muted" role="cell" dateTime={new Date(event.createdAt).toISOString()}>{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(event.createdAt))} IST</time>
+          <div className="grid grid-cols-[minmax(140px,1fr)_minmax(120px,auto)_minmax(190px,auto)] items-center gap-4 pb-[9px] text-[10px] font-semibold text-muted max-[500px]:grid-cols-[minmax(0,1fr)_auto] max-[500px]:gap-2"><span role="columnheader">Sign-in</span><span className="max-[500px]:hidden" role="columnheader">Location</span><span role="columnheader">Time</span></div>
+          {loginEvents.map((event, index) => <div className="grid grid-cols-[minmax(140px,1fr)_minmax(120px,auto)_minmax(190px,auto)] items-center gap-4 border-t border-border py-[11px] text-[11px] max-[500px]:grid-cols-[minmax(0,1fr)_auto] max-[500px]:gap-2" role="row" key={`${event.createdAt}-${event.source}-${index}`}>
+            <span className="font-medium text-foreground" role="cell">{event.source === "demo" ? "Demo workspace" : "Palantir"}<span className="mt-1 hidden text-[10px] font-normal text-muted max-[500px]:block">{formatLoginLocation(event.location)}</span></span>
+            <span className="text-muted max-[500px]:hidden" role="cell">{formatLoginLocation(event.location)}</span>
+            <time className="text-right tabular-nums text-muted max-[500px]:text-[10px]" role="cell" dateTime={new Date(event.createdAt).toISOString()}>{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(event.createdAt))} IST</time>
           </div>)}
         </div>}
       </section>}

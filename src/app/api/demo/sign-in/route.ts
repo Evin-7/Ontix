@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createDemoSession, allowDemoLoginAttempt, DemoSessionStoreError, demoSessionCookieName, demoSessionCookieOptions } from "@/server/providers/demo/session-store";
 import { isDemoAuthenticationConfigured, verifyDemoCredentials } from "@/server/providers/demo/auth";
 import { isSameOriginRequest } from "@/server/http/origin";
-import { recordLoginEvent } from "@/server/providers/ontix/login-events";
+import { readLoginEventLocation, recordLoginEvent } from "@/server/providers/ontix/login-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     if (!await verifyDemoCredentials(username, password)) return redirectToLogin(request, "invalid");
     const session = await createDemoSession();
     try {
-      await recordLoginEvent("demo");
+      await recordLoginEvent("demo", readLoginEventLocation(request.headers));
     } catch {
       console.error("[Demo sign-in] Login event could not be recorded.");
     }
