@@ -33,7 +33,6 @@ export default async function DemoLoginPage({ searchParams }: { searchParams?: P
     <section className="login-card demo-login-card">
       <div className="login-kicker">DEMO WORKSPACE</div>
       <h1>Explore Ontix</h1>
-      <p className="login-intro">Sign in to explore fictional sample records. Editing is unavailable in demo mode.</p>
       {message && <p className="login-error" role="alert">{message}</p>}
       <DemoLoginForm enabled={isDemoAuthenticationConfigured()} />
       <Link className="demo-login-back" href="/">Back to sign in</Link>
