@@ -42,12 +42,12 @@ describe("Foundry workflow Route Handler", () => {
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
-  it("blocks demo sessions server-side before calling any Foundry action", async () => {
+  it("blocks read-only workspace sessions before calling any Foundry action", async () => {
     hasDemoCookie.mockResolvedValueOnce(true);
     const response = await POST(request({ action: "resolve-case", caseId: "CASE-5001" }));
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toMatchObject({ code: "forbidden", error: "Editing is unavailable in demo mode." });
+    expect(await response.json()).toMatchObject({ code: "forbidden", error: "This read-only workspace does not allow edits." });
     expect(resolveFoundryCase).not.toHaveBeenCalled();
     expect(updateFoundryProjectStatus).not.toHaveBeenCalled();
     expect(assignFoundryCase).not.toHaveBeenCalled();

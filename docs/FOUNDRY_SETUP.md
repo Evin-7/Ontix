@@ -1,6 +1,8 @@
 # Foundry setup for Ontix
 
-## Verified enrollment and Developer Console state
+## Foundry workspace observations
+
+The Foundry UI observations below were last checked on 2026-10-14. Repository implementation status was updated separately on 2026-10-24; an updated code path does not prove a live Foundry call succeeded.
 
 The authenticated Brave session is connected to `https://ontix.usw-23.palantirfoundry.com`, project `ontix`, Ontology `ontix Ontology`, branch Main.
 
@@ -16,7 +18,7 @@ Saved actions:
 | `AssignCaseToEmployee` | `assign-case-to-employee` | Assigns a selected Employee while the case is OPEN, IN_PROGRESS, or WAITING_APPROVAL. Snapshot isolation is enabled. | Saved and selected in app restrictions. |
 | `UpdateProjectStatus` | `update-project-status` | Validates project status against the configured allowed values. Snapshot isolation is enabled. | Saved and selected in app restrictions. |
 
-`AssignCaseToEmployee` does not enforce the Local Demo provider's active-employee rule: the Foundry Employee source has no active-state field. `ApproveRequest` and `RejectRequest` have not been created because the current fictional employee records have no trustworthy mapping to Foundry user IDs. Approval actions must prevent self-approval and update the approval and its linked case atomically; adding weaker status-only actions would violate the requested rules.
+`AssignCaseToEmployee` does not enforce the Neon workspace provider's active-employee rule: the Foundry Employee source has no active-state field. `ApproveRequest` and `RejectRequest` have not been created because the current fictional employee records have no trustworthy mapping to Foundry user IDs. Approval actions must prevent self-approval and update the approval and its linked case atomically; adding weaker status-only actions would violate the requested rules.
 
 ## Ontology indexing and Test Run
 
@@ -28,15 +30,15 @@ The action editor's Test run pane remains empty after saving and selecting Form 
 
 Developer Console generated npm SDK version `0.2.0` with generator `2.80.0`, using the six object types, five links, and three actions above. The package is preserved at `foundry/generated-sdk/ontix-web-integration-sdk-0.2.0.tgz`. The generated `$ontologyRid` is imported from that package. `@osdk/client`, `@osdk/oauth`, and `@osdk/foundry` are installed as dependencies.
 
-`src/server/providers/foundry/client.ts` creates a server-only OSDK client whose token provider reads the signed-in Ontix user's encrypted Foundry grant. `verifyFoundryObjectAccess` queries at most one row from each of the six object types. The Integrations page includes a live verification control. This is only a read probe; it is not a full dashboard/CRUD provider, and action calls are not yet wired.
+`src/server/providers/foundry/client.ts` creates a server-only OSDK client. Foundry mode reads bounded snapshot pages from the six generated object types in `workspace.ts`. `relationships.ts` fetches one selected object and traverses its generated `$link` accessors, with a capped result shown in the record drawer. `workflows.ts` calls the three saved actions after server-side role and transition checks. The Integrations page also includes a separate six-type read probe. These paths are implemented but have not completed an authenticated end-to-end run.
 
 The generated package is an initial version. Generate a new SDK version after the approval actions are safely implemented or any Ontology resource changes. Do not use the package generator's temporary token as application runtime credentials.
 
-## OAuth, persistence, and verification gates
+## OAuth, sessions, and verification gates
 
-Better Auth remains Ontix's local sign-in and role system; the Foundry grant is linked to the signed-in local account. Do not replace local authentication or Neon persistence until equivalent Foundry identity, role, session, workflow, persistence, and audit behavior is independently verified.
+Foundry mode uses its own Foundry sign-in path with Authorization Code + PKCE, group-derived roles, and encrypted rotating tokens in the shared session store. The Neon workspace retains its separate Better Auth login and Prisma/Neon business data. The Foundry role mapping is not a stable person identity and does not support self-approval or person-level Ontix audit attribution.
 
-The repository contains server-side OAuth initiation, callback, refresh, and local disconnect routes. Foundry tokens are encrypted at rest in an additive `FoundryConnection` table and are not returned to client code. The live flow is not configured or verified in this checkout: `.env.local` is missing `DATABASE_URL`, `DIRECT_DATABASE_URL`, and `BETTER_AUTH_SECRET`. Do not paste credentials into chat. Configure a separate Neon development branch privately, apply the migration, sign in to Ontix, link the Foundry user, then use **Verify live OSDK access**. The current integrations verifier performs six read requests and surfaces an error if an object type is unavailable or unindexed.
+The standalone Foundry path stores OAuth state and encrypted rotating tokens in Upstash Redis and places only an opaque HttpOnly session cookie in the browser. The older linked-account flow is still present for the Neon workspace integration surface; it is distinct from Foundry mode's primary sign-in. Keep credentials private and do not paste them into chat. For an end-to-end verification, configure the Foundry and shared-session-store variables from `.env.example`, confirm the role group IDs and callback with Developer Console, sign in as an authorized user, open records and traverse links, then execute only a permitted action on fictional data. The Integrations verifier performs six read requests and surfaces an error if an object type is unavailable or unindexed. Local key presence is not proof that OAuth, Redis, or OSDK requests work.
 
 The status of the current implementation is in [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md). No Vercel deployment or environment change was performed.
 

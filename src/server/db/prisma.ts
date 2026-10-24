@@ -15,7 +15,7 @@ const isBuildOnly = process.env["ONTIX_BUILD_SKIP_DATABASE"] === "1";
 
 if (!connectionString && !isBuildOnly) {
   throw new Error(
-    "Local Demo mode needs DATABASE_URL. Copy .env.example to .env.local and add the pooled Neon URL.",
+    "The Neon workspace needs DATABASE_URL. Copy .env.example to .env.local and add the pooled Neon URL.",
   );
 }
 

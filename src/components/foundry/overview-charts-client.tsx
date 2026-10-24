@@ -28,7 +28,7 @@ function BreakdownChart({ chart, isDemo }: { chart: OverviewChartSpec; isDemo: b
 
   return <section className="min-w-0 rounded-xl border border-border bg-surface px-[19px] py-[18px] shadow-[var(--shadow-sm)] max-[760px]:p-4" aria-label={`${chart.title} breakdown`}>
     <div className="flex items-start justify-between gap-3">
-      <div><span className="block text-[8px] font-bold tracking-[.11em] text-muted">{isDemo ? "DEMO DATA BREAKDOWN" : "LIVE ONTOLOGY BREAKDOWN"}</span><h2 className="mt-1 text-sm font-semibold tracking-[-.02em]">{chart.title}</h2></div>
+      <div><span className="block text-[8px] font-bold tracking-[.11em] text-muted">{isDemo ? "SAMPLE DATA BREAKDOWN" : "LIVE ONTOLOGY BREAKDOWN"}</span><h2 className="mt-1 text-sm font-semibold tracking-[-.02em]">{chart.title}</h2></div>
       <span className="whitespace-nowrap text-[9px] text-muted">{displayCount(total)} records</span>
     </div>
     {chart.data.length === 0 ? <p className="grid min-h-[180px] place-items-center text-xs text-muted">No records in the visible sample.</p> : <>

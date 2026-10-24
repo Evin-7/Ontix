@@ -3,8 +3,8 @@ import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-const username = process.env.ONTIX_DEMO_USERNAME?.trim() || "ontix-recruiter";
-if (!/^[A-Za-z0-9._@+-]{3,254}$/.test(username)) throw new Error("ONTIX_DEMO_USERNAME must be 3–254 safe characters.");
+const username = process.env.ONTIX_WORKSPACE_USERNAME?.trim() || "ontix-workspace";
+if (!/^[A-Za-z0-9._@+-]{3,254}$/.test(username)) throw new Error("ONTIX_WORKSPACE_USERNAME must be 3–254 safe characters.");
 
 async function generateEasyToTypePassword() {
   const candidates = new Set();
@@ -37,16 +37,16 @@ function setEnvValue(text, name, value) {
   const pattern = new RegExp(`^${name}=.*$`, "m");
   return pattern.test(text) ? text.replace(pattern, line) : `${text}${text && !text.endsWith("\n") ? "\n" : ""}${line}\n`;
 }
-envText = setEnvValue(envText, "ONTIX_DEMO_USERNAME", username);
-envText = setEnvValue(envText, "ONTIX_DEMO_PASSWORD_HASH", passwordHash);
+envText = setEnvValue(envText, "ONTIX_WORKSPACE_USERNAME", username);
+envText = setEnvValue(envText, "ONTIX_WORKSPACE_PASSWORD_HASH", passwordHash);
 await writeFile(envPath, envText, { mode: 0o600 });
 await chmod(envPath, 0o600);
 
 const credentialDirectory = join(homedir(), ".config", "ontix");
-const credentialPath = join(credentialDirectory, "demo-credentials.txt");
+const credentialPath = join(credentialDirectory, "workspace-credentials.txt");
 await mkdir(credentialDirectory, { recursive: true, mode: 0o700 });
 await chmod(credentialDirectory, 0o700);
-await writeFile(credentialPath, `ONTIX recruiter demo\nUsername: ${username}\nPassword: ${password}\n\nKeep this file private. Rotate credentials with npm run demo:credentials. Update ONTIX_DEMO_PASSWORD_HASH in Vercel Production and redeploy after rotation.\n`, { mode: 0o600 });
+await writeFile(credentialPath, `Ontix workspace access\nUsername: ${username}\nPassword: ${password}\n\nKeep this file private. Rotate credentials with npm run workspace:credentials. Update ONTIX_WORKSPACE_PASSWORD_HASH in the hosting environment and redeploy after rotation.\n`, { mode: 0o600 });
 await chmod(credentialPath, 0o600);
 
-console.log(`Configured the demo login for ${username}. Password saved locally to ${credentialPath} with owner-only permissions.`);
+console.log(`Configured read-only workspace access for ${username}. Password saved locally to ${credentialPath} with owner-only permissions.`);

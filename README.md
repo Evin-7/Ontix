@@ -4,13 +4,13 @@
 
 **Connected Data. Smarter Operations.**
 
-Ontix is a full-stack operations workspace for customer accounts, projects, employees, operational cases, approvals, and audit activity. One Next.js App Router application serves the UI and server-side application logic. Local Demo records persist in Neon PostgreSQL through Prisma.
+Ontix is a full-stack operations workspace for customer accounts, projects, employees, operational cases, approvals, and audit activity. One Next.js App Router application serves the UI and server-side application logic. Workspace records persist in Neon PostgreSQL through Prisma.
 
-Neon is a separate relational database provider. It is not Palantir Foundry or a genuine Palantir Ontology. The Data model view is a clearly labeled simulation over Neon records. Ontix now has a Developer Console generated TypeScript OSDK 2.80.0 package and a server-only read-verification path. No authenticated Foundry request has succeeded yet because the local Neon and Better Auth credentials are not configured. `DATA_PROVIDER=foundry` still fails closed for business data instead of switching to Neon.
+Neon is a separate relational database provider. It is not Palantir Foundry or a genuine Palantir Ontology. The Data model view presents relationships over Neon records. Foundry mode uses the generated TypeScript OSDK to read six object types, traverse configured links on demand, and call three saved actions through server-side role-checked workflows. These paths have not yet completed an authenticated end-to-end verification; see [implementation status](docs/IMPLEMENTATION_STATUS.md). Foundry mode never falls back to Neon.
 
 ## Local setup
 
-1. Create or select a free Neon project and a dedicated development branch. Do not use a production branch for schema or demo data work.
+1. Create or select a free Neon project and a dedicated development branch. Do not use a production branch for schema or sample data work.
 2. Copy `.env.example` to `.env.local`. Set the pooled `DATABASE_URL` and matching direct `DIRECT_DATABASE_URL` from that branch. Generate `BETTER_AUTH_SECRET` with `openssl rand -base64 32`. Keep `.env.local` private; Git ignores it.
 3. Install and prepare the development branch:
 
@@ -36,14 +36,15 @@ If Neon credentials are not configured, schema generation, type checks, unit tes
 
 ## Architecture
 
-- **Next.js App Router:** server-rendered pages, Route Handlers, and Server Actions share one TypeScript application. Business mutations use Server Actions; Better Auth is mounted at `/api/auth/[...all]`.
+- **Next.js App Router:** server-rendered pages, Route Handlers, and Server Actions share one TypeScript application. Business mutations use Server Actions; Better Auth is mounted at `/api/auth/[...all]`. Node.js 22 or newer is required.
 - **Server-only data access:** Prisma, Neon credentials, authorization checks, service modules, validation, and workflows are never imported into browser code. The browser receives typed, limited view data and uses an HTTP-only session cookie.
-- **Authentication and authorization:** Better Auth provides database-backed email/password sessions. Public sign-up is disabled. A login must be linked to an active employee. The employee role is checked server-side for every service operation; UI visibility is only a convenience and does not replace authorization.
+- **Authentication and authorization:** The Neon workspace uses Better Auth with administrator-provisioned accounts linked to active employees. Foundry mode uses per-user Authorization Code + PKCE and group-derived roles. Both paths keep credentials server-side and enforce authorization at the server boundary; UI visibility does not replace authorization.
 - **Modular services:** `src/lib/services/` contains customer, project, employee, operational case, approval, audit, and workspace read services. Data changes and audit events use one database transaction.
-- **Local Demo provider:** Prisma ORM 7 uses Neon’s pooled endpoint for runtime operations and the matching direct endpoint for Prisma CLI migrations. Runtime runs on Node.js; Neon adapter pool size is capped at five connections per process.
-- **Foundry provider:** The generated OSDK and user-scoped server verification path are installed, but no live request has been verified. `foundry` mode remains fail-closed for business data; see [docs/FOUNDRY_SETUP.md](docs/FOUNDRY_SETUP.md) and [docs/PROVIDERS.md](docs/PROVIDERS.md).
-- **Current verification:** [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) records actual Foundry resources and local check results.
-- **Ontology-style demo:** The Data model page can query relationships between Neon-backed customer, project, team, employee, case, approval, and audit records. It is not a Palantir integration.
+- **Neon provider:** Prisma ORM 7 uses Neon’s pooled endpoint for runtime operations and the matching direct endpoint for Prisma CLI migrations. Runtime runs on Node.js; Neon adapter pool size is capped at five connections per process.
+- **Foundry provider:** Generated OSDK reads, bounded `$link` traversal, and three saved-action calls are implemented server-side. The authenticated live paths remain unverified. `foundry` mode requires Foundry sign-in and never falls back to Neon; see [docs/FOUNDRY_SETUP.md](docs/FOUNDRY_SETUP.md) and [docs/PROVIDERS.md](docs/PROVIDERS.md).
+- **Current verification:** [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) records Foundry resources and local check results. [docs/PROJECT_WALKTHROUGH.md](docs/PROJECT_WALKTHROUGH.md) gives a concise walkthrough.
+- **Relationship explorer:** The Neon provider resolves relationships over PostgreSQL records. Foundry mode traverses generated Ontology links through the OSDK. These are separate providers; only Foundry mode accesses Palantir Ontology data.
+- **Project capabilities:** [docs/PROJECT_CAPABILITIES.md](docs/PROJECT_CAPABILITIES.md) summarizes implemented capabilities and remaining verification work.
 
 ## Data and workflows
 
@@ -85,4 +86,4 @@ Ontix uses an original connected-O mark in the primary indigo `#4F46E5`, with a 
 
 Inter is the application-wide sans-serif, and JetBrains Mono is reserved for code and technical identifiers. Both are loaded through `next/font/google`, then emitted as same-origin optimized font assets by the Next.js build; browsers do not request fonts from Google at runtime. The font variables are attached in `src/app/layout.tsx`, and Tailwind CSS v4 maps `font-sans` and `font-mono` to those variables.
 
-The current authentication experience supports administrator-provisioned sign-in only. Registration, password reset, and outbound email templates are not configured in this project, so there are no related UI or email assets to brand.
+The Neon workspace supports administrator-provisioned sign-in. Foundry mode uses a separate Foundry OAuth sign-in and group-to-role mapping. Registration, password reset, and outbound email templates are not configured in this project, so there are no related UI or email assets to brand.

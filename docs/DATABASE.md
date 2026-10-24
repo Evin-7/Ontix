@@ -2,7 +2,7 @@
 
 ## Provider boundary
 
-Neon PostgreSQL is the persistent database for the Local Demo provider. One Next.js App Router application uses Prisma ORM 7 for server-side reads and writes. Neon does not represent Palantir Foundry or a genuine Foundry Ontology. This checkout does not contain an authorized Foundry OSDK provider; the `foundry` mode fails closed. See [PROVIDERS.md](PROVIDERS.md).
+Neon PostgreSQL is the persistent database for the Neon workspace provider. One Next.js App Router application uses Prisma ORM 7 for server-side reads and writes. Neon does not represent Palantir Foundry or a genuine Foundry Ontology. Foundry mode is a separate user-scoped OSDK path and does not use Neon business data; its authenticated requests remain unverified. See [PROVIDERS.md](PROVIDERS.md).
 
 ## Runtime and connections
 
@@ -45,7 +45,7 @@ Existing workflow migrations add project revision and case escalation columns. `
 
 `prisma/seed.ts` inserts fixed fictional `example.test` rows in parent-first order inside one transaction. Stable fixture IDs and `skipDuplicates` make reruns safe without overwriting existing rows. Seed employee password values are non-hash disabled sentinels, and seed employees do not create auth accounts.
 
-The guarded `npm run db:bootstrap-admin` command creates or links a real active employee and provisions one Better Auth credential account using Better Auth's password hasher. It refuses demo fixture identities, existing auth accounts, and inactive employee records. It runs only against a development Neon branch and never prints the password or stored hash. Remove the temporary bootstrap password from `.env.local` after use.
+The guarded `npm run db:bootstrap-admin` command creates or links a real active employee and provisions one Better Auth credential account using Better Auth's password hasher. It refuses sample fixture identities, existing auth accounts, and inactive employee records. It runs only against a development Neon branch and never prints the password or stored hash. Remove the temporary bootstrap password from `.env.local` after use.
 
 ## Authorization and transactions
 

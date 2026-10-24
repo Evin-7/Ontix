@@ -12,7 +12,7 @@ const routeByType = {
 
 export async function GET(request: Request) {
   if (await hasDemoSessionCookie()) {
-    return NextResponse.json({ error: "Demo sessions cannot access Foundry data." }, { status: 403, headers: { "Cache-Control": "private, no-store" } });
+    return NextResponse.json({ error: "Read-only workspace sessions cannot access Foundry data." }, { status: 403, headers: { "Cache-Control": "private, no-store" } });
   }
   const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   if (query.length < 2 || query.length > 100) {

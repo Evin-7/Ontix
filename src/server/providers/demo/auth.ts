@@ -9,8 +9,8 @@ const SCRYPT_BLOCK_SIZE = 8;
 const SCRYPT_PARALLELIZATION = 1;
 const SCRYPT_KEY_LENGTH = 64;
 const SCRYPT_MAX_MEMORY = 64 * 1024 * 1024;
-// Public credentials for the fictional, read-only demo. Environment variables
-// can still replace this pair for deployments that want private credentials.
+// Public credentials for the fictional, read-only workspace. Environment
+// variables can replace this pair for deployments that want private access.
 const BUILT_IN_DEMO_USERNAME = "ontix-demo-9307c64bea87@example.com";
 const BUILT_IN_DEMO_PASSWORD_HASH = "scrypt-v1:16384:8:1:rgyqIndDMSlRLdysrRUN8A:FHZBKmpe8vZx6ZQwdgqnPlMDD4HKB-yqqK5Ls82tTux2jgYQLUjL0zBwz0Qzxw8QSjnj5crNE9wByVjxS0p_oA";
 
@@ -53,8 +53,8 @@ export async function verifyDemoCredentials(usernameInput: string, passwordInput
 }
 
 function getDemoCredentials() {
-  const username = process.env.ONTIX_DEMO_USERNAME?.trim();
-  const passwordHash = parsePasswordHash(process.env.ONTIX_DEMO_PASSWORD_HASH);
+  const username = (process.env.ONTIX_WORKSPACE_USERNAME ?? process.env.ONTIX_DEMO_USERNAME)?.trim();
+  const passwordHash = parsePasswordHash(process.env.ONTIX_WORKSPACE_PASSWORD_HASH ?? process.env.ONTIX_DEMO_PASSWORD_HASH);
   if (username && username.length >= 3 && username.length <= 254 && passwordHash) return { username, passwordHash };
   return { username: BUILT_IN_DEMO_USERNAME, passwordHash: parsePasswordHash(BUILT_IN_DEMO_PASSWORD_HASH) };
 }

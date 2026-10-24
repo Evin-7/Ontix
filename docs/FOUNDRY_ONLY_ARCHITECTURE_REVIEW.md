@@ -1,6 +1,6 @@
 # Foundry-only architecture review
 
-Reviewed 2026-10-14. This records the migration boundary and security blockers before removing the current database-backed implementation.
+Historical review from 2026-10-14, before the Foundry-only sign-in and OSDK workspace paths were added. This records the migration boundary and security blockers; some dependency and provider-status descriptions below are no longer current. See [implementation status](IMPLEMENTATION_STATUS.md) and [OSDK integration](OSDK_INTEGRATION.md) for the current state.
 
 ## Recommendation
 
@@ -16,13 +16,13 @@ Palantir documents that `offline_access` is needed for refresh tokens, that refr
 
 | Area | Current dependency or code | Why it must remain until replacement passes |
 | --- | --- | --- |
-| Neon transport | `@neondatabase/serverless`, `@prisma/adapter-neon` | Runtime PostgreSQL access for the current local-demo provider and Better Auth adapter. |
+| Neon transport | `@neondatabase/serverless`, `@prisma/adapter-neon` | Runtime PostgreSQL access for the current Neon-backed provider and Better Auth adapter. |
 | Prisma | `@prisma/client`, dev dependency `prisma`, `prisma.config.ts`, `prisma/schema.prisma`, migrations, generated client | Current customers, projects, employees, teams, cases, approvals, audit/activity events, auth sessions, rate limits, and Foundry token rows. Build and postinstall currently generate Prisma. |
 | Better Auth | `better-auth`, `@better-auth/prisma-adapter` | Current password login, local users, sessions, roles, employee mapping, origin checks, and database-backed login rate limits. Foundry OAuth currently links to this local identity; it is not primary login. |
 | Database scripts | `db:*` scripts, `scripts/assert-development-database.mjs`, `scripts/verify-database.ts`, `scripts/bootstrap-admin.ts`, `prisma/seed.ts` | Seed, migrate, connectivity, and local admin setup assume Neon/PostgreSQL. |
 | Server auth and token integration | `src/lib/auth.ts`, `src/lib/auth-client.ts`, `src/lib/auth/dal.ts`, `src/app/api/auth/[...all]/route.ts`, `src/server/providers/foundry/tokens.ts`, `src/server/db/prisma.ts` | Better Auth and Foundry token refresh both depend on Prisma. Refresh rotation currently uses a PostgreSQL row lock. |
 | Business services | `src/lib/services/{workspace,customers,projects,employees,teams,cases,approvals,audit,ontology-demo}.ts`, `src/server/db/{case-workflow,approval-workflow}.ts`, `src/app/actions.ts`, `src/app/neon-home.tsx` | All current dashboard metrics and CRUD/workflow reads and writes still use Prisma. |
-| User interface and provider mode | `src/app/page.tsx`, `src/client/ui/OntixApp.tsx`, `src/client/ui/OntologyModelExplorer.tsx`, `src/client/ui/FoundryIntegrationsPage.tsx`, `src/server/providers/provider-mode.ts`, `src/types/integrations.ts` | UI and labels still expose Neon Local Demo; Foundry mode is fail-closed and does not yet power the workspace. |
+| User interface and provider mode | `src/app/page.tsx`, `src/client/ui/OntixApp.tsx`, `src/client/ui/OntologyModelExplorer.tsx`, `src/client/ui/FoundryIntegrationsPage.tsx`, `src/server/providers/provider-mode.ts`, `src/types/integrations.ts` | The Neon and Foundry provider workspaces remain separate; Foundry mode is fail-closed and does not yet power the main operations workspace. |
 | Environment and docs | `.env.example`, `prisma.config.ts`, `docs/DATABASE.md`, `docs/DEPLOYMENT.md`, `docs/PROVIDERS.md`, README and integration docs | Environment templates and operational guidance still describe a dual-provider PostgreSQL setup. |
 
 The local `.env.local` has Foundry stack/client/callback/encryption configuration. It does not have `DATABASE_URL`, `DIRECT_DATABASE_URL`, or `BETTER_AUTH_SECRET`. Environment values are deliberately not recorded here.

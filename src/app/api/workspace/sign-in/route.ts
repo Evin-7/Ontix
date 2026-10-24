@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function redirectToLogin(request: Request, error: string) {
-  const response = NextResponse.redirect(new URL(`/demo-login?error=${encodeURIComponent(error)}`, request.url), { status: 303 });
+  const response = NextResponse.redirect(new URL(`/workspace-login?error=${encodeURIComponent(error)}`, request.url), { status: 303 });
   response.headers.set("Cache-Control", "no-store");
   return response;
 }
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const contentType = request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (!contentType || !["application/x-www-form-urlencoded", "multipart/form-data"].includes(contentType) || contentLength > 4096) {
-    return NextResponse.json({ error: "Send a valid demo sign-in request." }, { status: 400, headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ error: "Send a valid workspace sign-in request." }, { status: 400, headers: { "Cache-Control": "no-store" } });
   }
   if (!isDemoAuthenticationConfigured()) return redirectToLogin(request, "unavailable");
 
@@ -38,14 +38,14 @@ export async function POST(request: Request) {
     try {
       await recordLoginEvent("demo", readLoginEventLocation(request.headers));
     } catch {
-      console.error("[Demo sign-in] Login event could not be recorded.");
+      console.error("[Workspace sign-in] Login event could not be recorded.");
     }
     const response = NextResponse.redirect(new URL("/overview", request.url), { status: 303 });
     response.cookies.set(demoSessionCookieName(), session.sessionId, demoSessionCookieOptions());
     response.headers.set("Cache-Control", "no-store");
     return response;
   } catch (error) {
-    console.error("[Demo sign-in] Request failed", { category: error instanceof DemoSessionStoreError ? error.category : "unexpected" });
+    console.error("[Workspace sign-in] Request failed", { category: error instanceof DemoSessionStoreError ? error.category : "unexpected" });
     return redirectToLogin(request, "unavailable");
   }
 }

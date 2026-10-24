@@ -5,24 +5,24 @@ import { OntixLogo } from "@/components/branding/ontix-logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ErrorToast } from "@/components/ui/error-toast";
 import { getCurrentDemoSession, isDemoAuthenticationConfigured } from "@/server/providers/demo/auth";
-import { DemoLoginForm } from "./demo-login-form";
+import { WorkspaceLoginForm } from "./workspace-login-form";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const metadata: Metadata = { title: "Explore the Ontix demo", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Explore the Ontix workspace", robots: { index: false, follow: false } };
 
 const errors: Record<string, string> = {
   invalid: "Those details didn’t match. Check them and try again.",
   "rate-limited": "Too many attempts. Please wait a little and try again.",
-  unavailable: "Demo sign-in is not available right now. Please try again later.",
+  unavailable: "Workspace access is not available right now. Please try again later.",
 };
 
-export default async function DemoLoginPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
+export default async function WorkspaceLoginPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
   const current = await getCurrentDemoSession();
   if (current.session) redirect("/overview");
   const params = await searchParams;
   const message = !isDemoAuthenticationConfigured()
-    ? "Demo sign-in is not configured on this deployment."
+    ? "Workspace access is not configured on this deployment."
     : params?.error ? errors[params.error] : undefined;
 
   return <main className="grid min-h-screen grid-rows-[auto_1fr_auto] items-center justify-items-center bg-background px-5 py-6 pt-[clamp(24px,6vw,72px)] text-center">
@@ -32,10 +32,10 @@ export default async function DemoLoginPage({ searchParams }: { searchParams?: P
       <div className="justify-self-end"><ThemeToggle /></div>
     </div>
     <section className="my-[30px] w-full max-w-[440px] self-center rounded-2xl border border-border bg-surface p-[clamp(26px,5vw,40px)] text-center shadow-[var(--shadow-md)]">
-      <div className="text-[11px] font-[750] tracking-[.13em] text-primary">DEMO WORKSPACE</div>
+      <div className="text-[11px] font-[750] tracking-[.13em] text-primary">READ-ONLY WORKSPACE</div>
       <h1 className="mt-[10px] mb-[7px] text-[29px] font-bold tracking-[-.04em] text-foreground">Explore Ontix</h1>
       <ErrorToast message={message} clearQueryParams={["error"]} />
-      <DemoLoginForm enabled={isDemoAuthenticationConfigured()} />
+      <WorkspaceLoginForm enabled={isDemoAuthenticationConfigured()} />
       <Link className="mt-[22px] block text-center text-xs text-muted no-underline hover:text-primary" href="/">Back to sign in</Link>
     </section>
   </main>;

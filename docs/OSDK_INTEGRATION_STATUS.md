@@ -1,35 +1,34 @@
 # OSDK integration status
 
-Updated 2026-10-14. Local source changes and Foundry UI state are reported separately.
+Foundry UI observations were last checked on 2026-10-14. Repository implementation was reviewed on 2026-10-24. Neither the earlier UI inspection nor local configuration constitutes a successful authenticated app request.
 
-## Foundry UI state
+## Foundry UI state observed on 2026-10-14
 
-The enabled **Ontix Web Integration** public client uses user permissions and Authorization Code + PKCE. Its registered callback is `http://127.0.0.1:3000/api/foundry/oauth/callback`. The app is restricted to six Ontix object types, five dependent links, and three saved action types. The OAuth flow currently requests Ontology read/write scopes; `offline_access` is not requested. Scopes do not override app restrictions or the Foundry user's permissions.
+- The `Ontix Web Integration` public client uses user permissions and Authorization Code + PKCE. Its registered callback is `http://127.0.0.1:3000/api/foundry/oauth/callback`.
+- The app restriction contains six object types, five link definitions, and three saved actions. The OAuth request asks for Ontology read/write scopes and `offline_access`; the user's Foundry permissions and app restrictions still apply.
+- Customer and ApprovalRequest use timestamp-compatible derived datasets; the original uploaded sources remain preserved. All six Ontology object types showed indexed fictional records.
+- `UpdateCaseStatus`, `AssignCaseToEmployee`, and `UpdateProjectStatus` were saved and selected in the app restriction. The action editor's Test Run pane was empty at the time of inspection, so no action Test Run was completed.
+- Approval actions were held because the requester field did not provide a trustworthy mapping to the signed-in Foundry person.
 
-`OperationalCase`, `ApprovalRequest`, and `Project` already had edits enabled when checked. `UpdateCaseStatus`, `AssignCaseToEmployee`, and `UpdateProjectStatus` are saved and restricted to the app. `ApproveRequest` and `RejectRequest` are held because current fictional Employee IDs cannot be mapped safely to Foundry user IDs. On 2026-10-14, the Customer and ApprovalRequest legacy timestamp mismatches were fixed with derived datasets; both object types now show **Indexed** with four objects. The action editor's Test Run form is empty, so no action test has been submitted.
+These are dated Foundry UI observations; recheck the workspace before relying on them in a live walkthrough.
 
-## Repository implementation
+## Repository implementation reviewed on 2026-10-24
 
-Developer Console generated `@ontix-web-integration/sdk@0.2.0` using generator 2.80.0. The tarball is checked into `foundry/generated-sdk/`; official `@osdk/client`, `@osdk/oauth`, and `@osdk/foundry` dependencies are installed. Foundry mode now performs snapshot-paged reads of all six generated object types and calls the three saved Ontology actions from server-side handlers. These calls are not live-verified. Full dashboard CRUD and approval decisions remain incomplete.
+- The generated `@ontix-web-integration/sdk@0.2.0` package is checked into `foundry/generated-sdk/`.
+- Foundry mode implements a per-user Authorization Code + PKCE login path with opaque HttpOnly sessions, encrypted tokens in a shared Upstash store, and default-deny group-to-role mapping.
+- The server reads all six generated object types with bounded snapshot pagination. A selected-record panel traverses generated `$link` accessors through a validated, no-store route, returning at most eight visible records per many-valued relationship.
+- Server-side workflows call the three generated saved actions after validating the user's role and the permitted status transition. Foundry remains the permission and action-rule authority.
+- Neon workspace remains a separate Neon/Prisma provider with its own Better Auth path. Foundry mode does not fall back to Neon.
 
-The repository also contains Next.js Route Handlers for OAuth initiation, callback, refresh-token support, and local disconnect. The current flow binds state and PKCE to the signed-in local user, uses PKCE S256, keeps the verifier in an integrity-protected HttpOnly cookie, encrypts Foundry tokens with AES-256-GCM, and persists them in an additive `FoundryConnection` table. This is still coupled to the local Better Auth identity and Prisma session/token storage; it is not yet a Foundry-only login. `DATABASE_URL`, `DIRECT_DATABASE_URL`, and `BETTER_AUTH_SECRET` are absent from the local environment, so OAuth persistence has not been exercised.
-
-Better Auth remains the local user, session, and role provider. Foundry OAuth is a linked user grant, not a replacement identity provider. The Integrations page can report OSDK verified only after all six object reads succeed for the signed-in Foundry user. No such live check has succeeded yet. `DATA_PROVIDER=foundry` remains fail-closed for business data and must not use Neon records as fallback.
+The Foundry sign-in, object reads, relationship traversals, and action calls remain **unverified end to end**. The group-list endpoint used to assign app roles is preview-only and must be validated against the Developer Console restriction during a real login. The local environment contains private server configuration, but its presence is not evidence of a successful Redis or Foundry request; values are intentionally not recorded here.
 
 ## Remaining verification
 
-- Verify the now-indexed Customer and ApprovalRequest records through an authenticated OSDK request.
-- Repair the Test Run pane so action rules can be verified without committing edits.
-- Establish a reliable Foundry user-to-Employee identity mapping, then implement and test `ApproveRequest` and `RejectRequest` with atomic approval/case edits.
-- Regenerate OSDK after those actions are saved, then implement and verify supported relationship reads and the approved action calls.
-- Replace local Better Auth identity and Prisma-backed token persistence only after a secure Foundry session strategy is selected and verified.
-- Complete live Foundry consent, six OSDK reads, link traversals, one permitted action, token refresh, logout/disconnect, expiry/revocation, and unauthorized access tests.
-- Keep the current dual-provider implementation intact until Foundry covers authentication, business persistence, authorization, sessions, workflows, and audit history.
+1. Complete a real Foundry login and confirm group mapping, session storage, and callback behavior.
+2. Exercise all six OSDK reads and each configured `$link` using the restricted app and representative fictional records.
+3. Verify one allowed saved action and denied/invalid transitions in Foundry; do not use a regular submission as a substitute for the still-empty Test Run pane without an explicit reviewed plan.
+4. Verify refresh rotation/concurrency, logout, token expiry or revocation, session-store failure, and unauthorized user behavior.
+5. Keep the Neon workspace separate, and capture production cloud/container/CI delivery evidence before claiming those capabilities.
+6. Add approval decision actions only after a trusted Foundry-user-to-Employee identity mapping and atomic two-object action rules exist.
 
-## References
-
-- [OAuth2 clients for Foundry](https://www.palantir.com/docs/foundry/platform-security-third-party/writing-oauth2-clients)
-- [Application restrictions](https://www.palantir.com/docs/foundry/developer-console/application-restrictions)
-- [TypeScript OSDK v2](https://www.palantir.com/docs/foundry/ontology-sdk/typescript-osdk)
-- [Ontology action types](https://www.palantir.com/docs/foundry/action-types/getting-started)
-- [Action Test Run](https://www.palantir.com/docs/foundry/action-types/test-run)
+See [project capabilities](PROJECT_CAPABILITIES.md), [project walkthrough](PROJECT_WALKTHROUGH.md), and [OSDK integration](OSDK_INTEGRATION.md) for the current project evidence and interview walkthrough.

@@ -102,13 +102,13 @@ export function OntologyModelExplorer({
   return (
     <>
       <PageHeader
-        eyebrow="DATA MODEL · LOCAL SIMULATION"
+        eyebrow="DATA MODEL"
         title="Connected operations model"
       />
 
       <div className="mb-[18px] flex items-center gap-3 rounded-[11px] border border-[color-mix(in_srgb,var(--info)_25%,var(--border))] bg-[color-mix(in_srgb,var(--info)_5%,var(--surface))] px-[15px] py-[13px]" role="note">
         <span className="grid size-[34px] shrink-0 place-items-center rounded-[9px] bg-[color-mix(in_srgb,var(--info)_12%,var(--surface))] text-info"><Database size={17} aria-hidden="true" /></span>
-        <div className="grid min-w-0 flex-1 gap-[3px]"><strong className="text-xs font-semibold">Simulated Ontology-style view</strong><span className="text-[11px] leading-[1.5] text-muted">Neon PostgreSQL is the active source. Relationship queries run on the server; workflow actions remain in the existing permission-checked workspace.</span></div>
+        <div className="grid min-w-0 flex-1 gap-[3px]"><strong className="text-xs font-semibold">Connected operations model</strong><span className="text-[11px] leading-[1.5] text-muted">Neon PostgreSQL is the active source. Relationship queries run on the server; workflow actions remain in the existing permission-checked workspace.</span></div>
         <span className="inline-flex shrink-0 items-center gap-[6px] rounded-full border border-border bg-surface px-2 py-[5px] text-[10px] font-semibold text-muted"><CircleHelp size={13} aria-hidden="true" /> Foundry not connected</span>
       </div>
 
@@ -124,7 +124,7 @@ export function OntologyModelExplorer({
               </button>
             ))}
           </div>
-          <div className="mt-[15px] flex items-start gap-[7px] border-t border-border pt-[13px] text-[10px] leading-[1.5] text-muted"><GitBranch size={14} aria-hidden="true" /> Relationships are resolved from the live Local Demo database.</div>
+          <div className="mt-[15px] flex items-start gap-[7px] border-t border-border pt-[13px] text-[10px] leading-[1.5] text-muted"><GitBranch size={14} aria-hidden="true" /> Relationships are resolved from the active Neon database.</div>
         </section>
 
         <section className="min-w-0 rounded-xl border border-border bg-surface p-[19px] shadow-[var(--shadow-sm)] max-[820px]:px-[13px] max-[820px]:py-[15px]" aria-labelledby="ontology-query-title">

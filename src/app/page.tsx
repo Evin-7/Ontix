@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 const signInMessages: Record<string, string> = {
   "setup-required": "Foundry sign-in is not ready. Check the server setup details below.",
-  "demo-unavailable": "Demo sign-in is not available right now. Please try again later.",
+  "demo-unavailable": "Workspace access is not available right now. Please try again later.",
   "access-denied": "Your Foundry account is not assigned to a configured Ontix access group.",
   failed: "We couldn’t complete sign-in. Please try again.",
   denied: "Foundry sign-in was cancelled.",
@@ -62,7 +62,7 @@ async function FoundrySignIn({ searchParams }: { searchParams?: Promise<{ foundr
           <ErrorToast message={message} clearQueryParams={["foundry", "reason"]} />
           <div className="mt-7 grid gap-3">
             <a className="mt-0 flex min-h-12 w-full items-center justify-center rounded-[9px] bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" href="/api/foundry/sign-in">Continue with Palantir Foundry</a>
-            <a className="mt-0 flex min-h-11 w-full items-center justify-center rounded-[9px] border border-border bg-surface px-4 text-[13px] font-semibold text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" href="/demo-login">Explore Demo</a>
+            <a className="mt-0 flex min-h-11 w-full items-center justify-center rounded-[9px] border border-border bg-surface px-4 text-[13px] font-semibold text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" href="/workspace-login">Explore workspace</a>
           </div>
         </div>
       </section>

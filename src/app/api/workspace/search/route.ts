@@ -13,7 +13,7 @@ const routeByType = {
 export async function GET(request: Request) {
   const noStore = { "Cache-Control": "private, no-store" };
   const current = await getCurrentDemoSession();
-  if (!current.session) return NextResponse.json({ error: "Sign in to explore the demo workspace." }, { status: 401, headers: noStore });
+  if (!current.session) return NextResponse.json({ error: "Sign in to view workspace records." }, { status: 401, headers: noStore });
   const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   if (query.length < 2 || query.length > 100) return NextResponse.json({ results: [] }, { headers: noStore });
 

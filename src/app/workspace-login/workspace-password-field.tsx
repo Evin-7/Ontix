@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-export function DemoPasswordField() {
+export function WorkspacePasswordField() {
   const [visible, setVisible] = useState(false);
 
   return (
     <div className="relative">
       <input
         className="min-h-11 w-full rounded-[var(--radius-control)] border border-border bg-surface py-0 pl-[11px] pr-[46px] text-sm text-foreground outline-none placeholder:text-muted focus:border-primary focus:ring-[3px] focus:ring-primary/15"
-        id="demo-password"
+        id="workspace-password"
         name="password"
         type={visible ? "text" : "password"}
         autoComplete="current-password"

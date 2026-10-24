@@ -1,59 +1,69 @@
 # TypeScript OSDK integration
 
-## Current state
+## Current implementation
 
-Ontix now has a public Foundry OAuth client configuration and a server-side Authorization Code + PKCE flow. It binds a Foundry grant to the currently signed-in Ontix account, encrypts access and rotating refresh tokens in a dedicated Neon table, and keeps the OAuth verifier in an integrity-protected HttpOnly cookie. The browser never receives Foundry tokens. A Foundry account link alone is **not** reported as an OSDK connection.
+Developer Console generated `@ontix-web-integration/sdk@0.2.0` with generator 2.80.0. The checked-in package matches the six Ontology object types, five link definitions, and three saved actions described in [Foundry setup](FOUNDRY_SETUP.md).
 
-The Developer Console app is a public client with user permissions and callback `http://127.0.0.1:3000/api/foundry/oauth/callback`. Its resource restriction contains six Ontix object types, five links, and three saved action types. Developer Console generated SDK npm package `@ontix-web-integration/sdk@0.2.0` with generator 2.80.0; the package tarball is stored under `foundry/generated-sdk/`. Customer and ApprovalRequest indexing were repaired using timestamp-compatible derived datasets. The server-only OSDK client reads all six types with snapshot paging and invokes the three saved actions through guarded server actions. No authenticated live OSDK request or relationship traversal has succeeded. Approval actions are not yet configured.
+Foundry mode currently has these server-side paths:
 
-The existing provider modes remain separate. Neon Local Demo uses Prisma and remains the source of Ontix accounts, roles, workflows, and demo business records. Foundry mode fails closed; it does not fall back to Neon. Do not remove Neon until Foundry data, authentication, authorization, sessions, and audit requirements have been independently replaced and verified.
+- Bounded snapshot-paged reads for Customer, Project, Employee, Team, OperationalCase, and ApprovalRequest in `src/server/providers/foundry/workspace.ts`.
+- One-hop relationship traversal through generated `object.$link.*` accessors in `src/server/providers/foundry/relationships.ts`. The route validates the object type and ID, requires a Foundry session, returns no-store data, and limits each many-valued link to eight displayed records.
+- Calls to `UpdateCaseStatus`, `AssignCaseToEmployee`, and `UpdateProjectStatus` in `workflows.ts`, with role, status-transition, and input checks before OSDK action calls.
+- A separate read-only six-object verification control in the Integrations view.
+
+The Neon workspace remains a separate Neon/Prisma application with fictional development records. Its relationship explorer resolves PostgreSQL relationships on the server. Foundry mode never uses Neon as a fallback.
+
+**Live verification status:** none of the Foundry sign-in, OSDK read, link, or action paths has been completed as a successful authenticated end-to-end run. Code presence and Foundry UI configuration do not establish a working integration. See [implementation status](IMPLEMENTATION_STATUS.md) for the evidence dates and remaining checks.
+
+## Generated link surface
+
+| Source object | Generated links used by the detail drawer |
+| --- | --- |
+| Customer | `projects` |
+| Project | `customer`, `operationalCases` |
+| OperationalCase | `project`, `assignedEmployee`, `approvalRequests` |
+| Employee | `team`, `assignedCases` |
+| Team | `employees` |
+| ApprovalRequest | `operationalCase` |
+
+The UI loads these only after a user expands **Ontology relationships** for one record. It does not issue a relationship query for every row in a list. Results show names/IDs and links to the related object page; they do not return raw Foundry payloads or tokens.
 
 ## Authentication and server boundary
 
-Keep Better Auth as Ontix's local sign-in and role boundary while Foundry OAuth is introduced as a linked per-user authorization. Foundry's public OAuth client does not by itself replace Ontix authentication or provide a trusted identity mapping. Every Next.js Route Handler and Server Action must continue to enforce `requireActor()` and the relevant Ontix permission. Foundry separately intersects the OAuth grant with the app's resource restrictions and the consenting Foundry user's own permissions.
+Foundry mode uses Authorization Code + PKCE, an opaque HttpOnly session cookie, encrypted server-side OAuth tokens, and configured Foundry group-to-role mappings. The OSDK client is created only in server-only modules using the current user's token. The browser receives only the selected record's bounded view data and relationship summaries. Foundry continues to enforce the consenting user's permissions and the Developer Console app restrictions; UI flags are not a substitute for those controls.
 
-The flow uses the official Foundry authorization and token endpoints with Authorization Code + PKCE S256. Refresh-token rotation is serialized using a database row lock. Tokens are encrypted using AES-256-GCM and a private 32-byte key. Disconnect deletes the local encrypted tokens; it does not silently claim that Foundry consent was revoked.
+The Neon workspace retains its separate Better Auth and Neon/Prisma path. Do not remove that provider until the Foundry mode covers all required identity, role, session, workflow, persistence, and audit behavior and those behaviors have been verified. Approval actions remain intentionally absent because the model does not provide a trusted mapping between the requester employee and the signed-in Foundry person.
 
-Use `getFoundryAccessToken(authUserId)` only in server-only code to provide an OSDK bearer token. `src/server/providers/foundry/client.ts` creates a per-request client from the generated `$ontologyRid` and passes a token-provider callback to `createClient`. Do not put Foundry tokens, the encryption key, or privileged OSDK clients in a Client Component, browser storage, logs, or public environment variables. Use the enrollment-generated package's exact methods and types.
+## Installation and regeneration
 
-## OSDK installation
+The SDK tarball is checked into `foundry/generated-sdk/ontix-web-integration-sdk-0.2.0.tgz` and installed through the local package reference in `package.json`. `@osdk/client`, `@osdk/oauth`, and `@osdk/foundry` versions are recorded in `package.json` and `package-lock.json`. Keep any short-lived registry token out of source control and runtime environment. Regenerate the package after changing object, link, or action definitions in Foundry, then review the generated type changes before adapting application code.
 
-Developer Console published `@ontix-web-integration/sdk@0.2.0`. The checked-in tarball corresponds to six object types, five links, and the three saved actions. The console's generated package command specified `@osdk/client@^2.80.0`, `@osdk/oauth@^1.1.1`, and `@osdk/foundry`; compatible current package versions are recorded in `package.json`/`package-lock.json`. Keep any short-lived registry token out of source control and runtime environment. Generate a new OSDK version if the Ontology resources or action types change.
+## Environment
 
-The Foundry page now reads bounded snapshot pages for each generated object type, maps generated records to server-side workspace DTOs, and exposes the three saved workflow actions. The UI reports only data returned by those Foundry reads. Relationship traversal and live OSDK/action verification remain outstanding.
+Foundry mode requires server-side values for `FOUNDRY_STACK_URL`, `FOUNDRY_CLIENT_ID`, `FOUNDRY_REDIRECT_URI`, `ONTIX_APPLICATION_URL`, `FOUNDRY_TOKEN_ENCRYPTION_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, and at least one `FOUNDRY_*_GROUP_IDS` role mapping. The callback must exactly match Developer Console. The encryption key and Redis token are secrets; the OAuth client ID is public but remains server configuration. See [`.env.example`](../.env.example) and [Foundry group authorization](FOUNDRY_GROUP_AUTH.md).
 
-## Environment variables
+Do not put Foundry tokens, encryption keys, or the session-store token in `NEXT_PUBLIC_*`, Client Components, logs, or commits. Do not mix Foundry and Neon credentials. Local environment configuration does not prove an authenticated request succeeded.
 
-See `.env.example`. Runtime configuration uses:
+## Verification gates
 
-- `FOUNDRY_STACK_URL`: HTTPS origin for the Foundry enrollment.
-- `FOUNDRY_CLIENT_ID`: public Developer Console client ID; not a secret.
-- `FOUNDRY_REDIRECT_URI`: exact callback registered with the client.
-- `FOUNDRY_TOKEN_ENCRYPTION_KEY`: private 32-byte Base64 key used for token-at-rest encryption.
-- The generated SDK exports `$ontologyRid`; no separate public environment variable is needed.
+Before describing the project as a live integration, complete and record:
 
-There is no client secret for this public client. Keep the key in ignored `.env.local` locally and a server-only secret store in any future deployment. Do not deploy during this integration task.
+1. A Foundry sign-in and callback using the registered public client and a user in an allowed Ontix group.
+2. All six authenticated object reads with meaningful fictional records.
+3. Every configured relationship traversal, including empty and permission-denied cases.
+4. One permitted action and one denied/invalid transition, with resulting Foundry state checked after each.
+5. Refresh-token rotation, concurrent refresh, logout, expired/revoked session, group-check failure, and unauthorized access behavior.
+6. The Neon workspace still works independently and there is no Foundry-to-Neon fallback.
 
-## Verification boundary
-
-The status may say **OSDK verified** only after a successful authenticated OSDK request. A complete verification run must record:
-
-1. Foundry consent and callback completion for the signed-in local user.
-2. Successful authenticated reads for all six object types with realistic data.
-3. Successful traversal of each configured relationship.
-4. A permitted action against fictional data and verified resulting Foundry state.
-5. Token refresh, disconnect, expired/revoked session, authorization denial, and unauthorized Ontix user behavior.
-6. Neon Local Demo still working, with no Foundry-to-Neon fallback.
-
-No live Foundry request has succeeded yet. The local OAuth flow cannot be exercised until private Neon branch URLs and `BETTER_AUTH_SECRET` are configured and the additive migration is applied. Unit tests for OAuth state/token encryption do not establish a live connection.
+The Foundry action editor's Test Run pane was empty when last inspected; do not submit a regular action as a substitute for Test Run without an explicit, reviewed plan. No deployment has been made from this checkout.
 
 ## Official references
 
 - [Create a Developer Console application](https://www.palantir.com/docs/foundry/developer-console/create-application)
-- [Application resource restrictions and requested OAuth scopes](https://www.palantir.com/docs/foundry/developer-console/application-restrictions)
+- [Application restrictions and OAuth scopes](https://www.palantir.com/docs/foundry/developer-console/application-restrictions)
 - [Public client permissions](https://www.palantir.com/docs/foundry/developer-console/permissions)
 - [Writing OAuth2 clients for Foundry](https://www.palantir.com/docs/foundry/platform-security-third-party/writing-oauth2-clients)
-- [Bootstrap a TypeScript application](https://www.palantir.com/docs/foundry/developer-console/how-to-bootstrapping-typescript)
-- [Bootstrap a server-side TypeScript application](https://www.palantir.com/docs/foundry/developer-console/how-to-bootstrapping-server-side-typescript)
-- [TypeScript OSDK](https://www.palantir.com/docs/foundry/ontology-sdk/typescript-osdk)
+- [Server-side TypeScript OSDK bootstrap](https://www.palantir.com/docs/foundry/developer-console/how-to-bootstrapping-server-side-typescript)
+- [TypeScript OSDK v2](https://www.palantir.com/docs/foundry/ontology-sdk/typescript-osdk)
 - [TypeScript OSDK migration guide](https://www.palantir.com/docs/foundry/ontology-sdk/typescript-osdk-migration)
+- [Ontology action types](https://www.palantir.com/docs/foundry/action-types/getting-started)

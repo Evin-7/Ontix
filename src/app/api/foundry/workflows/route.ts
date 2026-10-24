@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   }
 
   if (await hasDemoSessionCookie()) {
-    return NextResponse.json({ ok: false, code: "forbidden", error: "Editing is unavailable in demo mode." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ ok: false, code: "forbidden", error: "This read-only workspace does not allow edits." }, { status: 403, headers: { "Cache-Control": "no-store" } });
   }
 
   if (request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() !== "application/json") {

@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FoundryCaseDetailActions, FoundryProjectStatusDialog } from "@/components/foundry/foundry-workflow-forms";
+import { RecordRelationships } from "@/components/foundry/record-relationships";
 
 export type ExplorerFilter = { key: string; label: string; options: string[] };
 export type ExplorerColumn = { key: string; label: string };
@@ -70,7 +71,7 @@ export function RecordExplorer({
       : { key, direction: "asc" });
   }
 
-  return <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-sm)]" aria-label={isDemo ? "Demo workspace records" : "Foundry records"}>
+  return <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-sm)]" aria-label={isDemo ? "Sample workspace records" : "Foundry records"}>
     <div className="flex min-h-[62px] items-center gap-2.5 border-b border-border px-[15px] py-3 max-[760px]:flex-wrap max-[760px]:p-2.5">
       <label className="flex w-[min(100%,310px)] items-center gap-2 text-muted max-[760px]:w-full max-[760px]:basis-full"><Search size={17} aria-hidden="true" /><span className="sr-only">Search records</span><Input className="!min-h-9 !border-transparent !bg-surface-muted !text-[11px]" value={query} onChange={(event) => { setPage(1); setQuery(event.target.value); }} placeholder="Filter this list…" /></label>
       {filters.length > 0 && <div className="flex items-center gap-[7px] text-muted max-[760px]:min-w-0 max-[760px]:flex-1 max-[760px]:flex-wrap max-[390px]:max-w-[calc(100vw-90px)] max-[390px]:overflow-x-auto"><SlidersHorizontal className="max-[390px]:hidden" size={15} aria-hidden="true" />
@@ -114,7 +115,8 @@ export function RecordExplorer({
         <DialogHeader className="!gap-[7px]"><span className="text-[9px] font-bold tracking-[.12em] text-primary">{selected.kind.toUpperCase()} RECORD</span><DialogTitle className="!text-[25px] !tracking-[-.04em] max-[760px]:!text-[21px]">{selected.title}</DialogTitle><DialogDescription>{selected.subtitle} · {selected.id}</DialogDescription></DialogHeader>
         <div className="flex items-center justify-between border-y border-border py-[14px]"><span className="text-[10px] text-muted">Current status</span><StatusBadge className="!px-[7px] !py-1 !text-[9px] capitalize" status={selected.status} /></div>
         <div className="grid grid-cols-2 gap-x-[18px] max-[760px]:gap-x-3">{Object.entries(selected.values).filter(([key, value]) => key !== "status" && value).map(([key, value]) => <div className="min-w-0 border-b border-border py-[13px]" key={key}><dt className="mb-[5px] text-[10px] text-muted capitalize max-[760px]:text-[9px]">{key.replaceAll("_", " ")}</dt><dd className="m-0 text-[11px] leading-[1.5] text-foreground [overflow-wrap:anywhere] max-[760px]:text-[9px]">{value}</dd></div>)}</div>
-        {isDemo && (selected.kind === "Project" || selected.kind === "Case") && <div className="mt-5 rounded-lg border border-border bg-surface-muted px-3 py-[11px] text-[10px] text-muted">Editing is unavailable in demo mode.</div>}
+        {!isDemo && <RecordRelationships key={`${selected.kind}:${selected.id}`} record={selected} />}
+        {isDemo && (selected.kind === "Project" || selected.kind === "Case") && <div className="mt-5 rounded-lg border border-border bg-surface-muted px-3 py-[11px] text-[10px] text-muted">This read-only workspace does not allow edits.</div>}
         {!isDemo && selected.action?.type === "project" && <div className="mt-[22px] rounded-[10px] border border-border bg-surface-muted p-4"><h3 className="m-0 text-xs font-semibold">Workflow</h3><FoundryProjectStatusDialog projectId={selected.id} projectName={selected.title} initialStatus={selected.action.initialStatus} /></div>}
         {!isDemo && selected.action?.type === "case" && <div className="mt-[22px] rounded-[10px] border border-border bg-surface-muted p-4"><h3 className="m-0 text-xs font-semibold">Case actions</h3><FoundryCaseDetailActions caseId={selected.id} caseTitle={selected.action.caseTitle} assignedEmployeeId={selected.action.assignedEmployeeId} employees={selected.action.employees} canResolve={selected.action.canResolve} /></div>}
         {selected.kind === "Approval" && <div className="mt-5 rounded-lg border border-border bg-surface-muted px-3 py-[11px] text-[10px] text-muted">Read only · Approval decisions are not configured as Ontology actions.</div>}

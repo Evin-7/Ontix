@@ -1,6 +1,6 @@
 # Palantir access research
 
-Research checked on 2026-10-13 against Palantir’s public documentation, Palantir’s official Developer Community, and the Palantir-maintained OSDK TypeScript repository.
+Research checked on 2026-10-13 against Palantir’s public documentation, Palantir’s official Developer Community, and the Palantir-maintained OSDK TypeScript repository. This is a dated research snapshot; see [current implementation status](IMPLEMENTATION_STATUS.md) for later code changes.
 
 ## Findings
 
@@ -9,7 +9,7 @@ Research checked on 2026-10-13 against Palantir’s public documentation, Palant
 - **Payment requirements are not publicly established by the sources reviewed.** The public docs and the signup form as accessed for this research did not let us verify whether payment-card information is requested. We should not promise that a card is or is not required.
 - **No shared developer credentials, anonymous Foundry API, or general-purpose public Foundry sandbox was found.** Tutorials, starter packs, and sample projects are developer resources. The Carbon tutorial’s Training and Resources Project is inside a Foundry enrollment; it is not a public unauthenticated environment.
 - **Public Applications are a configured Foundry feature, not a free sandbox.** They require an existing enrollment, application setup, and security approval.
-- **No real Ontix-to-Foundry OSDK connection has been established.** A later UI check on 2026-10-13 verified the user's authenticated Brave session could open the provided enrollment and the `ontix` project. That check did not use an API token or make an Ontix OSDK request. There is still no generated Ontology SDK, completed client registration, or successful authenticated Foundry response from Ontix.
+- **At the time of this research, no real Ontix-to-Foundry OSDK connection had been established.** A UI check on 2026-10-13 verified the user's authenticated Brave session could open the provided enrollment and the `ontix` project. That check did not use an API token or make an Ontix OSDK request. The generated SDK and app configuration were added later; an authenticated end-to-end app request remains unverified.
 
 ## Official setup path
 
@@ -18,8 +18,8 @@ Research checked on 2026-10-13 against Palantir’s public documentation, Palant
 3. Create the Developer Console app as a **public client** with **user permissions** and **Authorization Code + PKCE**. Select only the needed Ontology object, link, and action resources. For Ontix, the app `Ontix Web Integration` now exists with callback `http://127.0.0.1:3000/api/foundry/oauth/callback` and six object types/five links. Palantir intersects user permissions, app resource restrictions, and requested operation scopes.
 4. Create the needed Ontology actions and confirm their parameters and transition rules against the actual property schemas. Run Test Run on fictional records and inspect whether any configured function or webhook could cause external side effects. Add the saved actions to the app's resource restrictions.
 5. Generate the application-specific TypeScript OSDK v2. Palantir's generated package is enrollment-specific and distributed from that enrollment's package registry; a generic npm package cannot provide Ontix's generated ontology types. Install only the package name, version, registry, and methods shown by Developer Console.
-6. The existing Next.js server uses the public client’s PKCE flow and a per-user Foundry grant. It keeps tokens encrypted server-side, while Better Auth remains the local Ontix sign-in and role system. The Foundry grant does not by itself replace Ontix identity, sessions, authorization, or persistence. No client secret exists for the public client. Never add `NEXT_PUBLIC_` prefixes or commit encryption keys/tokens.
-7. Once the local development database and secret are configured, test a real OSDK read, all relationships, a permitted action, refresh, disconnect, expiry, and authorization denial. Do not remove Neon or claim an integration until those tests succeed.
+6. The current Foundry mode has its own server-side public-client PKCE sign-in and group-derived roles; the Neon workspace keeps its separate Better Auth sign-in. The public OAuth client has no client secret. Never add `NEXT_PUBLIC_` prefixes or commit encryption keys/tokens.
+7. Test a real OSDK read, all relationships, a permitted action, refresh, disconnect, expiry, and authorization denial using the configured shared session store. Do not remove Neon or claim an integration until those checks succeed.
 
 Palantir’s official docs do not establish that a payment card is required for Developer Tier signup. Verify this in the live signup process before proceeding if the form asks for billing information.
 
@@ -27,7 +27,7 @@ Palantir’s official docs do not establish that a payment card is required for 
 
 Carbon is Palantir Foundry’s application for assembling curated, permissioned operational workspaces from Foundry resources. Its home page can include Ontology-aware search, object types, links, and modules; its menu provides navigation among workspace resources. It is unrelated to IBM Carbon Design System.
 
-Creating a Carbon workspace requires access to a Foundry enrollment and appropriate editor/administrator permissions. A workspace is stored as a file resource in a Foundry Project and can be configured through the Carbon UI or edited as YAML. The docs reviewed describe no Carbon-specific public REST API or SDK for creating or managing workspaces from Ontix. An authorized Carbon administrator can add a deployed Ontix URL as an external navigation link; that is navigation only and does not make Ontix a Carbon workspace or provide shared authentication/OSDK access. The official Carbon tutorial uses a Foundry-internal Training and Resources Project, not a public demo environment.
+Creating a Carbon workspace requires access to a Foundry enrollment and appropriate editor/administrator permissions. A workspace is stored as a file resource in a Foundry Project and can be configured through the Carbon UI or edited as YAML. The docs reviewed describe no Carbon-specific public REST API or SDK for creating or managing workspaces from Ontix. An authorized Carbon administrator can add a deployed Ontix URL as an external navigation link; that is navigation only and does not make Ontix a Carbon workspace or provide shared authentication/OSDK access. The official Carbon tutorial uses a Foundry-internal Training and Resources Project, not a public sample environment.
 
 References: [Carbon overview](https://www.palantir.com/docs/foundry/carbon/overview), [workspace overview](https://www.palantir.com/docs/foundry/carbon/workspaces-overview), [create a workspace](https://www.palantir.com/docs/foundry/carbon/workspaces-create), [permissions](https://www.palantir.com/docs/foundry/carbon/permissions-configure), [YAML configuration](https://www.palantir.com/docs/foundry/carbon/code-reference), [external links](https://www.palantir.com/docs/foundry/carbon/configuration-general).
 

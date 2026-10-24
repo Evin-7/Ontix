@@ -1,6 +1,6 @@
 # Foundry group-based Ontix access
 
-Reviewed 2026-10-14. This is the Foundry-only authentication path under `DATA_PROVIDER=foundry`. It is additive; the current Neon/Prisma/Better Auth demo remains intact until the full Ontology replacement is verified.
+Code and local configuration reviewed 2026-10-24; Foundry UI/security observations were last checked 2026-10-14. This is the Foundry-only authentication path under `DATA_PROVIDER=foundry`. It is additive; the Neon/Prisma/Better Auth Neon workspace remains intact until the full Ontology replacement is verified.
 
 ## Login and authorization flow
 
@@ -24,15 +24,15 @@ Set these privately in `.env.local` (or the production secret store):
 
 Use a non-global/region-bound Redis database close to the Next.js runtime. The Upstash client enables read-your-writes, and state transitions use Redis atomic commands/Lua. Upstash documents eventual consistency for global databases, so global replication is not suitable for these revocation and rotating-token records. If the chosen deployment cannot provide the required read-after-write behavior through failover, use a strongly consistent session service such as a Durable Object after evaluating its hosting and cost; do not enable Ontix actions until that guarantee is tested.
 
-No Upstash instance has been created or paid for and no credentials were configured during implementation. A shared session store is infrastructure only; it must not contain Ontix business records.
+Private local environment entries for the shared session store exist, but no authenticated request has verified their connectivity or consistency. Do not treat the presence of configuration as proof that the store works. A shared session store is infrastructure only; it must not contain Ontix business records.
 
 ## Limits and verification status
 
 - Palantir documents `listCurrent` as a **preview** endpoint that returns current direct and transitive group membership without requiring a particular OAuth scope. Preview APIs may change or be removed. The official docs do not describe a stable OAuth ID token or userinfo API, and this endpoint returns group objects rather than a stable individual user ID.
 - Developer Console currently shows the app restricted to six object types, five links, and the three saved actions. Its enabled operations are Ontologies read/write and media sets read/write; it does not have `api:admin-read`. The group endpoint's compatibility with these application restrictions has not been confirmed by a live request. Do not add `api:admin-read` unless the user approves the additional scope.
 - Group IDs are role categories, not person identity. This path can safely gate broad role classes; it cannot map a user to an `Employee`, enforce self-approval rules, or provide a person-level Ontix audit actor. Foundry action logs remain the authoritative user attribution for eventual Ontology actions.
-- The callback and root Foundry path are implemented. After a group-gated session exists, the page reads all six generated object types with snapshot paging, shows exact Ontology counts and bounded record previews, and offers only the three saved workflow actions with server-side role and status checks. The same page reuses those reads for connection status to avoid duplicate OSDK calls. They are **not live-verified**: no shared-store credentials or role group IDs are configured in the local environment. The Palantir Developer Console restriction may also reject the preview Admin API even though its API documentation lists no required scope; that must be observed in an authenticated login attempt.
-- The current Ontology still lacks the required approval decision action types and trusted Employee-to-Foundry identity mapping. The Foundry page is therefore a group-gated connection/query demonstration, not the full business workspace. Customer, project, employee, case, approval CRUD and workflow actions remain on the preserved legacy demo path pending the Ontology replacement.
+- The callback and Foundry workspace path are implemented. After a group-gated session exists, the page reads all six generated object types with snapshot paging, shows Ontology counts and bounded record previews, traverses selected-record links through generated `$link` accessors, and offers the three saved workflow actions with server-side role and status checks. These paths are **not live-verified**. The Palantir Developer Console restriction may reject the preview Admin API; this must be observed in an authenticated login attempt.
+- The current Ontology still lacks approval decision action types and a trusted Employee-to-Foundry identity mapping. The Foundry workspace therefore does not provide approval decisions or person-level Ontix audit attribution. Neon workspace workflows remain separate and are not used as a Foundry fallback.
 
 ## Official references
 

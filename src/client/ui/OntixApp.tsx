@@ -190,7 +190,7 @@ export function OntixApp({ initialData, viewer, integrationStatus }: { initialDa
         <div className="mx-[9px] mt-[10px] mb-[27px] text-xs leading-[1.55] text-muted max-[820px]:hidden">Connected Data.<br />Smarter Operations.</div>
         <div className="flex items-center gap-2.5 rounded-[var(--radius-control)] border border-border bg-surface-muted p-2.5 max-[820px]:hidden" aria-label="Current workspace">
           <div className="grid size-[34px] shrink-0 place-items-center rounded-lg bg-primary-subtle text-primary"><Layers3 size={17} aria-hidden="true" /></div>
-          <div className="flex min-w-0 flex-1 flex-col gap-[3px]"><strong className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold">Operations</strong><span className="text-[11px] text-muted">Local Demo Mode</span></div>
+          <div className="flex min-w-0 flex-1 flex-col gap-[3px]"><strong className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold">Operations</strong><span className="text-[11px] text-muted">Operations workspace</span></div>
         </div>
         <div className="mt-7 mx-2.5 mb-[9px] text-[10px] font-bold tracking-[.12em] text-muted max-[820px]:hidden">WORKSPACE</div>
         <nav className="grid gap-1 max-[820px]:mt-[11px] max-[820px]:flex max-[820px]:gap-[5px] max-[820px]:overflow-x-auto max-[820px]:px-0 max-[820px]:pb-0.5" aria-label="Main navigation">
@@ -202,7 +202,7 @@ export function OntixApp({ initialData, viewer, integrationStatus }: { initialDa
           ))}
         </nav>
         <div className="mt-auto max-[820px]:hidden">
-          <div className="rounded-[10px] border border-border bg-surface-muted px-3 py-[13px]"><div className="mb-2 flex items-center gap-[7px] text-[10px] font-bold tracking-[.08em] text-muted"><Database size={15} aria-hidden="true" /><span>ACTIVE DATA SOURCE</span></div><strong className="block text-xs font-semibold">Neon PostgreSQL</strong><small className="mt-1 block text-[11px] text-muted">Local Demo · Foundry is not connected</small></div>
+          <div className="rounded-[10px] border border-border bg-surface-muted px-3 py-[13px]"><div className="mb-2 flex items-center gap-[7px] text-[10px] font-bold tracking-[.08em] text-muted"><Database size={15} aria-hidden="true" /><span>ACTIVE DATA SOURCE</span></div><strong className="block text-xs font-semibold">Neon PostgreSQL</strong><small className="mt-1 block text-[11px] text-muted">Foundry integration is not connected</small></div>
           <div className="mt-3 flex items-center gap-2"><div className="grid size-[34px] shrink-0 place-items-center rounded-full border border-border bg-primary-subtle text-[11px] font-bold text-primary" aria-hidden="true">{initials}</div><div className="flex min-w-0 flex-1 flex-col gap-[3px]"><strong className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-semibold">{viewer.name}</strong><span className="text-[11px] text-muted">{titleCase(viewer.role)}</span></div><form action={signOutAction}><button className="rounded-[7px] border border-border bg-surface px-[9px] py-[7px] text-[11px] text-muted hover:bg-surface-muted hover:text-foreground" aria-label="Sign out" title="Sign out">Sign out</button></form></div>
         </div>
       </aside>
